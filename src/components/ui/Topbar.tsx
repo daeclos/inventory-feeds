@@ -26,16 +26,19 @@ export default function Topbar() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSupport(true)}
-              className="text-[#404042] hover:text-[#FAAE3A] transition flex items-center gap-2"
+              className="font-bold text-[#404042] hover:text-[#FAAE3A] transition flex items-center gap-2"
               title="Contact Support"
             >
               <MessageCircle size={20} />
-              <span className="text-lg font-semibold text-[#404042]">Contact Support</span>
+              <span className="text-lg font-bold">Contact Support</span>
             </button>
           </div>
         </div>
 
-        <Link href="/" className="text-sm text-[#FAAE3A] flex items-center gap-1">
+        <Link
+          href="/"
+          className="text-sm font-bold text-[#404042] hover:text-[#FAAE3A] flex items-center gap-1 transition"
+        >
           <Power size={16} />
           Log out
         </Link>
@@ -45,5 +48,3 @@ export default function Topbar() {
     </>
   );
 }
-
-
