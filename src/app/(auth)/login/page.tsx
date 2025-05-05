@@ -16,21 +16,27 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white font-sans">
-      <div className="flex w-full max-w-2xl shadow-lg rounded-2xl overflow-hidden">
-        <div className="bg-[#FAAE3A] w-1/2 flex items-center justify-center">
+    <main className="flex min-h-screen items-center justify-center bg-white font-sans relative">
+      {/* Fondo con líneas */}
+      <div className="absolute inset-0 z-0 bg-[url('/fondo-lineas.png')] bg-center bg-cover opacity-10" />
+
+      <div className="relative z-10 w-full max-w-sm shadow-2xl rounded-2xl overflow-hidden">
+        {/* Parte superior con gradiente y logo */}
+        <div className="bg-gradient-to-b from-[#FAAE3A] to-[#F17625] w-full flex items-center justify-center p-6 rounded-t-2xl">
           <Image
             src="/logo.png"
             alt="Fountain Forward Logo"
-            width={120}
-            height={120}
+            width={100}
+            height={100}
             className="object-contain"
           />
         </div>
 
-        <div className="bg-white w-1/2 p-8 flex flex-col justify-center">
-          <h1 className="text-2xl font-semibold text-[#404042] mb-1">Sign in</h1>
-          <div className="w-10 h-1 bg-[#FAAE3A] mb-6 rounded" />
+        {/* Formulario */}
+        <div className="bg-white w-full p-8 flex flex-col justify-center">
+          <h1 className="text-3xl font-black text-[#404042] mb-1 text-center">Sign in</h1>
+          <div className="w-10 h-1 bg-[#FAAE3A] mx-auto mb-6 rounded" />
+
           <input
             className="border border-gray-300 rounded px-3 py-2 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#FAAE3A]"
             type="email"
@@ -45,9 +51,10 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
           <button
             onClick={handleLogin}
-            className="bg-[#404042] text-white py-2 rounded text-sm hover:bg-[#333]"
+            className="bg-[#404042] text-white py-2 rounded text-sm font-semibold transition-colors duration-200 hover:bg-[#FAAE3A] active:bg-[#F17625]"
           >
             Login
           </button>

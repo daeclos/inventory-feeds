@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { Sidebar } from "@/components/ui/Sidebar";
 import Topbar from "@/components/ui/Topbar";
+import { Toaster } from "react-hot-toast"; // 👈 Importa aquí
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -13,6 +14,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <main className="p-6">
           {children}
         </main>
+        <Toaster position="top-right" /> {/* 👈 Agrega esto aquí */}
       </div>
     </div>
   );
