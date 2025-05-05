@@ -20,7 +20,7 @@ export default function LoginPage() {
       <div className="flex w-full max-w-2xl shadow-lg rounded-2xl overflow-hidden">
         <div className="bg-[#FAAE3A] w-1/2 flex items-center justify-center">
           <Image
-            src="/logo ff_Mesa de trabajo 1.png"
+            src="/logo.png"
             alt="Fountain Forward Logo"
             width={120}
             height={120}

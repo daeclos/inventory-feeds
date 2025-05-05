@@ -19,10 +19,16 @@ export default function Topbar() {
     <>
       <div className="bg-white flex justify-between items-center px-6 py-4 border-b z-40">
         <div className="flex items-center gap-4">
-          <button onClick={toggleSidebar} className="text-[#404042]">
+          {/* Botón Toggle Sidebar solo con colores */}
+          <button
+            onClick={toggleSidebar}
+            className="text-[#404042] hover:text-[#FAAE3A] active:text-[#F17625] transition-all duration-200 p-1"
+            title="Toggle Sidebar"
+          >
             <Menu size={20} />
           </button>
 
+          {/* Botón Contact Support */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSupport(true)}
@@ -35,6 +41,7 @@ export default function Topbar() {
           </div>
         </div>
 
+        {/* Botón Log out */}
         <Link
           href="/"
           className="text-sm font-bold text-[#404042] hover:text-[#FAAE3A] flex items-center gap-1 transition"
