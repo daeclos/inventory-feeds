@@ -1,0 +1,36 @@
+export interface AdvertiserFormData {
+  Name?: string;
+  NameDate?: string;
+  DBA?: string;
+  DBADate?: string;
+  Website?: string;
+  WebsiteDate?: string;
+  Country?: string;
+  CountryDate?: string;
+  Address?: string;
+  AddressDate?: string;
+  City?: string;
+  CityDate?: string;
+  State?: string;
+  StateDate?: string;
+  Zip?: string;
+  ZipDate?: string;
+  Phone?: string;
+  PhoneDate?: string;
+  GMB?: string;
+  GMBDate?: string;
+  GooglePlaceId?: string;
+  GooglePlaceIdDate?: string;
+  Category?: string;
+  CategoryDate?: string;
+  Responsible?: string;
+  ResponsibleDate?: string;
+  Status?: boolean;
+  Date?: string;
+  FeatureDisplay?: boolean;
+  FeatureDisplayDate?: string;
+  FeatureVideo?: boolean;
+  FeatureVideoDate?: string;
+  FeatureSearch?: boolean;
+  FeatureSearchDate?: string;
+}

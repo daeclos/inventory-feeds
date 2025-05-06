@@ -1,4 +1,3 @@
-// ✅ Simulated advertiser list with Supabase-ready placeholder and typing
 "use client";
 
 import { useEffect, useState } from "react";
@@ -12,18 +11,11 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/components/ui/DashboardLayout";
 import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import AddAdvertiserModal from "@/components/ui/AddAdvertiserModal";
+import { AdvertiserFormData } from "@/types/advertiser";
 
-// 🔒 Define the advertiser type for TypeScript safety
 interface Advertiser {
   name: string;
   totalFeeds: number;
@@ -37,11 +29,11 @@ interface Advertiser {
 
 export default function AdvertisersPage() {
   const [advertisers, setAdvertisers] = useState<Advertiser[]>([]);
+  const [advertiserData, setAdvertiserData] = useState<AdvertiserFormData>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [activeOnly, setActiveOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [newAdvertiserName, setNewAdvertiserName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -51,23 +43,6 @@ export default function AdvertisersPage() {
     // };
     // fetchAdvertisers();
   }, []);
-
-  const handleAddAdvertiser = () => {
-    if (!newAdvertiserName.trim()) return;
-    const newAdvertiser: Advertiser = {
-      name: newAdvertiserName,
-      totalFeeds: 0,
-      lastUpdate: new Date().toLocaleString(),
-      history: "0 days",
-      customFeeds: 0,
-      videoTemplates: 0,
-      videoAdVersions: 0,
-      isActive: true,
-    };
-    setAdvertisers((prev) => [...prev, newAdvertiser]);
-    setNewAdvertiserName("");
-    setIsDialogOpen(false);
-  };
 
   const filteredAdvertisers = advertisers.filter((a) => {
     const matchesSearch = a.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -82,43 +57,19 @@ export default function AdvertisersPage() {
   return (
     <DashboardLayout>
       <div className="p-4">
-        {/* Header */}
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-2xl font-bold text-[#404042]">Advertiser Dashboard</h2>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <button className="px-4 py-2 bg-[#404042] text-white font-bold rounded hover:bg-[#FAAE3A] active:bg-[#F17625] transition">
-                + Advertiser
-              </button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-center">Add Advertiser</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="advertiserName">Advertiser Name</Label>
-                  <Input
-                    id="advertiserName"
-                    value={newAdvertiserName}
-                    onChange={(e) => setNewAdvertiserName(e.target.value)}
-                    placeholder="Enter advertiser name"
-                  />
-                </div>
-                <Button
-                  onClick={handleAddAdvertiser}
-                  className="bg-[#404042] text-white hover:bg-[#FAAE3A] active:bg-[#F17625] font-bold"
-                >
-                  Submit
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <AddAdvertiserModal
+            isDialogOpen={isDialogOpen}
+            setIsDialogOpen={setIsDialogOpen}
+            advertiserData={advertiserData}
+            setAdvertiserData={setAdvertiserData}
+            setAdvertisers={setAdvertisers}
+          />
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-          {/* Left Section */}
           <div className="text-[#404042]">
             <div className="flex items-center space-x-2 mb-2">
               <Switch
@@ -152,7 +103,6 @@ export default function AdvertisersPage() {
             </p>
           </div>
 
-          {/* Right Section */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <label htmlFor="search" className="sr-only">Search</label>
@@ -168,7 +118,7 @@ export default function AdvertisersPage() {
                 />
               </div>
             </div>
-            {["Copy", "CSV", "Excel"].map((label) => (
+            {"Copy,CSV,Excel".split(",").map((label) => (
               <button
                 key={label}
                 className="px-3 py-1 rounded font-bold text-white bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] transition"
@@ -179,7 +129,6 @@ export default function AdvertisersPage() {
           </div>
         </div>
 
-        {/* Advertiser Table */}
         <table className="min-w-full table-auto text-sm mt-6">
           <thead className="bg-[#404042] text-white">
             <tr className="text-left font-bold">
@@ -217,7 +166,6 @@ export default function AdvertisersPage() {
           </tbody>
         </table>
 
-        {/* Pagination Controls */}
         <div className="flex justify-end items-center gap-4 mt-4 text-sm text-[#404042]">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
