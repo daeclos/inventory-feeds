@@ -1,43 +1,60 @@
 "use client";
 
-import DashboardLayout from "@/components/ui/DashboardLayout";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Download, Plus } from "lucide-react";
+import SubscribedFeedsTable from "./components/SubscribedFeedsTable";
+import AddSubscriptionModal from "./components/AddSubscriptionModal";
 
-export default function CustomFeedsPage() {
+interface AdvertiserFeed {
+  advertiser: string;
+  totalRecords: number;
+  noPrice: number;
+  noImage: number;
+  customFeeds: number;
+}
+
+export default function FeedsPage() {
+  const [data, setData] = useState<AdvertiserFeed[]>([
+    { advertiser: "Alliance Auto Group LTD", totalRecords: 210, noPrice: 0, noImage: 4, customFeeds: 5 },
+    { advertiser: "Am Ford", totalRecords: 115, noPrice: 1, noImage: 0, customFeeds: 5 },
+    { advertiser: "Auffenberg Nissan", totalRecords: 940, noPrice: 11, noImage: 135, customFeeds: 5 },
+    { advertiser: "Auffenberg Volkswagen", totalRecords: 732, noPrice: 10, noImage: 45, customFeeds: 5 },
+    { advertiser: "Bill Dobson Ford", totalRecords: 115, noPrice: 8, noImage: 0, customFeeds: 6 },
+  ]);
+
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+
   return (
-    <DashboardLayout>
-      <div className="text-[#404042]">
-        <h1 className="text-2xl font-bold text-[#404042] mb-4">Subscribed Feeds per Advertiser</h1>
-        <div className="flex gap-2 mb-4">
-          <Button className="bg-[#404042] text-white text-xs px-3 py-1">+ Feed Subscription</Button>
-          <Button className="bg-[#404042] text-white text-xs px-3 py-1">Product Alias</Button>
-          <Button className="bg-[#404042] text-white text-xs px-3 py-1 ml-auto">Agency Feeds</Button>
-        </div>
-
-        <div className="mt-10 overflow-x-auto">
-          <table className="min-w-full table-auto text-sm">
-            <thead className="bg-[#404042] text-white">
-              <tr>
-                <th className="px-4 py-2 text-left">Advertiser</th>
-                <th className="px-4 py-2 text-left">Feed Name</th>
-                <th className="px-4 py-2 text-left">Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white text-[#404042]">
-              <tr>
-                <td className="px-4 py-2">Ejemplo Corp</td>
-                <td className="px-4 py-2">Main Inventory</td>
-                <td className="px-4 py-2">Active</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2">Marketing Plus</td>
-                <td className="px-4 py-2">Seasonal Campaign</td>
-                <td className="px-4 py-2">Paused</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-[#404042]">Subscribed Feeds per Advertiser</h1>
+        <Button className="bg-[#404042] text-white hover:bg-[#FAAE3A] active:bg-[#F17625]">
+          Agency Feeds
+        </Button>
       </div>
-    </DashboardLayout>
+
+      <div className="flex gap-2 mb-4">
+        <Button
+          className="bg-[#404042] text-white hover:bg-[#FAAE3A] active:bg-[#F17625]"
+          onClick={() => setShowSubscriptionModal(true)}
+        >
+          <Plus className="w-4 h-4 mr-1" /> Feed Subscription
+        </Button>
+        <Button className="bg-[#404042] text-white hover:bg-[#FAAE3A] active:bg-[#F17625]">
+          Product Alias
+        </Button>
+        <Button className="bg-[#404042] text-white hover:bg-[#FAAE3A] active:bg-[#F17625]">
+          <Download className="w-4 h-4" />
+        </Button>
+      </div>
+
+      <SubscribedFeedsTable rows={data} />
+
+      <AddSubscriptionModal
+        open={showSubscriptionModal}
+        onOpenChange={setShowSubscriptionModal}
+      />
+    </div>
   );
 }
