@@ -10,39 +10,41 @@ import {
   Package,
   Info,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Props {
   advertiser: Advertiser;
 }
 
 export function AdvertiserRow({ advertiser }: Props) {
-  // Funciones por ícono (puedes personalizarlas más adelante)
+  const router = useRouter();
+
   const handleSettingsClick = () => {
-    console.log("Settings clicked", advertiser.name);
+    router.push(`/dashboard/advertisers/${advertiser.id}`);
   };
 
   const handleSearchClick = () => {
-    console.log("Search clicked", advertiser.name);
+    router.push(`/dashboard/advertisers/${advertiser.id}/details`);
   };
 
   const handleFeedsClick = () => {
-    console.log("Feeds clicked", advertiser.name);
+    router.push(`/dashboard/feeds?advertiserId=${advertiser.id}`);
   };
 
   const handlePackageClick = () => {
-    console.log("Package clicked", advertiser.name);
+    router.push(`/dashboard/packages?advertiserId=${advertiser.id}`);
   };
 
   const handleAlertClick = () => {
-    console.log("Advertencia clicked", advertiser.name);
+    router.push(`/dashboard/alerts?advertiserId=${advertiser.id}`);
   };
 
   const handleVideoDocClick = () => {
-    console.log("Documento de Video clicked", advertiser.name);
+    alert("Funcionalidad de documentos de video aún no implementada.");
   };
 
   const handleInfoClick = () => {
-    console.log("Info clicked", advertiser.name);
+    router.push(`/dashboard/advertisers/${advertiser.id}/info`);
   };
 
   return (

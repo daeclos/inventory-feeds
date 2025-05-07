@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { AdvertiserGroup, FeedAd } from "../data/feeds";
 import { Pencil, Eye, FileText, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { v4 as uuidv4 } from "uuid";
 import AddFeedModal from "./AddFeedModal";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
 
 interface Props {
   data: AdvertiserGroup[];
@@ -50,21 +58,21 @@ export default function CustomFeedsTable({ data, onAddGlobal, showRowModal = fal
 
   return (
     <div className="rounded-md border bg-white shadow-sm overflow-auto">
-      <table className="w-full text-sm text-left">
-        <thead className="bg-[#404042] text-white">
-          <tr>
-            <th className="p-3">Advertiser Name</th>
-            <th className="p-3 text-right">Total Feed Records</th>
-            <th className="p-3 text-right">No Price</th>
-            <th className="p-3 text-right">No Image</th>
-            <th className="p-3 text-right">Custom Feeds</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="p-3">Advertiser Name</TableHead>
+            <TableHead className="p-3 text-right">Total Feed Records</TableHead>
+            <TableHead className="p-3 text-right">No Price</TableHead>
+            <TableHead className="p-3 text-right">No Image</TableHead>
+            <TableHead className="p-3 text-right">Custom Feeds</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {feeds.map((group) => (
-            <>
-              <tr key={group.advertiser} className="border-t hover:bg-gray-100">
-                <td className="p-3 flex items-center gap-2">
+            <React.Fragment key={group.advertiser}>
+              <TableRow className="border-t">
+                <TableCell className="p-3 flex items-center gap-2">
                   <span
                     className={`w-3 h-3 rounded-full inline-block ${
                       group.ads.some((ad) => ad.status)
@@ -73,22 +81,22 @@ export default function CustomFeedsTable({ data, onAddGlobal, showRowModal = fal
                     }`}
                   />
                   {group.advertiser}
-                </td>
-                <td className="p-3 text-right">{group.totalRecords}</td>
-                <td className="p-3 text-right">{group.noPrice}</td>
-                <td className="p-3 text-right">{group.noImage}</td>
-                <td
+                </TableCell>
+                <TableCell className="p-3 text-right">{group.totalRecords}</TableCell>
+                <TableCell className="p-3 text-right">{group.noPrice}</TableCell>
+                <TableCell className="p-3 text-right">{group.noImage}</TableCell>
+                <TableCell
                   className="p-3 text-right cursor-pointer"
                   onClick={() => toggleExpand(group.advertiser)}
                 >
                   {group.ads.length} <ChevronDown className="inline w-4 h-4 ml-1" />
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
 
               {expanded[group.advertiser] &&
                 group.ads.map((ad) => (
-                  <tr key={ad.id} className="border-t bg-gray-50">
-                    <td className="p-3 pl-8 font-semibold text-[#404042]">
+                  <TableRow key={ad.id} className="border-t bg-gray-50">
+                    <TableCell className="p-3 pl-8 font-semibold text-[#404042]">
                       {ad.name}
                       {showRowModal && (
                         <AddFeedModal
@@ -96,9 +104,9 @@ export default function CustomFeedsTable({ data, onAddGlobal, showRowModal = fal
                           advertisers={[group.advertiser]}
                         />
                       )}
-                    </td>
-                    <td className="p-3 text-right text-[#404042]" colSpan={3}></td>
-                    <td className="p-3 text-right text-[#404042]">
+                    </TableCell>
+                    <TableCell className="p-3 text-right text-[#404042]" colSpan={3}></TableCell>
+                    <TableCell className="p-3 text-right text-[#404042]">
                       <div className="flex justify-end gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Pencil className="w-4 h-4 text-[#F17625]" />
@@ -118,13 +126,13 @@ export default function CustomFeedsTable({ data, onAddGlobal, showRowModal = fal
                           <Trash className="w-4 h-4 text-[#F43F5E]" />
                         </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-            </>
+            </React.Fragment>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

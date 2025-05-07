@@ -5,24 +5,25 @@ import { Input } from "@/components/ui/input";
 import AdvertiserTable from "./components/AdvertiserTable";
 
 import AddAdvertiserModal from "./components/AddAdvertiserModal";
-import { mockAdvertisers } from "@/lib/data/mockAdvertisers";
 import { useDebounce } from "use-debounce";
 import { AdvertiserFormData } from "@/types/advertiser";
+import { Advertiser } from "@/types/advertiser";
 
 import DashboardLayout from "@/components/ui/DashboardLayout";
+import { useAdvertiserStore } from './store';
 
 export default function AdvertiserPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 300);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [advertiserData, setAdvertiserData] = useState<AdvertiserFormData>({});
-  const [advertisers, setAdvertisers] = useState(mockAdvertisers);
+  const advertisers = useAdvertiserStore(state => state.advertisers);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const filteredAdvertisers = advertisers.filter((adv) => {
+  const filteredAdvertisers: Advertiser[] = advertisers.filter((adv) => {
     const matchSearch = adv.name.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchStatus =
       statusFilter === "all" ||
@@ -36,7 +37,7 @@ export default function AdvertiserPage() {
   const totalPages = Math.ceil(filteredCount / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const showingAdvertisers = filteredAdvertisers.slice(startIndex, endIndex);
+  const showingAdvertisers: Advertiser[] = filteredAdvertisers.slice(startIndex, endIndex);
 
   const handlePageChange = (direction: "prev" | "next") => {
     if (direction === "prev" && currentPage > 1) {
@@ -67,7 +68,7 @@ export default function AdvertiserPage() {
             setIsDialogOpen={setIsDialogOpen}
             advertiserData={advertiserData}
             setAdvertiserData={setAdvertiserData}
-            setAdvertisers={setAdvertisers}
+            setAdvertisers={() => {}}
           />
         </div>
       </div>

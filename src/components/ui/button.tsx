@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { CORPORATE_COLORS } from "@/constants/colors"
 
 import { cn } from "@/lib/utils"
 
@@ -35,25 +36,32 @@ const buttonVariants = cva(
   }
 )
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
-  const Comp = asChild ? Slot : "button"
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "secondary" | "ghost" | "outline" | "destructive"
+  size?: "default" | "sm" | "lg" | "icon"
+  children: React.ReactNode
+}
 
+export function Button({ 
+  variant = "primary", 
+  children, 
+  className = "", 
+  ...props 
+}: ButtonProps) {
   return (
-    <Comp
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+    <button
+      className={`font-bold px-6 py-2 rounded transition-colors ${className}`}
+      style={{
+        background: variant === "primary" ? CORPORATE_COLORS.yellow : 
+                   variant === "secondary" ? "transparent" : "transparent",
+        color: variant === "primary" ? "white" : CORPORATE_COLORS.dark,
+        border: variant === "secondary" ? `1px solid ${CORPORATE_COLORS.yellow}` : "none",
+      }}
       {...props}
-    />
+    >
+      {children}
+    </button>
   )
 }
 
-export { Button, buttonVariants }
+export { buttonVariants }

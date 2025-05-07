@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 import { AdvertiserFormData } from "@/types/advertiser";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { v4 as uuidv4 } from "uuid";
+import { useAdvertiserStore } from '../store';
 
 interface Props {
   isDialogOpen: boolean;
@@ -32,10 +34,17 @@ export default function AddAdvertiserModal({
     advertiserData.Date ? new Date(advertiserData.Date) : null
   );
   const [step, setStep] = useState(1);
+  const addAdvertiser = useAdvertiserStore(state => state.addAdvertiser);
 
   useEffect(() => {
     if (!isDialogOpen) return;
-    setLocalData(advertiserData);
+    setLocalData({
+      ...advertiserData,
+      Status: typeof advertiserData.Status === 'boolean' ? advertiserData.Status : true,
+      FeatureDisplay: typeof advertiserData.FeatureDisplay === 'boolean' ? advertiserData.FeatureDisplay : false,
+      FeatureVideo: typeof advertiserData.FeatureVideo === 'boolean' ? advertiserData.FeatureVideo : false,
+      FeatureSearch: typeof advertiserData.FeatureSearch === 'boolean' ? advertiserData.FeatureSearch : false,
+    });
     setSelectedDate(advertiserData.Date ? new Date(advertiserData.Date) : null);
     setStep(1);
   }, [isDialogOpen, advertiserData]);
@@ -48,19 +57,29 @@ export default function AddAdvertiserModal({
     "Special Requests",
   ];
 
-  const detailsFields: { key: keyof AdvertiserFormData; label: string }[] = [
-    { key: "Name", label: "Name" },
+  const detailsFields: { key: keyof AdvertiserFormData; label: string; required?: boolean; type?: 'select'; options?: string[] }[] = [
+    { key: "Name", label: "Name", required: true },
     { key: "DBA", label: "Advertiser DBA" },
-    { key: "Website", label: "Website" },
-    { key: "Country", label: "Country" },
-    { key: "Address", label: "Address" },
-    { key: "City", label: "City" },
-    { key: "State", label: "State" },
-    { key: "Zip", label: "Zip" },
+    { key: "Website", label: "Website", required: true },
+    { key: "Country", label: "Country", type: 'select', options: ['USA', 'Canada', 'Australia', 'United Kingdom', 'Puerto Rico', 'Mexico'] },
+    { key: "Address", label: "Address", required: true },
+    { key: "City", label: "City", required: true },
+    { key: "State", label: "State", type: 'select', options: [
+      'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
+      'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
+      'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
+      'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico',
+      'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
+      'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
+      'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
+    ]},
+    { key: "Zip", label: "Zip", required: true },
     { key: "Phone", label: "Advertiser Phone" },
     { key: "GMB", label: "GMB Store Code" },
     { key: "GooglePlaceId", label: "Google Place ID" },
-    { key: "Category", label: "Category" },
+    { key: "Category", label: "Category", type: 'select', options: [
+      'Automotive', 'Real Estate', 'AAMG', 'Other'
+    ]},
     { key: "Responsible", label: "Responsible User" },
   ];
 
@@ -85,20 +104,85 @@ export default function AddAdvertiserModal({
 
   const handleSave = () => {
     const newAdv = {
+      id: uuidv4(),
       name: localData.Name ?? "Unnamed",
       lastUpdate: new Date().toLocaleString(),
       totalRecords: 0,
       history: "0 days",
-      customFeeds: localData.FeatureDisplay ? 1 : 0,
-      videoTemplates: localData.FeatureVideo ? 1 : 0,
-      videoAdVersions: localData.FeatureSearch ? 1 : 0,
+      customFeeds: !!localData.FeatureDisplay ? 1 : 0,
+      videoTemplates: !!localData.FeatureVideo ? 1 : 0,
+      videoAdVersions: !!localData.FeatureSearch ? 1 : 0,
       hasAds: !!localData.Status,
+      dba: localData.DBA || '',
+      status: !!localData.Status,
+      website: localData.Website || '',
+      addresses: localData.Address
+        ? [{
+            country: localData.Country || '',
+            address: localData.Address || '',
+            city: localData.City || '',
+            state: localData.State || '',
+            zip: localData.Zip || '',
+          }]
+        : [],
+      phone: localData.Phone || '',
+      gmb: localData.GMB || '',
+      placeId: localData.GooglePlaceId || '',
+      responsible: localData.Responsible || '',
+      FeatureDisplay: !!localData.FeatureDisplay,
+      FeatureDisplayDate: localData.FeatureDisplayDate || '',
+      FeatureVideo: !!localData.FeatureVideo,
+      FeatureVideoDate: localData.FeatureVideoDate || '',
+      FeatureSearch: !!localData.FeatureSearch,
+      FeatureSearchDate: localData.FeatureSearchDate || '',
     };
-
-    setAdvertisers((prev: any) => [...prev, newAdv]);
+    addAdvertiser(newAdv);
     setAdvertiserData({});
     setLocalData({});
     setIsDialogOpen(false);
+  };
+
+  const handleNextStep = () => {
+    // Validar campos requeridos en el paso 1
+    if (step === 1) {
+      const requiredFields = detailsFields.filter(field => field.required);
+      const missingFields = requiredFields.filter(field => !localData[field.key]);
+      
+      if (missingFields.length > 0) {
+        alert(`Please fill in all required fields: ${missingFields.map(f => f.label).join(', ')}`);
+        return;
+      }
+    }
+
+    let nextStep = step + 1;
+    
+    // Skip step 3 if FeatureDisplay is not enabled
+    if (nextStep === 3 && !localData.FeatureDisplay) {
+      nextStep++;
+    }
+    
+    // Skip step 4 if FeatureSearch is not enabled
+    if (nextStep === 4 && !localData.FeatureSearch) {
+      nextStep++;
+    }
+    
+    setStep(nextStep);
+  };
+
+  const handlePrevStep = () => {
+    let prevStep = step - 1;
+    
+    // Skip step 4 if FeatureSearch is not enabled
+    if (prevStep === 4 && !localData.FeatureSearch) {
+      prevStep--;
+    }
+    
+    // Skip step 3 if FeatureDisplay is not enabled
+    if (prevStep === 3 && !localData.FeatureDisplay) {
+      prevStep--;
+    }
+    
+    setStep(prevStep);
   };
 
   return (
@@ -142,17 +226,35 @@ export default function AddAdvertiserModal({
         {step === 1 && (
           <div className="bg-white p-6 rounded-xl shadow border border-gray-200 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {detailsFields.map(({ key, label }) => (
+              {detailsFields.map(({ key, label, required, type, options }) => (
                 <div key={String(key)}>
                   <Label className="text-sm text-gray-700 font-semibold" htmlFor={String(key)}>
-                    {label}
+                    {label} {required && <span className="text-red-500">*</span>}
                   </Label>
-                  <Input
-                    id={String(key)}
-                    value={typeof localData[key] === "string" ? (localData[key] as string) : ""}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                    className="mt-1"
-                  />
+                  {type === 'select' ? (
+                    <select
+                      id={String(key)}
+                      value={localData[key] as string || ""}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      className="w-full p-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FAAE3A]"
+                      required={required}
+                    >
+                      <option value="">Select {label}</option>
+                      {options?.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input
+                      id={String(key)}
+                      value={typeof localData[key] === "string" ? (localData[key] as string) : ""}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      className="mt-1"
+                      required={required}
+                    />
+                  )}
                 </div>
               ))}
             </div>
@@ -164,7 +266,7 @@ export default function AddAdvertiserModal({
                   <Switch
                     id="Status"
                     checked={Boolean(localData.Status)}
-                    onCheckedChange={(v) => handleChange("Status", v)}
+                    onCheckedChange={(v: boolean) => handleChange("Status", v)}
                   />
                   <DatePicker
                     selected={selectedDate}
@@ -204,7 +306,7 @@ export default function AddAdvertiserModal({
                     <Switch
                       id={key}
                       checked={Boolean(localData[key])}
-                      onCheckedChange={(v) => {
+                      onCheckedChange={(v: boolean) => {
                         handleChange(key, v);
                         if (!v) handleChange(dateKey, "");
                       }}
@@ -232,82 +334,72 @@ export default function AddAdvertiserModal({
           </div>
         )}
 
-        {step === 3 && (
-          localData.FeatureDisplay ? (
-            <div className="bg-white p-6 rounded-xl shadow border border-gray-200 text-[#404042] space-y-6">
+        {step === 3 && localData.FeatureDisplay && (
+          <div className="bg-white p-6 rounded-xl shadow border border-gray-200 text-[#404042] space-y-6">
+            <div>
+              <h3 className="text-lg font-bold text-[#404042]">Request installation of dynamic remarketing tags:</h3>
+              <p className="text-sm text-gray-500">
+                OPTIONAL: If you would like Fountain Forward Support to handle the installation of dynamic remarketing tags,
+                please provide the additional information below.
+              </p>
+            </div>
+            <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-bold text-[#404042]">Request installation of dynamic remarketing tags:</h3>
-                <p className="text-sm text-gray-500">
-                  OPTIONAL: If you would like Fountain Forward Support to handle the installation of dynamic remarketing tags,
-                  please provide the additional information below.
-                </p>
+                <Label htmlFor="GTMAccountId" className="block font-semibold">GTM Account ID</Label>
+                <Input
+                  id="GTMAccountId"
+                  value={localData.GTMAccountId || ""}
+                  onChange={(e) => handleChange("GTMAccountId", e.target.value)}
+                />
               </div>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="GTMAccountId" className="block font-semibold">GTM Account ID</Label>
-                  <Input
-                    id="GTMAccountId"
-                    value={localData.GTMAccountId || ""}
-                    onChange={(e) => handleChange("GTMAccountId", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="GTMContainerId" className="block font-semibold">GTM Container ID</Label>
-                  <Input
-                    id="GTMContainerId"
-                    placeholder="GTM-XXXXXXX"
-                    value={localData.GTMContainerId || ""}
-                    onChange={(e) => handleChange("GTMContainerId", e.target.value)}
-                  />
-                </div>
-                <div className="text-sm text-gray-600">
+              <div>
+                <Label htmlFor="GTMContainerId" className="block font-semibold">GTM Container ID</Label>
+                <Input
+                  id="GTMContainerId"
+                  placeholder="GTM-XXXXXXX"
+                  value={localData.GTMContainerId || ""}
+                  onChange={(e) => handleChange("GTMContainerId", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="FacebookPixelId" className="block font-semibold">Facebook Pixel ID</Label>
+                <Input
+                  id="FacebookPixelId"
+                  value={localData.FacebookPixelId || ""}
+                  onChange={(e) => handleChange("FacebookPixelId", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="GoogleAdsConversionId" className="block font-semibold">Google Ads Conversion ID</Label>
+                <Input
+                  id="GoogleAdsConversionId"
+                  value={localData.GoogleAdsConversionId || ""}
+                  onChange={(e) => handleChange("GoogleAdsConversionId", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="BingRemarketingId" className="block font-semibold">Bing Remarketing ID</Label>
+                <Input
+                  id="BingRemarketingId"
+                  value={localData.BingRemarketingId || ""}
+                  onChange={(e) => handleChange("BingRemarketingId", e.target.value)}
+                />
+              </div>
+              <div className="text-sm text-gray-700">
+                <label className="inline-flex items-center">
                   <input
                     type="checkbox"
-                    checked
-                    readOnly
+                    checked={Boolean(localData.RequestScriptInstall)}
+                    onChange={(e) => handleChange("RequestScriptInstall", e.target.checked)}
                     className="mr-2"
                   />
-                  ...
-                </div>
-                <div>
-                  <Label htmlFor="FacebookPixelId" className="block font-semibold">Facebook Pixel ID</Label>
-                  <Input
-                    id="FacebookPixelId"
-                    value={localData.FacebookPixelId || ""}
-                    onChange={(e) => handleChange("FacebookPixelId", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="GoogleAdsConversionId" className="block font-semibold">Google Ads Conversion ID</Label>
-                  <Input
-                    id="GoogleAdsConversionId"
-                    value={localData.GoogleAdsConversionId || ""}
-                    onChange={(e) => handleChange("GoogleAdsConversionId", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="BingRemarketingId" className="block font-semibold">Bing Remarketing ID</Label>
-                  <Input
-                    id="BingRemarketingId"
-                    value={localData.BingRemarketingId || ""}
-                    onChange={(e) => handleChange("BingRemarketingId", e.target.value)}
-                  />
-                </div>
-                <div className="text-sm text-gray-700">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(localData.RequestScriptInstall)}
-                      onChange={(e) => handleChange("RequestScriptInstall", e.target.checked)}
-                      className="mr-2"
-                    />
-                    Request New Script Installation
-                  </label>
-                </div>
+                  Request New Script Installation
+                </label>
               </div>
             </div>
-          ) : null
+          </div>
         )}
+
         {step === 4 && localData.FeatureSearch && (
           <div className="bg-white p-6 rounded-xl shadow border border-gray-200 text-[#404042] space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -334,7 +426,7 @@ export default function AddAdvertiserModal({
                 <Switch
                   id="AdCustomizersEnabled"
                   checked={Boolean(localData.AdCustomizersEnabled)}
-                  onCheckedChange={(v) => {
+                  onCheckedChange={(v: boolean) => {
                     handleChange("AdCustomizersEnabled", v);
                     if (!v) handleChange("AdCustomizersDeactivationDate", "");
                   }}
@@ -343,7 +435,6 @@ export default function AddAdvertiserModal({
                   variant="outline"
                   className="flex items-center gap-2 border-gray-300 text-[#404042]"
                   onClick={() => {
-                    // lógica opcional si más adelante quieres descargar algo
                     alert("Download starter file not implemented yet.");
                   }}
                 >
@@ -357,40 +448,120 @@ export default function AddAdvertiserModal({
                 </div>
               </div>
 
-      <div className="mt-4 md:mt-0">
-        <Label htmlFor="AdCustomizersDeactivationDate" className="block font-semibold">Deactivation Date</Label>
-        <DatePicker
-          disabled={!localData.AdCustomizersEnabled}
-          selected={
-            localData.AdCustomizersDeactivationDate
-              ? new Date(localData.AdCustomizersDeactivationDate as string)
-              : null
-          }
-          onChange={(d) => handleChange("AdCustomizersDeactivationDate", d?.toISOString() || "")}
-          customInput={
-            <Button variant="outline" className="flex items-center gap-2 border-gray-300 text-[#404042]">
-              <CalendarIcon className="h-4 w-4" />
-              {localData.AdCustomizersDeactivationDate
-                ? new Date(localData.AdCustomizersDeactivationDate).toLocaleDateString()
-                : "Select Date"}
-            </Button>
-          }
-        />
-      </div>
-    </div>
-  </div>
-)}
+              <div className="mt-4 md:mt-0">
+                <Label htmlFor="AdCustomizersDeactivationDate" className="block font-semibold">Deactivation Date</Label>
+                <DatePicker
+                  disabled={!localData.AdCustomizersEnabled}
+                  selected={
+                    localData.AdCustomizersDeactivationDate
+                      ? new Date(localData.AdCustomizersDeactivationDate as string)
+                      : null
+                  }
+                  onChange={(d) => handleChange("AdCustomizersDeactivationDate", d?.toISOString() || "")}
+                  customInput={
+                    <Button variant="outline" className="flex items-center gap-2 border-gray-300 text-[#404042]">
+                      <CalendarIcon className="h-4 w-4" />
+                      {localData.AdCustomizersDeactivationDate
+                        ? new Date(localData.AdCustomizersDeactivationDate).toLocaleDateString()
+                        : "Select Date"}
+                    </Button>
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
+        {step === 5 && (
+          <div className="bg-white p-6 rounded-xl shadow border border-gray-200 text-[#404042] space-y-6">
+            <div>
+              <h3 className="text-lg font-bold text-[#404042] mb-4">Special Requests & Notes</h3>
+              <div className="space-y-6">
+                {/* Custom Feed Requests */}
+                <div className="space-y-4">
+                  <Label className="block font-semibold">Custom Feed Requests</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="CustomFeedRequest"
+                        checked={Boolean(localData.CustomFeedRequest)}
+                        onCheckedChange={(v: boolean) => handleChange("CustomFeedRequest", v)}
+                      />
+                      <Label htmlFor="CustomFeedRequest">Request Custom Feed Setup</Label>
+                    </div>
+                    {localData.CustomFeedRequest && (
+                      <Input
+                        placeholder="Describe your custom feed requirements..."
+                        value={localData.CustomFeedRequirements || ""}
+                        onChange={(e) => handleChange("CustomFeedRequirements", e.target.value)}
+                        className="mt-2"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Video Ad Requests */}
+                <div className="space-y-4">
+                  <Label className="block font-semibold">Video Ad Requests</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="VideoAdRequest"
+                        checked={Boolean(localData.VideoAdRequest)}
+                        onCheckedChange={(v: boolean) => handleChange("VideoAdRequest", v)}
+                      />
+                      <Label htmlFor="VideoAdRequest">Request Video Ad Creation</Label>
+                    </div>
+                    {localData.VideoAdRequest && (
+                      <Input
+                        placeholder="Describe your video ad requirements..."
+                        value={localData.VideoAdRequirements || ""}
+                        onChange={(e) => handleChange("VideoAdRequirements", e.target.value)}
+                        className="mt-2"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Additional Notes */}
+                <div className="space-y-4">
+                  <Label className="block font-semibold">Additional Notes</Label>
+                  <textarea
+                    className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FAAE3A]"
+                    placeholder="Add any additional notes or special requirements..."
+                    value={localData.AdditionalNotes || ""}
+                    onChange={(e) => handleChange("AdditionalNotes", e.target.value)}
+                  />
+                </div>
+
+                {/* Priority Level */}
+                <div className="space-y-4">
+                  <Label className="block font-semibold">Priority Level</Label>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FAAE3A]"
+                    value={localData.PriorityLevel || "normal"}
+                    onChange={(e) => handleChange("PriorityLevel", e.target.value)}
+                  >
+                    <option value="low">Low Priority</option>
+                    <option value="normal">Normal Priority</option>
+                    <option value="high">High Priority</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mt-8 flex justify-between gap-4">
           {step > 1 && (
-            <Button variant="outline" onClick={() => setStep((s) => s - 1)}>
+            <Button variant="outline" onClick={handlePrevStep}>
               Back
             </Button>
           )}
           {step < stepLabels.length ? (
             <Button
-              onClick={() => setStep((s) => s + 1)}
+              onClick={handleNextStep}
               className="bg-[#404042] text-white font-bold hover:bg-[#FAAE3A] active:bg-[#F17625]"
             >
               Next

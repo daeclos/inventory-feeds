@@ -54,9 +54,9 @@ function AdvertiserTable({ data }: Props) {
   };
 
   return (
-    <div className="rounded-2xl shadow border border-gray-200 overflow-hidden">
+    <div className="rounded-t-2xl shadow border border-gray-200 overflow-hidden">
       <Table>
-        <TableHeader className="bg-[#FAAE3A] text-white">
+        <TableHeader className="bg-[#FAAE3A] text-black rounded-t-2xl">
           <TableRow>
             <TableHead className="w-12 text-center">Status</TableHead>
             <TableHead
