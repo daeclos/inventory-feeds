@@ -77,13 +77,14 @@ export default function AddAdvertiserModal({
     const newAdv = {
       name: localData.Name ?? "Unnamed",
       lastUpdate: new Date().toLocaleString(),
-      totalFeeds: 0,
+      totalRecords: 0,
       history: "0 days",
-      customFeeds: 0,
-      videoTemplates: 0,
-      videoAdVersions: 0,
-      isActive: !!localData.Status,
+      customFeeds: localData.FeatureDisplay ? 1 : 0,
+      videoTemplates: localData.FeatureVideo ? 1 : 0,
+      videoAdVersions: localData.FeatureSearch ? 1 : 0,
+      hasAds: !!localData.Status,
     };
+
     setAdvertisers((prev: any) => [...prev, newAdv]);
     setAdvertiserData({});
     setLocalData({});
@@ -103,20 +104,32 @@ export default function AddAdvertiserModal({
           <h2 className="text-2xl font-bold text-[#404042]">{stepLabels[step - 1]}</h2>
           <div className="flex items-center gap-6 flex-wrap">
             {stepLabels.map((lbl, idx) => (
-              <div key={idx} className="flex items-center gap-2">
+              <button
+                type="button"
+                key={idx}
+                onClick={() => setStep(idx + 1)}
+                className="flex items-center gap-2 focus:outline-none"
+              >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                    step === idx + 1 ? "bg-blue-600 text-white" : "bg-gray-300 text-gray-700"
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors duration-200 ${
+                    step === idx + 1 ? "bg-[#404042] text-white" : "bg-gray-300 text-gray-700"
                   }`}
                 >
                   {idx + 1}
                 </div>
-                <span className={`text-sm font-semibold ${step === idx + 1 ? "text-blue-600" : "text-gray-600"}`}>{lbl}</span>
-              </div>
+                <span
+                  className={`text-sm font-semibold transition-colors duration-200 ${
+                    step === idx + 1 ? "text-[#404042]" : "text-gray-600"
+                  }`}
+                >
+                  {lbl}
+                </span>
+              </button>
             ))}
           </div>
         </div>
 
+        {/* Paso 1 */}
         {step === 1 && (
           <div className="space-y-4">
             {detailsFields.map(({ key, label }) => (
@@ -158,6 +171,7 @@ export default function AddAdvertiserModal({
           </div>
         )}
 
+        {/* Paso 2 */}
         {step === 2 && (
           <div className="space-y-5 text-[#404042]">
             {featureFields.map(({ key, label }) => {

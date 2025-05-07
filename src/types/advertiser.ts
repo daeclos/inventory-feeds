@@ -1,30 +1,28 @@
+export interface Advertiser {
+  name: string;
+  totalRecords: number;
+  lastUpdate: string;
+  history: string;
+  customFeeds: number;
+  videoTemplates: number;
+  videoAdVersions: number;
+  hasAds: boolean;
+}
+
 export interface AdvertiserFormData {
   Name?: string;
-  NameDate?: string;
   DBA?: string;
-  DBADate?: string;
   Website?: string;
-  WebsiteDate?: string;
   Country?: string;
-  CountryDate?: string;
   Address?: string;
-  AddressDate?: string;
   City?: string;
-  CityDate?: string;
   State?: string;
-  StateDate?: string;
   Zip?: string;
-  ZipDate?: string;
   Phone?: string;
-  PhoneDate?: string;
   GMB?: string;
-  GMBDate?: string;
   GooglePlaceId?: string;
-  GooglePlaceIdDate?: string;
   Category?: string;
-  CategoryDate?: string;
   Responsible?: string;
-  ResponsibleDate?: string;
   Status?: boolean;
   Date?: string;
   FeatureDisplay?: boolean;

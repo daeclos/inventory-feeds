@@ -1,65 +1,66 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  Settings,
-  Search as SearchIcon,
-  Users,
-  Rss,
-  FileText,
-  Info,
-} from "lucide-react";
-import DashboardLayout from "@/components/ui/DashboardLayout";
-import { Switch } from "@/components/ui/switch";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import AddAdvertiserModal from "@/components/ui/AddAdvertiserModal";
+import { AdvertiserTable } from "./components/AdvertiserTable";
+import AddAdvertiserModal from "./components/AddAdvertiserModal";
+import { mockAdvertisers } from "@/lib/data/mockAdvertisers";
+import { useDebounce } from "use-debounce";
 import { AdvertiserFormData } from "@/types/advertiser";
 
-interface Advertiser {
-  name: string;
-  totalFeeds: number;
-  lastUpdate: string;
-  history: string;
-  customFeeds: number;
-  videoTemplates: number;
-  videoAdVersions: number;
-  isActive: boolean;
-}
+import DashboardLayout from "@/components/ui/DashboardLayout";
 
-export default function AdvertisersPage() {
-  const [advertisers, setAdvertisers] = useState<Advertiser[]>([]);
-  const [advertiserData, setAdvertiserData] = useState<AdvertiserFormData>({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [activeOnly, setActiveOnly] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+export default function AdvertiserPage() {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 300);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [advertiserData, setAdvertiserData] = useState<AdvertiserFormData>({});
+  const [advertisers, setAdvertisers] = useState(mockAdvertisers);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    // const fetchAdvertisers = async () => {
-    //   const { data, error } = await supabase.from("advertisers").select("*");
-    //   if (data) setAdvertisers(data);
-    // };
-    // fetchAdvertisers();
-  }, []);
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const filteredAdvertisers = advertisers.filter((a) => {
-    const matchesSearch = a.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesActive = activeOnly ? a.isActive : true;
-    return matchesSearch && matchesActive;
+  const filteredAdvertisers = advertisers.filter((adv) => {
+    const matchSearch = adv.name.toLowerCase().includes(debouncedSearch.toLowerCase());
+    const matchStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && adv.hasAds) ||
+      (statusFilter === "inactive" && !adv.hasAds);
+    return matchSearch && matchStatus;
   });
 
-  const totalPages = Math.ceil(filteredAdvertisers.length / itemsPerPage);
-  const startIdx = (currentPage - 1) * itemsPerPage;
-  const paginatedAdvertisers = filteredAdvertisers.slice(startIdx, startIdx + itemsPerPage);
+  const totalCount = advertisers.length;
+  const filteredCount = filteredAdvertisers.length;
+  const totalPages = Math.ceil(filteredCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const showingAdvertisers = filteredAdvertisers.slice(startIndex, endIndex);
+
+  const handlePageChange = (direction: "prev" | "next") => {
+    if (direction === "prev" && currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    } else if (direction === "next" && currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
 
   return (
     <DashboardLayout>
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-2xl font-bold text-[#404042]">Advertiser Dashboard</h2>
-
+      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-[#404042]">Advertisers</h1>
+        <div className="flex items-center gap-4">
+          <Input
+            type="text"
+            placeholder="Search advertiser..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-80 border-gray-300"
+          />
           <AddAdvertiserModal
             isDialogOpen={isDialogOpen}
             setIsDialogOpen={setIsDialogOpen}
@@ -68,124 +69,84 @@ export default function AdvertisersPage() {
             setAdvertisers={setAdvertisers}
           />
         </div>
+      </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-          <div className="text-[#404042]">
-            <div className="flex items-center space-x-2 mb-2">
-              <Switch
-                id="active-switch"
-                checked={activeOnly}
-                onCheckedChange={(checked) => setActiveOnly(checked)}
-              />
-              <label htmlFor="active-switch" className="text-sm font-bold">Active Only</label>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm mb-1">
-              <span>Show</span>
-              <input
-                type="number"
-                min="1"
-                value={itemsPerPage}
-                onChange={(e) => {
-                  const newVal = parseInt(e.target.value);
-                  if (!isNaN(newVal) && newVal > 0) {
-                    setItemsPerPage(newVal);
-                    setCurrentPage(1);
-                  }
-                }}
-                className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:outline-none focus:ring-1 focus:ring-[#FAAE3A]"
-              />
-              <span>entries</span>
-            </div>
-
-            <p className="text-sm">
-              Showing {startIdx + 1} to {Math.min(startIdx + itemsPerPage, filteredAdvertisers.length)} of {filteredAdvertisers.length} entries
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative">
-              <label htmlFor="search" className="sr-only">Search</label>
-              <div className="flex items-center border border-gray-300 focus-within:border-[#FAAE3A] shadow-sm focus-within:shadow-md rounded px-2 py-1 transition-all">
-                <SearchIcon className="w-4 h-4 text-[#404042] mr-2" />
-                <input
-                  id="search"
-                  type="text"
-                  placeholder="Search advertisers..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="outline-none text-sm text-[#404042] placeholder:text-gray-400 bg-transparent"
-                />
-              </div>
-            </div>
-            {"Copy,CSV,Excel".split(",").map((label) => (
-              <button
-                key={label}
-                className="px-3 py-1 rounded font-bold text-white bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] transition"
-              >
-                {label}
-              </button>
+      <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
+        {/* Filter by Status */}
+        <div className="flex items-center gap-2 text-sm text-[#404042]">
+          <span>Status:</span>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border border-gray-300 rounded px-2 py-1 text-sm"
+          >
+            <option value="all">All</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+        </div>
+        {/* Dropdown */}
+        <div className="flex items-center gap-2 text-sm text-[#404042]">
+          <span>Show</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border border-gray-300 rounded px-2 py-1 text-sm"
+          >
+            {[10, 25, 50, 100].map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
-          </div>
+          </select>
+          <span>entries</span>
         </div>
 
-        <table className="min-w-full table-auto text-sm mt-6">
-          <thead className="bg-[#404042] text-white">
-            <tr className="text-left font-bold">
-              <th className="px-4 py-2">Advertiser Name</th>
-              <th className="px-4 py-2">Total Feed Records</th>
-              <th className="px-4 py-2">Last Update</th>
-              <th className="px-4 py-2">History</th>
-              <th className="px-4 py-2">Custom Feeds</th>
-              <th className="px-4 py-2">Video Templates</th>
-              <th className="px-4 py-2">Video Ad Versions</th>
-            </tr>
-          </thead>
-          <tbody className="text-[#404042] bg-white">
-            {paginatedAdvertisers.map((adv, idx) => (
-              <tr key={idx} className="border-b hover:bg-gray-100">
-                <td className="px-4 py-3">
-                  <div className="font-semibold text-[#404042]">{adv.name}</div>
-                  <div className="flex gap-2 mt-1">
-                    <Settings size={16} className="text-gray-400" />
-                    <SearchIcon size={16} className="text-gray-400" />
-                    <Users size={16} className="text-gray-400" />
-                    <Rss size={16} className="text-gray-400" />
-                    <FileText size={16} className="text-gray-400" />
-                    <Info size={16} className="text-gray-400" />
-                  </div>
-                </td>
-                <td className="px-4 py-3">{adv.totalFeeds}</td>
-                <td className="px-4 py-3">{adv.lastUpdate}</td>
-                <td className="px-4 py-3">{adv.history}</td>
-                <td className="px-4 py-3">{adv.customFeeds}</td>
-                <td className="px-4 py-3">{adv.videoTemplates}</td>
-                <td className="px-4 py-3">{adv.videoAdVersions}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {/* Export buttons */}
+        <div className="flex items-center gap-2">
+          {["Copy", "CSV", "Excel"].map((label) => (
+            <button
+              key={label}
+              className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] active:bg-[#F17625]"
+              onClick={() => alert(`${label} clicked (not implemented)`)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        <div className="flex justify-end items-center gap-4 mt-4 text-sm text-[#404042]">
+      <AdvertiserTable data={showingAdvertisers} />
+
+      <div className="flex justify-between items-center mt-4 text-sm text-[#404042]">
+        <div>
+          Showing {startIndex + 1} to {Math.min(endIndex, filteredCount)} of {filteredCount} entries
+          {filteredCount !== totalCount && ` (filtered from ${totalCount} total entries)`}
+        </div>
+        <div className="flex gap-2">
           <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            className="px-3 py-1 rounded font-bold text-white bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] transition"
             disabled={currentPage === 1}
+            onClick={() => handlePageChange("prev")}
+            className="px-3 py-1 rounded bg-[#404042] text-white disabled:bg-gray-300 disabled:text-gray-600 hover:bg-[#FAAE3A] active:bg-[#F17625]"
           >
             Previous
           </button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
           <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            className="px-3 py-1 rounded font-bold text-white bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] transition"
             disabled={currentPage === totalPages}
+            onClick={() => handlePageChange("next")}
+            className="px-3 py-1 rounded bg-[#404042] text-white disabled:bg-gray-300 disabled:text-gray-600 hover:bg-[#FAAE3A] active:bg-[#F17625]"
           >
             Next
           </button>
         </div>
       </div>
+          </div>
     </DashboardLayout>
   );
 }
