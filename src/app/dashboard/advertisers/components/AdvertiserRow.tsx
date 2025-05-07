@@ -6,11 +6,9 @@ import {
   Search,
   Rss,
   FileText,
-  Info,
+  AlertTriangle,
   Package,
-  Copy,
-  FileDown,
-  FileSpreadsheet,
+  Info,
 } from "lucide-react";
 
 interface Props {
@@ -18,6 +16,35 @@ interface Props {
 }
 
 export function AdvertiserRow({ advertiser }: Props) {
+  // Funciones por ícono (puedes personalizarlas más adelante)
+  const handleSettingsClick = () => {
+    console.log("Settings clicked", advertiser.name);
+  };
+
+  const handleSearchClick = () => {
+    console.log("Search clicked", advertiser.name);
+  };
+
+  const handleFeedsClick = () => {
+    console.log("Feeds clicked", advertiser.name);
+  };
+
+  const handlePackageClick = () => {
+    console.log("Package clicked", advertiser.name);
+  };
+
+  const handleAlertClick = () => {
+    console.log("Advertencia clicked", advertiser.name);
+  };
+
+  const handleVideoDocClick = () => {
+    console.log("Documento de Video clicked", advertiser.name);
+  };
+
+  const handleInfoClick = () => {
+    console.log("Info clicked", advertiser.name);
+  };
+
   return (
     <tr className="border-b text-sm text-[#404042] hover:bg-gray-50">
       {/* Status LED */}
@@ -35,14 +62,34 @@ export function AdvertiserRow({ advertiser }: Props) {
       {/* Actions */}
       <td className="px-4 py-2">
         <div className="flex items-center gap-2 text-[#404042]">
-          <Settings className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A]" />
-          <Search className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A]" />
-          <Rss className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A]" />
-          <Package className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A]" />
-          <Copy className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A]" />
-          <FileDown className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A]" />
-          <FileSpreadsheet className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A]" />
-          <Info className="w-4 h-4 cursor-pointer text-gray-400" />
+          <Settings
+            className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
+            onClick={handleSettingsClick}
+          />
+          <Search
+            className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
+            onClick={handleSearchClick}
+          />
+          <Rss
+            className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
+            onClick={handleFeedsClick}
+          />
+          <Package
+            className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
+            onClick={handlePackageClick}
+          />
+          <AlertTriangle
+            className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
+            onClick={handleAlertClick}
+          />
+          <FileText
+            className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
+            onClick={handleVideoDocClick}
+          />
+          <Info
+            className="w-4 h-4 cursor-pointer text-gray-400"
+            onClick={handleInfoClick}
+          />
         </div>
       </td>
 

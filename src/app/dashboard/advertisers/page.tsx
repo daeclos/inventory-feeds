@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { AdvertiserTable } from "./components/AdvertiserTable";
+import AdvertiserTable from "./components/AdvertiserTable";
+
 import AddAdvertiserModal from "./components/AddAdvertiserModal";
 import { mockAdvertisers } from "@/lib/data/mockAdvertisers";
 import { useDebounce } from "use-debounce";

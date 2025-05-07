@@ -18,7 +18,7 @@ interface Props {
 
 type SortKey = keyof Advertiser;
 
-export function AdvertiserTable({ data }: Props) {
+function AdvertiserTable({ data }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortAsc, setSortAsc] = useState(true);
 
@@ -46,7 +46,11 @@ export function AdvertiserTable({ data }: Props) {
 
   const renderSortIcon = (key: SortKey) => {
     if (sortKey !== key) return null;
-    return sortAsc ? <ChevronUp className="inline w-4 h-4" /> : <ChevronDown className="inline w-4 h-4" />;
+    return sortAsc ? (
+      <ChevronUp className="inline w-4 h-4 ml-1" />
+    ) : (
+      <ChevronDown className="inline w-4 h-4 ml-1" />
+    );
   };
 
   return (
@@ -55,11 +59,17 @@ export function AdvertiserTable({ data }: Props) {
         <TableHeader className="bg-[#FAAE3A] text-white">
           <TableRow>
             <TableHead className="w-12 text-center">Status</TableHead>
-            <TableHead onClick={() => handleSort("name")} className="cursor-pointer">
+            <TableHead
+              onClick={() => handleSort("name")}
+              className="cursor-pointer"
+            >
               Advertiser {renderSortIcon("name")}
             </TableHead>
             <TableHead className="text-left">Actions</TableHead>
-            <TableHead onClick={() => handleSort("totalRecords")} className="cursor-pointer text-center">
+            <TableHead
+              onClick={() => handleSort("totalRecords")}
+              className="cursor-pointer text-center"
+            >
               Total Records {renderSortIcon("totalRecords")}
             </TableHead>
             <TableHead className="text-center">Last Update</TableHead>
@@ -70,11 +80,21 @@ export function AdvertiserTable({ data }: Props) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedData.map((advertiser, index) => (
-            <AdvertiserRow key={index} advertiser={advertiser} />
-          ))}
+          {sortedData.length > 0 ? (
+            sortedData.map((advertiser, index) => (
+              <AdvertiserRow key={index} advertiser={advertiser} />
+            ))
+          ) : (
+            <TableRow>
+              <td colSpan={9} className="text-center py-6 text-gray-500">
+                No advertisers found.
+              </td>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>
   );
 }
+
+export default AdvertiserTable;
