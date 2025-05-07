@@ -308,6 +308,79 @@ export default function AddAdvertiserModal({
             </div>
           ) : null
         )}
+        {step === 4 && localData.FeatureSearch && (
+          <div className="bg-white p-6 rounded-xl shadow border border-gray-200 text-[#404042] space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="GoogleAdsCustomerId" className="block font-semibold">Google Ads Customer ID</Label>
+                <Input
+                  id="GoogleAdsCustomerId"
+                  value={localData.GoogleAdsCustomerId || ""}
+                  onChange={(e) => handleChange("GoogleAdsCustomerId", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="GoogleAdsCustomerId2" className="block font-semibold">Google Ads Customer ID #2</Label>
+                <Input
+                  id="GoogleAdsCustomerId2"
+                  value={localData.GoogleAdsCustomerId2 || ""}
+                  onChange={(e) => handleChange("GoogleAdsCustomerId2", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-100 rounded-xl p-4">
+              <div className="flex items-center gap-4 flex-wrap">
+                <Switch
+                  id="AdCustomizersEnabled"
+                  checked={Boolean(localData.AdCustomizersEnabled)}
+                  onCheckedChange={(v) => {
+                    handleChange("AdCustomizersEnabled", v);
+                    if (!v) handleChange("AdCustomizersDeactivationDate", "");
+                  }}
+                />
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 border-gray-300 text-[#404042]"
+                  onClick={() => {
+                    // lógica opcional si más adelante quieres descargar algo
+                    alert("Download starter file not implemented yet.");
+                  }}
+                >
+                  <span>Responsive Search Ads</span>
+                </Button>
+                <div className="relative group">
+                  <div className="w-4 h-4 bg-blue-500 text-white rounded-full flex items-center justify-center cursor-pointer text-xs">i</div>
+                  <div className="absolute left-0 mt-2 w-72 bg-blue-100 text-sm text-blue-900 p-4 rounded shadow-lg z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Google Ad Customizers allow search ads to be updated on a regular basis with the count and minimum price attributes within an expanded text ad. Click the download button for the initial starter file, or follow the steps outlined within the help documentation found here: https://hootinteractive.atlassian.net
+                  </div>
+                </div>
+              </div>
+
+      <div className="mt-4 md:mt-0">
+        <Label htmlFor="AdCustomizersDeactivationDate" className="block font-semibold">Deactivation Date</Label>
+        <DatePicker
+          disabled={!localData.AdCustomizersEnabled}
+          selected={
+            localData.AdCustomizersDeactivationDate
+              ? new Date(localData.AdCustomizersDeactivationDate as string)
+              : null
+          }
+          onChange={(d) => handleChange("AdCustomizersDeactivationDate", d?.toISOString() || "")}
+          customInput={
+            <Button variant="outline" className="flex items-center gap-2 border-gray-300 text-[#404042]">
+              <CalendarIcon className="h-4 w-4" />
+              {localData.AdCustomizersDeactivationDate
+                ? new Date(localData.AdCustomizersDeactivationDate).toLocaleDateString()
+                : "Select Date"}
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  </div>
+)}
+
 
         <div className="mt-8 flex justify-between gap-4">
           {step > 1 && (

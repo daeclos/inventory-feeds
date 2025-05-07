@@ -41,3 +41,10 @@ export interface AdvertiserFormData {
   BingRemarketingId?: string;
   RequestScriptInstall?: boolean;
 }
+export interface AdvertiserFormData {
+  // ...otras propiedades
+  GoogleAdsCustomerId?: string;
+  GoogleAdsCustomerId2?: string;
+  AdCustomizersEnabled?: boolean;
+  AdCustomizersDeactivationDate?: string;
+}
