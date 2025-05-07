@@ -32,3 +32,12 @@ export interface AdvertiserFormData {
   FeatureSearch?: boolean;
   FeatureSearchDate?: string;
 }
+export interface AdvertiserFormData {
+  // ...otros campos ya existentes
+  GTMAccountId?: string;
+  GTMContainerId?: string;
+  FacebookPixelId?: string;
+  GoogleAdsConversionId?: string;
+  BingRemarketingId?: string;
+  RequestScriptInstall?: boolean;
+}
