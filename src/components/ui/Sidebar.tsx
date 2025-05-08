@@ -15,14 +15,17 @@ import {
   Ticket,
   ChevronDown,
   ChevronRight,
+  X as CloseIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import React from "react";
 import Image from "next/image";
+import { useSidebarStore } from "@/lib/store/sidebar";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { expanded, setExpanded } = useSidebarStore();
 
   const [openMenus, setOpenMenus] = useState({
     services: false,
@@ -97,56 +100,132 @@ export function Sidebar() {
     );
   };
 
+  // Overlay y sidebar en móvil
+  const MobileSidebar = (
+    <>
+      {/* Overlay */}
+      <div
+        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        onClick={() => setExpanded(false)}
+        aria-hidden="true"
+      />
+      {/* Sidebar */}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-[#404042] text-white border-r border-[#FAAE3A]/20 shadow-xl transform transition-transform duration-200 ${expanded ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:static md:h-auto md:w-64 md:block`}
+      >
+        <div className="p-6 flex flex-col items-center border-b border-[#FAAE3A]/20 relative">
+          <button
+            className="absolute top-2 right-2 md:hidden text-[#FAAE3A] hover:text-[#F17625]"
+            onClick={() => setExpanded(false)}
+            aria-label="Close sidebar"
+          >
+            <CloseIcon size={28} />
+          </button>
+          <div className="relative w-14 h-14 mb-3">
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <div className="text-center">
+            <p className="text-base font-bold text-[#FAAE3A]">Fountain Forward</p>
+            <p className="text-xs text-gray-300">Admin Dashboard</p>
+          </div>
+        </div>
+
+        <nav className="flex-1 p-4 overflow-y-auto">
+          <DropdownSection icon={<Rocket size={18} />} title="Services" id="services">
+            <NavItem href="/dashboard/advertisers" icon={<LayoutGrid size={16} />} label="Advertisers" />
+            <NavItem href="/dashboard/campaigns" icon={<Package size={16} />} label="Campaign Builder" />
+            <NavItem href="/dashboard/feeds" icon={<MenuIcon size={16} />} label="Custom Feeds" />
+            <NavItem href="/dashboard/alerts" icon={<AlertTriangle size={16} />} label="Alerts" />
+          </DropdownSection>
+          <div className="border-b border-[#FAAE3A]/10 my-2" />
+          <DropdownSection icon={<BarChart2 size={18} />} title="Settings" id="settings">
+            <NavItem href="/dashboard/users" icon={<User size={16} />} label="User Admin" />
+            <NavItem href="/dashboard/billing" icon={<DollarSign size={16} />} label="Billing Reports" />
+            <NavItem href="/dashboard/clients" icon={<Settings size={16} />} label="Client Settings" />
+          </DropdownSection>
+          <div className="border-b border-[#FAAE3A]/10 my-2" />
+          <DropdownSection icon={<HelpCircle size={18} />} title="Support" id="support">
+            <NavItem href="/dashboard/support-guides" icon={<Ticket size={16} />} label="Support Guides" />
+            <NavItem href="/dashboard/customer-service" icon={<Ticket size={16} />} label="Customer Service" />
+          </DropdownSection>
+        </nav>
+
+        <div className="p-4 border-t border-[#FAAE3A]/20 bg-[#39393B]">
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg group relative">
+            <div className="w-9 h-9 rounded-full bg-[#FAAE3A] flex items-center justify-center shadow-md">
+              <User size={18} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">Admin User</p>
+              <p className="text-xs text-gray-300 truncate">admin@fountain.com</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+
   return (
-    <aside
-      className="bg-[#404042] text-white flex flex-col w-64 min-h-screen border-r border-[#FAAE3A]/20 relative shadow-xl"
-    >
-      <div className="p-6 flex flex-col items-center border-b border-[#FAAE3A]/20">
-        <div className="relative w-14 h-14 mb-3">
-          <Image
-            src="/logo.png"
-            alt="Logo"
-            fill
-            className="object-contain"
-          />
-        </div>
-        <div className="text-center">
-          <p className="text-base font-bold text-[#FAAE3A]">Fountain Forward</p>
-          <p className="text-xs text-gray-300">Admin Dashboard</p>
-        </div>
-      </div>
-
-      <nav className="flex-1 p-4 overflow-y-auto">
-        <DropdownSection icon={<Rocket size={18} />} title="Services" id="services">
-          <NavItem href="/dashboard/advertisers" icon={<LayoutGrid size={16} />} label="Advertisers" />
-          <NavItem href="/dashboard/campaigns" icon={<Package size={16} />} label="Campaign Builder" />
-          <NavItem href="/dashboard/feeds" icon={<MenuIcon size={16} />} label="Custom Feeds" />
-          <NavItem href="/dashboard/alerts" icon={<AlertTriangle size={16} />} label="Alerts" />
-        </DropdownSection>
-        <div className="border-b border-[#FAAE3A]/10 my-2" />
-        <DropdownSection icon={<BarChart2 size={18} />} title="Settings" id="settings">
-          <NavItem href="/dashboard/users" icon={<User size={16} />} label="User Admin" />
-          <NavItem href="/dashboard/billing" icon={<DollarSign size={16} />} label="Billing Reports" />
-          <NavItem href="/dashboard/clients" icon={<Settings size={16} />} label="Client Settings" />
-        </DropdownSection>
-        <div className="border-b border-[#FAAE3A]/10 my-2" />
-        <DropdownSection icon={<HelpCircle size={18} />} title="Support" id="support">
-          <NavItem href="/dashboard/support-guides" icon={<Ticket size={16} />} label="Support Guides" />
-          <NavItem href="/dashboard/customer-service" icon={<Ticket size={16} />} label="Customer Service" />
-        </DropdownSection>
-      </nav>
-
-      <div className="p-4 border-t border-[#FAAE3A]/20 bg-[#39393B]">
-        <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg group relative">
-          <div className="w-9 h-9 rounded-full bg-[#FAAE3A] flex items-center justify-center shadow-md">
-            <User size={18} className="text-white" />
+    <>
+      {/* Sidebar y overlay en móvil, sidebar normal en desktop */}
+      <div className="md:block">
+        {/* Solo renderizar sidebar móvil en pantallas pequeñas */}
+        <div className="md:hidden">{MobileSidebar}</div>
+        {/* Sidebar normal en desktop */}
+        <aside className="hidden md:flex bg-[#404042] text-white flex-col w-64 min-h-screen border-r border-[#FAAE3A]/20 relative shadow-xl">
+          <div className="p-6 flex flex-col items-center border-b border-[#FAAE3A]/20">
+            <div className="relative w-14 h-14 mb-3">
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <div className="text-center">
+              <p className="text-base font-bold text-[#FAAE3A]">Fountain Forward</p>
+              <p className="text-xs text-gray-300">Admin Dashboard</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white truncate">Admin User</p>
-            <p className="text-xs text-gray-300 truncate">admin@fountain.com</p>
+
+          <nav className="flex-1 p-4 overflow-y-auto">
+            <DropdownSection icon={<Rocket size={18} />} title="Services" id="services">
+              <NavItem href="/dashboard/advertisers" icon={<LayoutGrid size={16} />} label="Advertisers" />
+              <NavItem href="/dashboard/campaigns" icon={<Package size={16} />} label="Campaign Builder" />
+              <NavItem href="/dashboard/feeds" icon={<MenuIcon size={16} />} label="Custom Feeds" />
+              <NavItem href="/dashboard/alerts" icon={<AlertTriangle size={16} />} label="Alerts" />
+            </DropdownSection>
+            <div className="border-b border-[#FAAE3A]/10 my-2" />
+            <DropdownSection icon={<BarChart2 size={18} />} title="Settings" id="settings">
+              <NavItem href="/dashboard/users" icon={<User size={16} />} label="User Admin" />
+              <NavItem href="/dashboard/billing" icon={<DollarSign size={16} />} label="Billing Reports" />
+              <NavItem href="/dashboard/clients" icon={<Settings size={16} />} label="Client Settings" />
+            </DropdownSection>
+            <div className="border-b border-[#FAAE3A]/10 my-2" />
+            <DropdownSection icon={<HelpCircle size={18} />} title="Support" id="support">
+              <NavItem href="/dashboard/support-guides" icon={<Ticket size={16} />} label="Support Guides" />
+              <NavItem href="/dashboard/customer-service" icon={<Ticket size={16} />} label="Customer Service" />
+            </DropdownSection>
+          </nav>
+
+          <div className="p-4 border-t border-[#FAAE3A]/20 bg-[#39393B]">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg group relative">
+              <div className="w-9 h-9 rounded-full bg-[#FAAE3A] flex items-center justify-center shadow-md">
+                <User size={18} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white truncate">Admin User</p>
+                <p className="text-xs text-gray-300 truncate">admin@fountain.com</p>
+              </div>
+            </div>
           </div>
-        </div>
+        </aside>
       </div>
-    </aside>
+    </>
   );
 }

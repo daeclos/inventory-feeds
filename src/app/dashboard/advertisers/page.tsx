@@ -11,6 +11,8 @@ import { Advertiser } from "@/types/advertiser";
 
 import DashboardLayout from "@/components/ui/DashboardLayout";
 import { useAdvertiserStore } from './store';
+import * as XLSX from "xlsx";
+import { toast } from "react-hot-toast";
 
 export default function AdvertiserPage() {
   const [search, setSearch] = useState("");
@@ -45,6 +47,56 @@ export default function AdvertiserPage() {
     } else if (direction === "next" && currentPage < totalPages) {
       setCurrentPage((prev) => prev + 1);
     }
+  };
+
+  // Función para obtener los datos visibles en la tabla
+  const getTableData = () => {
+    return showingAdvertisers.map((adv) => ({
+      Name: adv.name,
+      "Total Records": adv.totalRecords,
+      "Last Update": adv.lastUpdate,
+      History: adv.history,
+      "Custom Feeds": adv.customFeeds,
+      "Video Templates": adv.videoTemplates,
+      "Video Ad Versions": adv.videoAdVersions,
+    }));
+  };
+
+  // Copy al portapapeles
+  const handleCopy = () => {
+    const data = getTableData();
+    if (data.length === 0) return;
+    const header = Object.keys(data[0]).join("\t");
+    const rows = data.map((row) => Object.values(row).join("\t"));
+    const text = [header, ...rows].join("\n");
+    navigator.clipboard.writeText(text);
+    toast.success("¡Copiado al portapapeles!");
+  };
+
+  // Descargar CSV
+  const handleCSV = () => {
+    const data = getTableData();
+    if (data.length === 0) return;
+    const header = Object.keys(data[0]).join(",");
+    const rows = data.map((row) => Object.values(row).map(v => `"${v}"`).join(","));
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "advertisers.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Descargar Excel
+  const handleExcel = () => {
+    const data = getTableData();
+    if (data.length === 0) return;
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Advertisers");
+    XLSX.writeFile(wb, "advertisers.xlsx");
   };
 
   return (
@@ -110,15 +162,24 @@ export default function AdvertiserPage() {
               <span className="text-sm text-[#404042]">entries</span>
             </div>
             <div className="flex items-center gap-2">
-              {['Copy', 'CSV', 'Excel'].map((label) => (
-                <button
-                  key={label}
-                  className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] active:bg-[#F17625]"
-                  onClick={() => alert(`${label} clicked (not implemented)`)}
-                >
-                  {label}
-                </button>
-              ))}
+              <button
+                className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] active:bg-[#F17625]"
+                onClick={handleCopy}
+              >
+                Copy
+              </button>
+              <button
+                className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] active:bg-[#F17625]"
+                onClick={handleCSV}
+              >
+                CSV
+              </button>
+              <button
+                className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] active:bg-[#F17625]"
+                onClick={handleExcel}
+              >
+                Excel
+              </button>
             </div>
           </div>
         </div>

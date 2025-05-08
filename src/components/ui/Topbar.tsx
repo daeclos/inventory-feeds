@@ -2,19 +2,39 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Power, Menu, MessageCircle, Search } from "lucide-react";
+import { Power, Menu, MessageCircle, Search, X as CloseIcon } from "lucide-react";
 import ContactSupportModal from "@/components/ui/ContactSupportModal";
 import { Input } from "@/components/ui/input";
+import { useSidebarStore } from "@/lib/store/sidebar";
 
 export default function Topbar() {
   const [showSupport, setShowSupport] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { expanded, setExpanded } = useSidebarStore();
 
   return (
     <>
       <div className="bg-white border-b border-[#FAAE3A]/40 shadow-sm">
         <div className="px-8 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
+            {/* Botón hamburguesa o cerrar solo móvil */}
+            {!expanded ? (
+              <button
+                className="md:hidden mr-2 bg-[#404042] p-2 rounded-full shadow-lg border border-[#FAAE3A]"
+                onClick={() => setExpanded(true)}
+                aria-label="Open sidebar"
+              >
+                <Menu size={28} className="text-[#FAAE3A]" />
+              </button>
+            ) : (
+              <button
+                className="md:hidden mr-2 bg-[#404042] p-2 rounded-full shadow-lg border border-[#FAAE3A]"
+                onClick={() => setExpanded(false)}
+                aria-label="Close sidebar"
+              >
+                <CloseIcon size={28} className="text-[#FAAE3A]" />
+              </button>
+            )}
             {/* Barra de búsqueda */}
             <div className="relative w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#404042]" size={20} />
