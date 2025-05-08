@@ -18,24 +18,8 @@ interface Props {
 export function AdvertiserRow({ advertiser }: Props) {
   const router = useRouter();
 
-  const handleSettingsClick = () => {
-    router.push(`/dashboard/advertisers/${advertiser.id}`);
-  };
-
-  const handleSearchClick = () => {
-    router.push(`/dashboard/advertisers/${advertiser.id}/details`);
-  };
-
-  const handleFeedsClick = () => {
-    router.push(`/dashboard/feeds?advertiserId=${advertiser.id}`);
-  };
-
-  const handlePackageClick = () => {
-    router.push(`/dashboard/packages?advertiserId=${advertiser.id}`);
-  };
-
-  const handleVideoDocClick = () => {
-    alert("Funcionalidad de documentos de video aún no implementada.");
+  const goToTab = (tab: string) => {
+    router.push(`/dashboard/advertisers/${advertiser.id}?tab=${tab}`);
   };
 
   const handleInfoClick = () => {
@@ -61,23 +45,23 @@ export function AdvertiserRow({ advertiser }: Props) {
         <div className="flex items-center gap-2 text-[#404042]">
           <Settings
             className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
-            onClick={handleSettingsClick}
+            onClick={() => goToTab("settings")}
           />
           <Search
             className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
-            onClick={handleSearchClick}
+            onClick={() => goToTab("google-ads-status")}
           />
           <Rss
             className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
-            onClick={handleFeedsClick}
+            onClick={() => goToTab("inventory-feeds")}
           />
           <Package
             className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
-            onClick={handlePackageClick}
+            onClick={() => goToTab("search-templates")}
           />
           <Video
             className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
-            onClick={handleVideoDocClick}
+            onClick={() => goToTab("video-ads")}
           />
           <Info
             className="w-4 h-4 cursor-pointer text-gray-400"
