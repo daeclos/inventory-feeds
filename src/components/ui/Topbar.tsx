@@ -2,53 +2,53 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Power, Menu, MessageCircle } from "lucide-react";
-import { useSidebarStore } from "@/lib/store/sidebar";
+import { Power, Menu, MessageCircle, Search } from "lucide-react";
 import ContactSupportModal from "@/components/ui/ContactSupportModal";
+import { Input } from "@/components/ui/input";
 
 export default function Topbar() {
-  const expanded = useSidebarStore((state) => state.expanded);
-  const setExpanded = useSidebarStore((state) => state.setExpanded);
   const [showSupport, setShowSupport] = useState(false);
-
-  const toggleSidebar = () => {
-    setExpanded(!expanded);
-  };
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <>
-      <div className="bg-white flex justify-between items-center px-6 py-4 border-b z-40">
-        <div className="flex items-center gap-4">
-          {/* Botón Toggle Sidebar solo con colores */}
-          <button
-            onClick={toggleSidebar}
-            className="text-[#404042] hover:text-[#FAAE3A] active:text-[#F17625] transition-all duration-200 p-1"
-            title="Toggle Sidebar"
-          >
-            <Menu size={20} />
-          </button>
+      <div className="bg-white border-b border-[#FAAE3A]/40 shadow-sm">
+        <div className="px-8 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            {/* Barra de búsqueda */}
+            <div className="relative w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#404042]" size={20} />
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-gray-50 border border-gray-200 focus:bg-white focus:border-[#FAAE3A] focus:ring-[#FAAE3A]/30 text-[#404042] font-medium"
+              />
+            </div>
 
-          {/* Botón Contact Support */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowSupport(true)}
-              className="font-bold text-[#404042] hover:text-[#FAAE3A] transition flex items-center gap-2"
-              title="Contact Support"
-            >
-              <MessageCircle size={20} />
-              <span className="text-lg font-bold">Contact Support</span>
-            </button>
+            {/* Botón Contact Support */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowSupport(true)}
+                className="font-bold text-[#404042] hover:text-[#FAAE3A] transition flex items-center gap-2 px-4 py-2 rounded-md border border-transparent hover:border-[#FAAE3A] bg-white hover:bg-[#FFF3D1] shadow-sm"
+                title="Contact Support"
+              >
+                <MessageCircle size={20} className="text-[#404042] group-hover:text-[#FAAE3A]" />
+                <span className="text-base font-bold">Contact Support</span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Botón Log out */}
-        <Link
-          href="/"
-          className="text-sm font-bold text-[#404042] hover:text-[#FAAE3A] flex items-center gap-1 transition"
-        >
-          <Power size={16} />
-          Log out
-        </Link>
+          {/* Botón Log out */}
+          <Link
+            href="/"
+            className="text-sm font-bold text-[#404042] hover:text-[#FAAE3A] flex items-center gap-1 transition px-3 py-2 rounded-md border border-transparent hover:border-[#FAAE3A] bg-white hover:bg-[#FFF3D1] shadow-sm"
+          >
+            <Power size={18} />
+            Log out
+          </Link>
+        </div>
       </div>
 
       <ContactSupportModal isOpen={showSupport} onClose={() => setShowSupport(false)} />

@@ -3,10 +3,14 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleLogin = () => {
@@ -16,48 +20,72 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white font-sans relative">
-      {/* Fondo con líneas */}
-      <div className="absolute inset-0 z-0 bg-[url('/fondo-lineas.png')] bg-center bg-cover opacity-10" />
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 font-sans relative overflow-hidden">
+      {/* Fondo con patrón */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[url('/fondo-lineas.png')] bg-center bg-cover opacity-5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FAAE3A]/10 to-[#F17625]/10" />
+      </div>
 
-      <div className="relative z-10 w-full max-w-sm shadow-2xl rounded-2xl overflow-hidden">
-        {/* Parte superior con gradiente y logo */}
-        <div className="bg-gradient-to-b from-[#FAAE3A] to-[#F17625] w-full flex items-center justify-center p-6 rounded-t-2xl">
-          <Image
-            src="/logo.png"
-            alt="Fountain Forward Logo"
-            width={100}
-            height={100}
-            className="object-contain"
-          />
-        </div>
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
+          {/* Header con gradiente y logo */}
+          <div className="bg-gradient-to-br from-[#FAAE3A] to-[#F17625] w-full flex flex-col items-center justify-center p-8 rounded-t-2xl">
+            <div className="bg-white p-4 rounded-full shadow-lg mb-4 transform transition-transform duration-300 hover:scale-105">
+              <Image
+                src="/logo.png"
+                alt="Fountain Forward Logo"
+                width={80}
+                height={80}
+                className="object-contain"
+              />
+            </div>
+            <h1 className="text-2xl font-black text-white">Welcome Back</h1>
+          </div>
 
-        {/* Formulario */}
-        <div className="bg-white w-full p-8 flex flex-col justify-center">
-          <h1 className="text-3xl font-black text-[#404042] mb-1 text-center">Sign in</h1>
-          <div className="w-10 h-1 bg-[#FAAE3A] mx-auto mb-6 rounded" />
+          {/* Formulario */}
+          <div className="p-8 space-y-6">
+            <div className="space-y-4">
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full"
+              />
+              
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
 
-          <input
-            className="border border-gray-300 rounded px-3 py-2 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#FAAE3A]"
-            type="email"
-            placeholder="Enter email."
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            className="border border-gray-300 rounded px-3 py-2 mb-6 text-sm focus:outline-none focus:ring-2 focus:ring-[#FAAE3A]"
-            type="password"
-            placeholder="Enter password."
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+            <Button
+              onClick={handleLogin}
+              className="w-full"
+              disabled={!email || !password}
+            >
+              Sign In
+            </Button>
 
-          <button
-            onClick={handleLogin}
-            className="bg-[#404042] text-white py-2 rounded text-sm font-semibold transition-colors duration-200 hover:bg-[#FAAE3A] active:bg-[#F17625]"
-          >
-            Login
-          </button>
+            <div className="text-center">
+              <a href="#" className="text-sm text-[#404042] hover:text-[#FAAE3A] transition-colors">
+                Forgot your password?
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </main>

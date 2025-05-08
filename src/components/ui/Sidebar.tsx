@@ -18,12 +18,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { JSX } from "react";
-import { useSidebarStore } from "@/lib/store/sidebar";
+import React from "react";
+import Image from "next/image";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const expanded = useSidebarStore((state) => state.expanded);
 
   const [openMenus, setOpenMenus] = useState({
     services: false,
@@ -41,15 +40,9 @@ export function Sidebar() {
 
   const toggleMenu = (key: keyof typeof openMenus) => {
     setOpenMenus((prev) => {
-      const allClosed = {
-        services: false,
-        settings: false,
-        support: false,
-      };
-      return {
-        ...allClosed,
-        [key]: !prev[key],
-      };
+      const newState = { services: false, settings: false, support: false };
+      newState[key] = !prev[key];
+      return newState;
     });
   };
 
@@ -59,78 +52,101 @@ export function Sidebar() {
       <li>
         <Link
           href={href}
-          className={`flex items-center gap-2 px-2 py-2 rounded text-sm ${
-            isActive ? "bg-[#FAAE3A] text-black font-semibold" : "text-white hover:bg-gray-700"
-          }`}
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-200 font-semibold
+            ${isActive
+              ? "bg-[#FAAE3A] text-[#404042] shadow-md"
+              : "text-gray-200 hover:bg-[#FFF3D1] hover:text-[#404042]"}
+          `}
         >
-          {icon}
-          {expanded && <span>{label}</span>}
+          <span className="flex-shrink-0">{icon}</span>
+          <span className="flex-grow">{label}</span>
         </Link>
       </li>
     );
   };
 
-  const DropdownSection = ({
-    icon,
-    title,
-    id,
-    children,
-  }: {
-    icon: JSX.Element;
-    title: string;
-    id: keyof typeof openMenus;
-    children: React.ReactNode;
-  }) => {
-    const isOpen = openMenus[id];
-
+  const DropdownSection = ({ icon, title, id, children }: any) => {
+    const isOpen = openMenus[id as keyof typeof openMenus];
+    const items = React.Children.toArray(children).map((child: any) => ({
+      href: child.props.href,
+      icon: child.props.icon,
+      label: child.props.label,
+    }));
     return (
-      <div className="mt-4">
-        <button onClick={() => toggleMenu(id)} className="flex items-center gap-2 font-semibold text-white w-full">
-          {icon}
-          {expanded && <span>{title}</span>}
-          {expanded && (isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />)}
-        </button>
-        <ul
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
-          } ${expanded ? "pl-6" : "pl-2"} space-y-1 mt-1`}
+      <div className="mb-6 relative">
+        <button
+          onClick={() => toggleMenu(id as keyof typeof openMenus)}
+          className={`group flex items-center justify-between w-full px-4 py-2.5 rounded-lg text-sm transition-all duration-200 font-semibold
+            ${isOpen ? "text-[#FAAE3A] bg-white/5" : "text-gray-200 hover:text-[#FAAE3A] hover:bg-white/5"}
+          `}
         >
-          {children}
-        </ul>
+          <div className="flex items-center gap-3">
+            <span className="flex-shrink-0">{icon}</span>
+            <span>{title}</span>
+          </div>
+          <span className="flex-shrink-0 transition-transform duration-200">
+            {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          </span>
+        </button>
+        {isOpen && (
+          <ul className="mt-2 space-y-1 pl-4 border-l-2 border-[#FAAE3A]">
+            {children}
+          </ul>
+        )}
       </div>
     );
   };
 
   return (
     <aside
-      className={`bg-[#404042] text-white flex flex-col items-center transition-all duration-300 ease-in-out ${
-        expanded ? "w-64" : "w-20"
-      } min-h-screen pt-4`}
+      className="bg-[#404042] text-white flex flex-col w-64 min-h-screen border-r border-[#FAAE3A]/20 relative shadow-xl"
     >
-      <div className="mb-6 flex flex-col items-center transition-opacity duration-300 ease-in-out">
-        <img src="/logo.png" alt="Logo" className="w-16 h-16" />
-        {expanded && <p className="mt-2 text-sm text-center">User Name</p>}
+      <div className="p-6 flex flex-col items-center border-b border-[#FAAE3A]/20">
+        <div className="relative w-14 h-14 mb-3">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            fill
+            className="object-contain"
+          />
+        </div>
+        <div className="text-center">
+          <p className="text-base font-bold text-[#FAAE3A]">Fountain Forward</p>
+          <p className="text-xs text-gray-300">Admin Dashboard</p>
+        </div>
       </div>
 
-      <nav className="w-full px-4">
-        <DropdownSection icon={<Rocket size={16} />} title="Services" id="services">
-          <NavItem href="/dashboard/advertisers" icon={<LayoutGrid size={14} />} label="Advertisers" />
-          <NavItem href="/dashboard/campaigns" icon={<Package size={14} />} label="Campaign Builder" />
-          <NavItem href="/dashboard/feeds" icon={<MenuIcon size={14} />} label="Custom Feeds" />
-          <NavItem href="/dashboard/alerts" icon={<AlertTriangle size={14} />} label="Alerts" />
+      <nav className="flex-1 p-4 overflow-y-auto">
+        <DropdownSection icon={<Rocket size={18} />} title="Services" id="services">
+          <NavItem href="/dashboard/advertisers" icon={<LayoutGrid size={16} />} label="Advertisers" />
+          <NavItem href="/dashboard/campaigns" icon={<Package size={16} />} label="Campaign Builder" />
+          <NavItem href="/dashboard/feeds" icon={<MenuIcon size={16} />} label="Custom Feeds" />
+          <NavItem href="/dashboard/alerts" icon={<AlertTriangle size={16} />} label="Alerts" />
         </DropdownSection>
-
-        <DropdownSection icon={<BarChart2 size={16} />} title="Settings" id="settings">
-          <NavItem href="/dashboard/users" icon={<User size={14} />} label="User Admin" />
-          <NavItem href="/dashboard/billing" icon={<DollarSign size={14} />} label="Billing Reports" />
-          <NavItem href="/dashboard/clients" icon={<Settings size={14} />} label="Client Settings" />
+        <div className="border-b border-[#FAAE3A]/10 my-2" />
+        <DropdownSection icon={<BarChart2 size={18} />} title="Settings" id="settings">
+          <NavItem href="/dashboard/users" icon={<User size={16} />} label="User Admin" />
+          <NavItem href="/dashboard/billing" icon={<DollarSign size={16} />} label="Billing Reports" />
+          <NavItem href="/dashboard/clients" icon={<Settings size={16} />} label="Client Settings" />
         </DropdownSection>
-
-        <DropdownSection icon={<HelpCircle size={16} />} title="Support" id="support">
-          <NavItem href="/dashboard/support-guides" icon={<Ticket size={14} />} label="Support Guides" />
-          <NavItem href="/dashboard/customer-service" icon={<Ticket size={14} />} label="Customer Service Portal" />
+        <div className="border-b border-[#FAAE3A]/10 my-2" />
+        <DropdownSection icon={<HelpCircle size={18} />} title="Support" id="support">
+          <NavItem href="/dashboard/support-guides" icon={<Ticket size={16} />} label="Support Guides" />
+          <NavItem href="/dashboard/customer-service" icon={<Ticket size={16} />} label="Customer Service" />
         </DropdownSection>
       </nav>
+
+      <div className="p-4 border-t border-[#FAAE3A]/20 bg-[#39393B]">
+        <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg group relative">
+          <div className="w-9 h-9 rounded-full bg-[#FAAE3A] flex items-center justify-center shadow-md">
+            <User size={18} className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-white truncate">Admin User</p>
+            <p className="text-xs text-gray-300 truncate">admin@fountain.com</p>
+          </div>
+        </div>
+      </div>
     </aside>
   );
 }

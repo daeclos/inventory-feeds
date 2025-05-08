@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { FeedAd } from "../data/feeds";
+import type { FeedAd } from "../data/feeds";
 
 interface AddFeedModalProps {
   onAdd: (advertiser: string, feed: FeedAd) => void;
@@ -28,10 +28,8 @@ export default function AddFeedModal({ onAdd, advertisers }: AddFeedModalProps) 
   const [open, setOpen] = useState(false);
   const [advertiser, setAdvertiser] = useState("");
   const [name, setName] = useState("");
-  const [type, setType] = useState<"Default" | "Extended">("Default");
-  const [format, setFormat] = useState<"Google Ads" | "Facebook" | "Bing">(
-    "Google Ads"
-  );
+  const [type, setType] = useState<FeedAd["type"]>("Default");
+  const [format, setFormat] = useState<FeedAd["format"]>("Google Ads");
 
   const isValid = advertiser !== "" && name.trim().length > 0;
 
@@ -99,7 +97,7 @@ export default function AddFeedModal({ onAdd, advertisers }: AddFeedModalProps) 
 
             <div className="grid gap-1">
               <Label>Feed Type</Label>
-              <Select value={type} onValueChange={(v) => setType(v as any)}>
+              <Select value={type} onValueChange={(v: FeedAd["type"]) => setType(v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
@@ -114,7 +112,7 @@ export default function AddFeedModal({ onAdd, advertisers }: AddFeedModalProps) 
               <Label>Feed Format</Label>
               <Select
                 value={format}
-                onValueChange={(v) => setFormat(v as any)}
+                onValueChange={(v: FeedAd["format"]) => setFormat(v)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select format" />

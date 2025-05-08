@@ -1,5 +1,5 @@
-import { CORPORATE_COLORS } from "@/constants/colors";
 import { Advertiser } from "@/types/advertiser";
+import { Switch } from "@/components/ui/switch";
 
 interface FeaturesProps {
   advertiser: Advertiser;
@@ -15,17 +15,15 @@ export function Features({ advertiser, onChange }: FeaturesProps) {
           Dynamic Display Feeds
           <span className="relative group">
             <span className="ml-1 text-[#FAAE3A] cursor-pointer">ⓘ</span>
-            <span className="absolute left-6 top-0 z-10 w-56 bg-[#FFF3D1] text-[#404042] text-xs rounded p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-              Proporciona un feed de inventario actualizado diariamente para campañas de remarketing dinámico en Google y Facebook.
+            <span className="absolute left-0 top-full mt-2 z-10 w-56 bg-[#FFF3D1] text-[#404042] text-xs rounded p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+              Provides a daily updated inventory feed for Google and Facebook dynamic remarketing campaigns.
             </span>
           </span>
         </span>
         <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
+          <Switch
             checked={!!advertiser.FeatureDisplay}
-            onChange={e => onChange({ ...advertiser, FeatureDisplay: e.target.checked })}
-            className="w-6 h-6 accent-[#FAAE3A]"
+            onCheckedChange={checked => onChange({ ...advertiser, FeatureDisplay: checked })}
           />
           <input
             type="date"
@@ -43,17 +41,15 @@ export function Features({ advertiser, onChange }: FeaturesProps) {
           Dynamic Video Ads
           <span className="relative group">
             <span className="ml-1 text-[#FAAE3A] cursor-pointer">ⓘ</span>
-            <span className="absolute left-6 top-0 z-10 w-56 bg-[#FFF3D1] text-[#404042] text-xs rounded p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-              Permite la creación de anuncios de video con contenido dinámico basado en inventario.
+            <span className="absolute left-0 top-full mt-2 z-10 w-56 bg-[#FFF3D1] text-[#404042] text-xs rounded p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+              Enables video ad creation with dynamic content based on inventory.
             </span>
           </span>
         </span>
         <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
+          <Switch
             checked={!!advertiser.FeatureVideo}
-            onChange={e => onChange({ ...advertiser, FeatureVideo: e.target.checked })}
-            className="w-6 h-6 accent-[#FAAE3A]"
+            onCheckedChange={checked => onChange({ ...advertiser, FeatureVideo: checked })}
           />
           <input
             type="date"
@@ -71,17 +67,15 @@ export function Features({ advertiser, onChange }: FeaturesProps) {
           Google Ads Search Integration
           <span className="relative group">
             <span className="ml-1 text-[#FAAE3A] cursor-pointer">ⓘ</span>
-            <span className="absolute left-6 top-0 z-10 w-56 bg-[#FFF3D1] text-[#404042] text-xs rounded p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-              Conecta con Google Ads y actualiza grupos de anuncios según el inventario diario.
+            <span className="absolute left-0 top-full mt-2 z-10 w-56 bg-[#FFF3D1] text-[#404042] text-xs rounded p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+              Connects to Google Ads and updates ad groups based on daily inventory.
             </span>
           </span>
         </span>
         <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
+          <Switch
             checked={!!advertiser.FeatureSearch}
-            onChange={e => onChange({ ...advertiser, FeatureSearch: e.target.checked })}
-            className="w-6 h-6 accent-[#FAAE3A]"
+            onCheckedChange={checked => onChange({ ...advertiser, FeatureSearch: checked })}
           />
           <input
             type="date"

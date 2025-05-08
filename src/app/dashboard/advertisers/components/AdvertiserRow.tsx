@@ -5,8 +5,7 @@ import {
   Settings,
   Search,
   Rss,
-  FileText,
-  AlertTriangle,
+  Video,
   Package,
   Info,
 } from "lucide-react";
@@ -33,10 +32,6 @@ export function AdvertiserRow({ advertiser }: Props) {
 
   const handlePackageClick = () => {
     router.push(`/dashboard/packages?advertiserId=${advertiser.id}`);
-  };
-
-  const handleAlertClick = () => {
-    router.push(`/dashboard/alerts?advertiserId=${advertiser.id}`);
   };
 
   const handleVideoDocClick = () => {
@@ -80,11 +75,7 @@ export function AdvertiserRow({ advertiser }: Props) {
             className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
             onClick={handlePackageClick}
           />
-          <AlertTriangle
-            className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
-            onClick={handleAlertClick}
-          />
-          <FileText
+          <Video
             className="w-4 h-4 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
             onClick={handleVideoDocClick}
           />

@@ -49,106 +49,107 @@ export default function AdvertiserPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#404042]">Advertisers</h1>
-        <div className="flex items-center gap-4">
-          <Input
-            type="text"
-            placeholder="Search advertiser..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-80 border-gray-300"
-          />
-          <AddAdvertiserModal
-            isDialogOpen={isDialogOpen}
-            setIsDialogOpen={setIsDialogOpen}
-            advertiserData={advertiserData}
-            setAdvertiserData={setAdvertiserData}
-            setAdvertisers={() => {}}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
-        {/* Filter by Status */}
-        <div className="flex items-center gap-2 text-sm text-[#404042]">
-          <span>Status:</span>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="border border-gray-300 rounded px-2 py-1 text-sm"
-          >
-            <option value="all">All</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
-          </select>
-        </div>
-        {/* Dropdown */}
-        <div className="flex items-center gap-2 text-sm text-[#404042]">
-          <span>Show</span>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => {
-              setItemsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="border border-gray-300 rounded px-2 py-1 text-sm"
-          >
-            {[10, 25, 50, 100].map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-          <span>entries</span>
-        </div>
-
-        {/* Export buttons */}
-        <div className="flex items-center gap-2">
-          {["Copy", "CSV", "Excel"].map((label) => (
-            <button
-              key={label}
-              className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] active:bg-[#F17625]"
-              onClick={() => alert(`${label} clicked (not implemented)`)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <AdvertiserTable data={showingAdvertisers} />
-
-      <div className="flex justify-between items-center mt-4 text-sm text-[#404042]">
-        <div>
-          Showing {startIndex + 1} to {Math.min(endIndex, filteredCount)} of {filteredCount} entries
-          {filteredCount !== totalCount && ` (filtered from ${totalCount} total entries)`}
-        </div>
-        <div className="flex gap-2">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => handlePageChange("prev")}
-            className="px-3 py-1 rounded bg-[#404042] text-white disabled:bg-gray-300 disabled:text-gray-600 hover:bg-[#FAAE3A] active:bg-[#F17625]"
-          >
-            Previous
-          </button>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => handlePageChange("next")}
-            className="px-3 py-1 rounded bg-[#404042] text-white disabled:bg-gray-300 disabled:text-gray-600 hover:bg-[#FAAE3A] active:bg-[#F17625]"
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      <div className="max-w-[1400px] mx-auto px-6 py-8 bg-gray-50 min-h-[90vh] rounded-xl shadow border border-gray-100">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
+            <div>
+              <h1 className="text-3xl font-bold text-[#404042] mb-1">Advertisers</h1>
+              <p className="text-gray-500 text-sm">Manage, search and export your advertisers.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                type="text"
+                placeholder="Search advertiser..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-72 border-gray-300"
+              />
+              <AddAdvertiserModal
+                isDialogOpen={isDialogOpen}
+                setIsDialogOpen={setIsDialogOpen}
+                advertiserData={advertiserData}
+                setAdvertiserData={setAdvertiserData}
+              />
+            </div>
           </div>
+          <div className="flex flex-wrap items-center gap-4 justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-full max-w-none">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-[#404042]">Status:</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-300 rounded px-2 py-1 text-sm"
+              >
+                <option value="all">All</option>
+                <option value="active">Active Only</option>
+                <option value="inactive">Inactive Only</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-[#404042]">Show</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-300 rounded px-2 py-1 text-sm"
+              >
+                {[10, 25, 50, 100].map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+              <span className="text-sm text-[#404042]">entries</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {['Copy', 'CSV', 'Excel'].map((label) => (
+                <button
+                  key={label}
+                  className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] active:bg-[#F17625]"
+                  onClick={() => alert(`${label} clicked (not implemented)`)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <AdvertiserTable data={showingAdvertisers} />
+        </div>
+
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mt-4">
+          <div className="text-sm text-gray-600">
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredCount)} of {filteredCount} entries
+            {filteredCount !== totalCount && ` (filtered from ${totalCount} total entries)`}
+          </div>
+          <div className="flex gap-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange("prev")}
+              className="px-3 py-1 rounded bg-[#404042] text-white disabled:bg-gray-300 disabled:text-gray-600 hover:bg-[#FAAE3A] active:bg-[#F17625]"
+            >
+              Previous
+            </button>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange("next")}
+              className="px-3 py-1 rounded bg-[#404042] text-white disabled:bg-gray-300 disabled:text-gray-600 hover:bg-[#FAAE3A] active:bg-[#F17625]"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }

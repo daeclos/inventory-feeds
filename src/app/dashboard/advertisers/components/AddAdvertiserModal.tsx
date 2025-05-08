@@ -13,13 +13,13 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { v4 as uuidv4 } from "uuid";
 import { useAdvertiserStore } from '../store';
+import { DynamicDisplayFeeds } from "../[id]/components/DynamicDisplayFeeds";
 
 interface Props {
   isDialogOpen: boolean;
   setIsDialogOpen: (val: boolean) => void;
   advertiserData: AdvertiserFormData;
   setAdvertiserData: (val: AdvertiserFormData) => void;
-  setAdvertisers: (val: any) => void;
 }
 
 export default function AddAdvertiserModal({
@@ -27,7 +27,6 @@ export default function AddAdvertiserModal({
   setIsDialogOpen,
   advertiserData,
   setAdvertiserData,
-  setAdvertisers,
 }: Props) {
   const [localData, setLocalData] = useState<AdvertiserFormData>(advertiserData);
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -98,7 +97,7 @@ export default function AddAdvertiserModal({
       "Connects to Google Ads and updates ad groups based on daily inventory.",
   };
 
-  const handleChange = (field: keyof AdvertiserFormData, value: any) => {
+  const handleChange = (field: keyof AdvertiserFormData, value: unknown) => {
     setLocalData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -335,69 +334,7 @@ export default function AddAdvertiserModal({
         )}
 
         {step === 3 && localData.FeatureDisplay && (
-          <div className="bg-white p-6 rounded-xl shadow border border-gray-200 text-[#404042] space-y-6">
-            <div>
-              <h3 className="text-lg font-bold text-[#404042]">Request installation of dynamic remarketing tags:</h3>
-              <p className="text-sm text-gray-500">
-                OPTIONAL: If you would like Fountain Forward Support to handle the installation of dynamic remarketing tags,
-                please provide the additional information below.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="GTMAccountId" className="block font-semibold">GTM Account ID</Label>
-                <Input
-                  id="GTMAccountId"
-                  value={localData.GTMAccountId || ""}
-                  onChange={(e) => handleChange("GTMAccountId", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="GTMContainerId" className="block font-semibold">GTM Container ID</Label>
-                <Input
-                  id="GTMContainerId"
-                  placeholder="GTM-XXXXXXX"
-                  value={localData.GTMContainerId || ""}
-                  onChange={(e) => handleChange("GTMContainerId", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="FacebookPixelId" className="block font-semibold">Facebook Pixel ID</Label>
-                <Input
-                  id="FacebookPixelId"
-                  value={localData.FacebookPixelId || ""}
-                  onChange={(e) => handleChange("FacebookPixelId", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="GoogleAdsConversionId" className="block font-semibold">Google Ads Conversion ID</Label>
-                <Input
-                  id="GoogleAdsConversionId"
-                  value={localData.GoogleAdsConversionId || ""}
-                  onChange={(e) => handleChange("GoogleAdsConversionId", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="BingRemarketingId" className="block font-semibold">Bing Remarketing ID</Label>
-                <Input
-                  id="BingRemarketingId"
-                  value={localData.BingRemarketingId || ""}
-                  onChange={(e) => handleChange("BingRemarketingId", e.target.value)}
-                />
-              </div>
-              <div className="text-sm text-gray-700">
-                <label className="inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(localData.RequestScriptInstall)}
-                    onChange={(e) => handleChange("RequestScriptInstall", e.target.checked)}
-                    className="mr-2"
-                  />
-                  Request New Script Installation
-                </label>
-              </div>
-            </div>
-          </div>
+          <DynamicDisplayFeeds advertiser={localData} onChange={setLocalData} />
         )}
 
         {step === 4 && localData.FeatureSearch && (
@@ -477,52 +414,6 @@ export default function AddAdvertiserModal({
             <div>
               <h3 className="text-lg font-bold text-[#404042] mb-4">Special Requests & Notes</h3>
               <div className="space-y-6">
-                {/* Custom Feed Requests */}
-                <div className="space-y-4">
-                  <Label className="block font-semibold">Custom Feed Requests</Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        id="CustomFeedRequest"
-                        checked={Boolean(localData.CustomFeedRequest)}
-                        onCheckedChange={(v: boolean) => handleChange("CustomFeedRequest", v)}
-                      />
-                      <Label htmlFor="CustomFeedRequest">Request Custom Feed Setup</Label>
-                    </div>
-                    {localData.CustomFeedRequest && (
-                      <Input
-                        placeholder="Describe your custom feed requirements..."
-                        value={localData.CustomFeedRequirements || ""}
-                        onChange={(e) => handleChange("CustomFeedRequirements", e.target.value)}
-                        className="mt-2"
-                      />
-                    )}
-                  </div>
-                </div>
-
-                {/* Video Ad Requests */}
-                <div className="space-y-4">
-                  <Label className="block font-semibold">Video Ad Requests</Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        id="VideoAdRequest"
-                        checked={Boolean(localData.VideoAdRequest)}
-                        onCheckedChange={(v: boolean) => handleChange("VideoAdRequest", v)}
-                      />
-                      <Label htmlFor="VideoAdRequest">Request Video Ad Creation</Label>
-                    </div>
-                    {localData.VideoAdRequest && (
-                      <Input
-                        placeholder="Describe your video ad requirements..."
-                        value={localData.VideoAdRequirements || ""}
-                        onChange={(e) => handleChange("VideoAdRequirements", e.target.value)}
-                        className="mt-2"
-                      />
-                    )}
-                  </div>
-                </div>
-
                 {/* Additional Notes */}
                 <div className="space-y-4">
                   <Label className="block font-semibold">Additional Notes</Label>
@@ -532,21 +423,6 @@ export default function AddAdvertiserModal({
                     value={localData.AdditionalNotes || ""}
                     onChange={(e) => handleChange("AdditionalNotes", e.target.value)}
                   />
-                </div>
-
-                {/* Priority Level */}
-                <div className="space-y-4">
-                  <Label className="block font-semibold">Priority Level</Label>
-                  <select
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FAAE3A]"
-                    value={localData.PriorityLevel || "normal"}
-                    onChange={(e) => handleChange("PriorityLevel", e.target.value)}
-                  >
-                    <option value="low">Low Priority</option>
-                    <option value="normal">Normal Priority</option>
-                    <option value="high">High Priority</option>
-                    <option value="urgent">Urgent</option>
-                  </select>
                 </div>
               </div>
             </div>

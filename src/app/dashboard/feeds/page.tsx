@@ -9,18 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
 export default function FeedsPage() {
-  const [advertisers, setAdvertisers] = useState<AdvertiserGroup[]>(sampleAdvertisers);
-
-  const handleAddFeed = (advertiser: string, feed: FeedAd) => {
-    setAdvertisers((prev) =>
-      prev.map((group) =>
-        group.advertiser === advertiser
-          ? { ...group, ads: [...group.ads, feed] }
-          : group
-      )
-    );
-  };
-
   return (
     <div className="p-8 text-2xl text-[#404042]">Feeds Page (en construcción)</div>
   );

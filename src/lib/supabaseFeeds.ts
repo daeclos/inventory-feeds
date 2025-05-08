@@ -1,56 +1,49 @@
-import { createClient } from "@supabase/supabase-js";
 import { AdvertiserGroup, FeedAd } from "../app/dashboard/feeds/data/feeds";
 
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Datos de ejemplo locales
+const mockFeeds: AdvertiserGroup[] = [
+  {
+    advertiser: "1",
+    totalRecords: 150,
+    noPrice: 5,
+    noImage: 3,
+    ads: [
+      {
+        id: "1",
+        name: "Default Feed",
+        type: "Default",
+        format: "Google Ads",
+        lastUpdate: "2024-03-20",
+        status: true
+      },
+      {
+        id: "2",
+        name: "Extended Feed",
+        type: "Extended",
+        format: "Facebook",
+        lastUpdate: "2024-03-19",
+        status: true
+      }
+    ]
+  }
+];
 
 export async function fetchAdvertisersWithFeeds(): Promise<AdvertiserGroup[]> {
-  const { data, error } = await supabase
-    .from("advertisers")
-    .select("id, name, totalRecords, noPrice, noImage, feeds(*)")
-    .order("name", { ascending: true });
-
-  if (error || !data) {
-    console.error("Failed to fetch advertisers:", error);
-    return [];
-  }
-
-  return data.map((record) => ({
-    advertiser: record.name,
-    totalRecords: record.totalRecords,
-    noPrice: record.noPrice,
-    noImage: record.noImage,
-    ads: (record.feeds || []).map((f: any): FeedAd => ({
-      id: f.id,
-      name: f.name,
-      type: f.type,
-      format: f.format,
-      lastUpdate: f.lastUpdate,
-      status: f.status,
-    })),
-  }));
+  // Simular un pequeño retraso para imitar una llamada a API
+  await new Promise(resolve => setTimeout(resolve, 100));
+  return mockFeeds;
 }
 
 export async function deleteFeedById(feedId: string): Promise<boolean> {
-  const { error } = await supabase.from("feeds").delete().eq("id", feedId);
-  if (error) {
-    console.error("Failed to delete feed:", error);
-    return false;
-  }
+  // Simular un pequeño retraso para imitar una llamada a API
+  await new Promise(resolve => setTimeout(resolve, 100));
+  console.log(`Feed ${feedId} deleted (mock)`);
   return true;
 }
 
 export async function addFeedToAdvertiser(advertiserId: string, feed: Partial<FeedAd>): Promise<boolean> {
-  const { error } = await supabase.from("feeds").insert({
-    ...feed,
-    advertiser_id: advertiserId,
-  });
-
-  if (error) {
-    console.error("Failed to insert feed:", error);
-    return false;
-  }
+  // Simular un pequeño retraso para imitar una llamada a API
+  await new Promise(resolve => setTimeout(resolve, 100));
+  console.log(`Feed added to advertiser ${advertiserId} (mock)`, feed);
   return true;
 }
