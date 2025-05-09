@@ -65,12 +65,13 @@ export default function AdvertiserSettingsPage() {
         {/* CMS, ID y Token en la parte superior derecha */}
         <div className="absolute right-0 top-0 flex flex-col items-end gap-1 text-xs text-gray-500">
           <div>
-            <span className="font-semibold text-[#2A6BE9]">CMS:</span> <span>eBizAuto</span>
+            <span className="font-semibold text-[#2A6BE9]">CMS:</span> <span>{(advertiser as any)?.cms || "-"}</span>
           </div>
           <div>
-            <span className="font-semibold">ID:</span> <span>{advertiser.id || "-"}</span> <span className="ml-2 font-semibold">Token:</span> <span>49QdISh1b</span>
+            <span className="font-semibold">ID:</span> <span>{advertiser.id || "-"}</span> <span className="ml-2 font-semibold">Token:</span> <span>{(advertiser as any)?.token || "-"}</span>
           </div>
         </div>
+        {/* Aquí se mostrarán CMS, ID y Token cuando se integren desde la base de datos */}
         <div className="border-b border-gray-200 mb-4" />
         {/* Tabs de navegación estilo Hoot Interactive */}
         <AdvertiserTabs currentStep={step} stepLabel={STEPS[step]?.label} />

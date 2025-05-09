@@ -7,9 +7,10 @@ import { User } from "@/types/user";
 interface UserTabsProps {
   onEdit: (user: User) => void;
   onDelete: (id: string) => void;
+  onAddUser: () => void;
 }
 
-export default function UserTabs({ onEdit, onDelete }: UserTabsProps) {
+export default function UserTabs({ onEdit, onDelete, onAddUser }: UserTabsProps) {
   const [tab, setTab] = useState<"profile" | "users">("profile");
   const users = useUserStore((s) => s.users);
 
@@ -30,7 +31,19 @@ export default function UserTabs({ onEdit, onDelete }: UserTabsProps) {
         </button>
       </div>
       {tab === "profile" && <MyProfile />}
-      {tab === "users" && <UserTable users={users} onEdit={onEdit} onDelete={onDelete} />}
+      {tab === "users" && (
+        <>
+          <div className="flex justify-end mb-2">
+            <button
+              className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] hover:text-[#404042] active:bg-[#F17625] active:text-white transition-colors"
+              onClick={onAddUser}
+            >
+              + Add User
+            </button>
+          </div>
+          <UserTable users={users} onEdit={onEdit} onDelete={onDelete} />
+        </>
+      )}
     </div>
   );
 } 

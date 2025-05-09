@@ -92,25 +92,12 @@ export default function UserAdminPage() {
             <h1 className="text-3xl font-bold text-[#404042] mb-1">User Admin</h1>
             <p className="text-gray-500 text-sm">Manage your users, roles and access.</p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] hover:text-[#404042] active:bg-[#F17625] active:text-white transition-colors"
-              onClick={() => setModalOpen(true)}
-            >
-              + Add User
-            </button>
-            {!isAdminUser && (
-              <>
-                <button className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] active:bg-[#F17625]" onClick={handleCopy}>Copy</button>
-                <button className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] active:bg-[#F17625]" onClick={handleCSV}>CSV</button>
-                <button className="bg-[#404042] text-white font-semibold text-sm px-3 py-1 rounded hover:bg-[#FAAE3A] active:bg-[#F17625]" onClick={handleExcel}>Excel</button>
-              </>
-            )}
-          </div>
+          {/* Botones removidos del header principal */}
         </div>
         <UserTabs
           onEdit={u => { setEditUser(u); setModalOpen(true); }}
           onDelete={handleDelete}
+          onAddUser={() => setModalOpen(true)}
         />
         <UserModal
           isOpen={modalOpen}
