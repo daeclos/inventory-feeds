@@ -1,14 +1,16 @@
 interface Step {
   label: string;
+  description?: string;
 }
 
 interface StepperProps {
   steps: Step[];
   currentStep: number;
   onStepClick: (step: number) => void;
+  showDescriptions?: boolean;
 }
 
-export function Stepper({ steps, currentStep, onStepClick }: StepperProps) {
+export function Stepper({ steps, currentStep, onStepClick, showDescriptions = false }: StepperProps) {
   return (
     <div className="flex items-center justify-between mb-8 mt-6 w-full max-w-4xl mx-auto">
       {steps.map((step, idx) => (
@@ -25,6 +27,8 @@ export function Stepper({ steps, currentStep, onStepClick }: StepperProps) {
             className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold mb-2 transition-colors duration-200 border-4
               ${currentStep === idx
                 ? "bg-[#FAAE3A] text-white border-[#F17625] shadow-lg"
+                : currentStep > idx
+                ? "bg-[#F17625] text-white border-[#F17625]"
                 : "bg-gray-200 text-[#404042] border-gray-200"}
             `}
             onClick={() => onStepClick(idx)}
@@ -33,13 +37,20 @@ export function Stepper({ steps, currentStep, onStepClick }: StepperProps) {
           >
             {idx + 1}
           </button>
-          <span
-            className={`text-xs text-center mt-1 truncate ${currentStep === idx ? "font-bold text-[#404042]" : "text-gray-500"}`}
-            style={{ maxWidth: 90, width: '90px', display: 'block' }}
-            title={step.label}
-          >
-            {step.label}
-          </span>
+          <div className="flex flex-col items-center">
+            <span
+              className={`text-xs text-center mt-1 truncate ${currentStep === idx ? "font-bold text-[#404042]" : "text-gray-500"}`}
+              style={{ maxWidth: 90, width: '90px', display: 'block' }}
+              title={step.label}
+            >
+              {step.label}
+            </span>
+            {showDescriptions && step.description && (
+              <span className="text-xs text-gray-500 text-center mt-1 max-w-[120px]">
+                {step.description}
+              </span>
+            )}
+          </div>
         </div>
       ))}
     </div>

@@ -8,8 +8,12 @@ import {
   Video,
   Package,
   Info,
+  Bell,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { AlertsReportModal } from "./AlertsReportModal";
+import React from "react";
 
 interface Props {
   advertiser: Advertiser;
@@ -17,6 +21,17 @@ interface Props {
 
 export function AdvertiserRow({ advertiser }: Props) {
   const router = useRouter();
+  const [openAlerts, setOpenAlerts] = React.useState(false);
+
+  // Mock de alertas para este anunciante
+  const alerts = [
+    {
+      advertiser: advertiser.name,
+      reported: "04/29/2025 07:04 AM",
+      updated: "04/29/2025 07:04 AM",
+      subject: "No eligible campaigns in Google Ads for Hoot Monitor!",
+    },
+  ];
 
   const goToTab = (tab: string) => {
     router.push(`/dashboard/advertisers/${advertiser.id}?tab=${tab}`);
@@ -30,11 +45,9 @@ export function AdvertiserRow({ advertiser }: Props) {
     <tr className="border-b text-sm text-[#404042] hover:bg-gray-100">
       {/* Status LED */}
       <td className="px-4 py-2 text-center">
-        <div
-          className={`w-4 h-4 rounded-full mx-auto ${
-            advertiser.hasAds ? "bg-blue-400" : "bg-gray-300"
-          }`}
-        ></div>
+        <Badge variant={advertiser.hasAds ? "success" : "inactive"}>
+          {advertiser.hasAds ? "Active" : "Inactive"}
+        </Badge>
       </td>
 
       {/* Name */}
@@ -64,8 +77,8 @@ export function AdvertiserRow({ advertiser }: Props) {
             onClick={() => goToTab("video-ads")}
           />
           <Info
-            className="w-5 h-5 cursor-pointer text-gray-400"
-            onClick={handleInfoClick}
+            className="w-5 h-5 cursor-pointer hover:text-[#FAAE3A] active:text-[#F17625]"
+            onClick={() => setOpenAlerts(true)}
           />
         </div>
       </td>
@@ -77,6 +90,13 @@ export function AdvertiserRow({ advertiser }: Props) {
       <td className="px-4 py-2 text-center hidden md:table-cell">{advertiser.customFeeds}</td>
       <td className="px-4 py-2 text-center hidden md:table-cell">{advertiser.videoTemplates}</td>
       <td className="px-4 py-2 text-center hidden md:table-cell">{advertiser.videoAdVersions}</td>
+
+      <AlertsReportModal
+        open={openAlerts}
+        onOpenChange={setOpenAlerts}
+        advertiser={advertiser.name}
+        alerts={alerts}
+      />
     </tr>
   );
 }
