@@ -33,7 +33,7 @@ export function InventoryFeeds() {
   }, [advertiserId]);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 w-full max-w-none flex flex-col gap-6">
+    <div className="bg-background rounded-xl shadow-sm border border-border p-6 w-full max-w-none flex flex-col gap-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <span className="text-lg font-bold text-[#404042]">Dynamic Display Feeds</span>
         <div className="flex gap-2">

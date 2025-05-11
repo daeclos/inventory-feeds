@@ -14,7 +14,7 @@ export default function Topbar() {
 
   return (
     <>
-      <div className="bg-white border-b border-[#FAAE3A]/40 shadow-sm">
+      <div className="bg-white dark:bg-[#404042] border-b border-[#FAAE3A]/40 shadow-sm">
         <div className="px-8 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
             {/* Botón hamburguesa o cerrar solo móvil */}
@@ -36,14 +36,14 @@ export default function Topbar() {
               </button>
             )}
             {/* Barra de búsqueda */}
-            <div className="relative w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#404042]" size={20} />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#404042] dark:text-gray-200" size={20} />
               <Input
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-gray-50 border border-gray-200 focus:bg-white focus:border-[#FAAE3A] focus:ring-[#FAAE3A]/30 text-[#404042] font-medium"
+                className="pl-10 bg-gray-50 dark:bg-[#39393B] border border-gray-200 dark:border-gray-700 focus:bg-white dark:focus:bg-[#404042] focus:border-[#FAAE3A] focus:ring-[#FAAE3A]/30 text-[#404042] dark:text-gray-200 font-medium"
               />
             </div>
 
@@ -51,23 +51,25 @@ export default function Topbar() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowSupport(true)}
-                className="font-bold text-[#404042] hover:text-[#FAAE3A] transition flex items-center gap-2 px-4 py-2 rounded-md border border-transparent hover:border-[#FAAE3A] bg-white hover:bg-[#FFF3D1] shadow-sm"
+                className="font-bold text-[#404042] dark:text-gray-200 hover:text-[#FAAE3A] transition flex items-center gap-2 px-4 py-2 rounded-md border border-transparent hover:border-[#FAAE3A] bg-white dark:bg-[#39393B] hover:bg-[#FFF3D1] dark:hover:bg-[#404042] shadow-sm"
                 title="Contact Support"
               >
-                <MessageCircle size={20} className="text-[#404042] group-hover:text-[#FAAE3A]" />
+                <MessageCircle size={20} className="text-[#404042] dark:text-gray-200 group-hover:text-[#FAAE3A]" />
                 <span className="text-base font-bold">Contact Support</span>
               </button>
             </div>
           </div>
 
-          {/* Botón Log out */}
-          <Link
-            href="/"
-            className="text-sm font-bold text-[#404042] hover:text-[#FAAE3A] flex items-center gap-1 transition px-3 py-2 rounded-md border border-transparent hover:border-[#FAAE3A] bg-white hover:bg-[#FFF3D1] shadow-sm"
-          >
-            <Power size={18} />
-            Log out
-          </Link>
+          <div className="flex items-center gap-4">
+            {/* Botón Log out */}
+            <Link
+              href="/"
+              className="text-sm font-bold text-[#404042] dark:text-gray-200 hover:text-[#FAAE3A] flex items-center gap-1 transition px-3 py-2 rounded-md border border-transparent hover:border-[#FAAE3A] bg-white dark:bg-[#39393B] hover:bg-[#FFF3D1] dark:hover:bg-[#404042] shadow-sm"
+            >
+              <Power size={18} />
+              Log out
+            </Link>
+          </div>
         </div>
       </div>
 

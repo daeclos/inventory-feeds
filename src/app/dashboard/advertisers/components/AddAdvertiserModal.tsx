@@ -193,32 +193,35 @@ export default function AddAdvertiserModal({
       </DialogTrigger>
 
       <DialogContent className="w-screen md:max-w-7xl">
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-6">
-          <div
-            className="bg-[#FAAE3A] h-full transition-all"
-            style={{ width: `${(step / stepLabels.length) * 100}%` }}
-          />
-        </div>
-
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-[#404042]">{stepLabels[step - 1]}</h2>
-          <div className="flex items-center gap-6 flex-wrap">
-            {stepLabels.map((lbl, idx) => (
-              <button
-                type="button"
-                key={idx}
-                onClick={() => setStep(idx + 1)}
-                className="flex items-center gap-2 focus:outline-none"
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors duration-200 ${
-                    step === idx + 1 ? "bg-[#404042] text-white" : "bg-gray-300 text-gray-700"
-                  }`}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            {stepLabels.map((label, idx) => (
+              <div key={idx} className="flex flex-col items-center flex-1">
+                <button
+                  type="button"
+                  onClick={() => setStep(idx + 1)}
+                  className={`
+                    w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold
+                    transition-colors duration-200
+                    ${step === idx + 1
+                      ? 'bg-[#FAAE3A] text-white shadow-lg'
+                      : idx + 1 < step
+                        ? 'bg-[#404042] text-white'
+                        : 'bg-gray-200 text-gray-500'}
+                  `}
+                  aria-current={step === idx + 1 ? "step" : undefined}
                 >
                   {idx + 1}
-                </div>
-              </button>
+                </button>
+                <span className={`mt-2 text-xs font-medium ${step === idx + 1 ? 'text-[#FAAE3A]' : 'text-gray-400'}`}>{label}</span>
+              </div>
             ))}
+          </div>
+          <div className="relative w-full h-2 bg-gray-200 rounded-full">
+            <div
+              className="absolute h-2 bg-[#FAAE3A] rounded-full transition-all"
+              style={{ width: `${((step - 1) / (stepLabels.length - 1)) * 100}%` }}
+            />
           </div>
         </div>
 

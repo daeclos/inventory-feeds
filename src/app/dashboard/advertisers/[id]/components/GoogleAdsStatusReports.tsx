@@ -42,7 +42,7 @@ export function GoogleAdsStatusReports({ rows = [] }: GoogleAdsStatusReportsProp
           "No Results",
           "Error Responses"
         ].map((label, i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col items-center shadow-sm min-h-[90px] w-full">
+          <div key={i} className="bg-background border border-border rounded-lg p-6 flex flex-col items-center shadow-sm min-h-[90px] w-full">
             <span
               className="text-sm mb-2"
               style={{ color: '#404042', fontFamily: 'Geist-ExtraBold, Geist, sans-serif', fontWeight: 800 }}
@@ -54,7 +54,7 @@ export function GoogleAdsStatusReports({ rows = [] }: GoogleAdsStatusReportsProp
       </div>
 
       {/* Changed AdGroups Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 w-full max-w-none">
+      <div className="bg-background rounded-xl shadow-sm border border-border p-6 w-full max-w-none">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div className="flex gap-2">
             <Button variant="outline" size="sm">Excel</Button>
@@ -86,7 +86,7 @@ export function GoogleAdsStatusReports({ rows = [] }: GoogleAdsStatusReportsProp
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="bg-gray-50">
+              <tr className="bg-muted">
                 <th className="px-3 py-2 text-left font-semibold text-gray-700">Campaign</th>
                 <th className="px-3 py-2 text-left font-semibold text-gray-700">Ad Group</th>
                 <th className="px-3 py-2 text-left font-semibold text-gray-700">Previous Status</th>
@@ -102,7 +102,7 @@ export function GoogleAdsStatusReports({ rows = [] }: GoogleAdsStatusReportsProp
                   <td colSpan={7} className="text-center text-gray-400 py-8">No results found.</td>
                 </tr>
               ) : filteredRows.slice(0, showCount).map((row, i) => (
-                <tr key={i} className="border-b last:border-b-0 hover:bg-gray-50">
+                <tr key={i} className="border-b last:border-b-0 hover:bg-muted">
                   <td className="px-3 py-2 whitespace-nowrap">{row.campaign}</td>
                   <td className="px-3 py-2 whitespace-nowrap">{row.adGroup}</td>
                   <td className="px-3 py-2 whitespace-nowrap">{row.prevStatus}</td>

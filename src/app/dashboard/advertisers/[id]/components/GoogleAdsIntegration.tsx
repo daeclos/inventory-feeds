@@ -17,7 +17,7 @@ export function GoogleAdsIntegration({ advertiser, onChange }: Props) {
   const deactivationDate = advertiser.AdCustomizersDeactivationDate ? new Date(advertiser.AdCustomizersDeactivationDate) : null;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col gap-8">
+    <div className="bg-background rounded-xl shadow-sm border border-border p-6 flex flex-col gap-8">
       {/* Google Ads IDs */}
       <div>
         <h3 className="text-lg font-bold text-[#404042] mb-4">Google Ads Account</h3>
