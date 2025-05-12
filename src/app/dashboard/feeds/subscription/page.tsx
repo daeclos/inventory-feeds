@@ -42,8 +42,6 @@ export default function FeedSubscriptionPage() {
     addSalePrice: false,
     urlAppends: [] as { name: string; value: string }[],
   });
-  const [urlAppendInput, setUrlAppendInput] = useState({ name: "", value: "" });
-  const [urlAppendError, setUrlAppendError] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [showAdvertiserError, setShowAdvertiserError] = useState(false);
 
@@ -91,26 +89,6 @@ export default function FeedSubscriptionPage() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [vehicleDropdownOpen]);
 
-  const handleAddUrlAppend = () => {
-    if (!urlAppendInput.name || !urlAppendInput.value) {
-      setUrlAppendError("Please complete all fields before adding more.");
-      return;
-    }
-    setFormData({
-      ...formData,
-      urlAppends: [...formData.urlAppends, urlAppendInput],
-    });
-    setUrlAppendInput({ name: "", value: "" });
-    setUrlAppendError("");
-  };
-
-  const handleRemoveUrlAppend = (idx: number) => {
-    setFormData({
-      ...formData,
-      urlAppends: formData.urlAppends.filter((_, i) => i !== idx),
-    });
-  };
-
   const handleNext = () => {
     if (step === 1) {
       if (!formData.feedName) return;
@@ -134,11 +112,13 @@ export default function FeedSubscriptionPage() {
   const campaignUrlPreview = `https://example.com/feed?name=${formData.feedName}&type=${formData.feedType}&format=${formData.feedFormat}${formData.urlAppends.map(u => `&${u.name}=${u.value}`).join("")}`;
 
   // Estado para mostrar/ocultar campos de URL Appends
-  const [showUrlAppendFields, setShowUrlAppendFields] = useState(false);
+  const [showUrlAppendsBox, setShowUrlAppendsBox] = useState(false);
 
-  // Extrae la UI de URL Appends a un componente interno reutilizable
-  function UrlAppendsSection() {
+  // Encabezado principal y caja de edición para URL Appends
+  function UrlAppendsSection({ showBox, setShowBox }: { showBox: boolean; setShowBox: React.Dispatch<React.SetStateAction<boolean>> }) {
+    const [urlAppendInput, setUrlAppendInput] = useState({ name: '', value: '' });
     const [showPlaceholders, setShowPlaceholders] = useState(false);
+    const [selectedAppends, setSelectedAppends] = useState<number[]>([]);
     const placeholderRef = useRef<HTMLDivElement>(null);
     // Cerrar popup de placeholders al hacer clic fuera
     React.useEffect(() => {
@@ -148,76 +128,126 @@ export default function FeedSubscriptionPage() {
       if (showPlaceholders) document.addEventListener("mousedown", handleClick);
       return () => document.removeEventListener("mousedown", handleClick);
     }, [showPlaceholders]);
+    // Eliminar seleccionados
+    const handleDeleteSelected = () => {
+      if (!formData.urlAppends) return;
+      const newArr = formData.urlAppends.filter((_: any, idx: number) => !selectedAppends.includes(idx));
+      setFormData({ ...formData, urlAppends: newArr });
+      setSelectedAppends([]);
+    };
+    // Seleccionar todos
+    const handleSelectAll = (checked: boolean) => {
+      if (checked && formData.urlAppends) setSelectedAppends(formData.urlAppends.map((_: any, idx: number) => idx));
+      else setSelectedAppends([]);
+    };
+    // Seleccionar individual
+    const handleSelect = (idx: number, checked: boolean) => {
+      if (checked) setSelectedAppends(prev => [...prev, idx]);
+      else setSelectedAppends(prev => prev.filter(i => i !== idx));
+    };
+    // Agregar nuevo
+    const handleAdd = () => {
+      if (!urlAppendInput.name && !urlAppendInput.value) return;
+      const newArr = [...(formData.urlAppends || []), { name: urlAppendInput.name, value: urlAppendInput.value }];
+      setFormData({ ...formData, urlAppends: newArr });
+      setUrlAppendInput({ name: '', value: '' });
+    };
+    const allSelected = formData.urlAppends && formData.urlAppends.length > 0 && selectedAppends.length === formData.urlAppends.length;
     return (
-      <>
-        {!showUrlAppendFields ? (
-          <div className="w-full">
-            <Button type="button" className="bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold px-4" onClick={() => setShowUrlAppendFields(true)}>+URL</Button>
-          </div>
-        ) : (
-          <div className="w-full flex flex-col gap-2 relative">
-            <div className="flex gap-2 w-full items-center">
-              <Input
-                value={urlAppendInput.name}
-                onChange={e => setUrlAppendInput({ ...urlAppendInput, name: e.target.value })}
-                placeholder="Name"
-                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
-              />
-              <Input
-                value={urlAppendInput.value}
-                onChange={e => setUrlAppendInput({ ...urlAppendInput, value: e.target.value })}
-                placeholder="Value"
-                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
-              />
-              <Button type="button" style={{ background: '#FAAE3A', color: 'white' }} className="font-semibold px-4 rounded hover:bg-[#F17625]" onClick={() => { handleAddUrlAppend(); setShowUrlAppendFields(false); }}>Add</Button>
-              <Button type="button" style={{ background: '#F17625', color: 'white' }} className="font-semibold px-4 rounded hover:bg-[#FAAE3A]" onClick={() => { setShowUrlAppendFields(false); setUrlAppendInput({ name: '', value: '' }); }}>Cancel</Button>
-              <button type="button" className="ml-1 flex items-center justify-center rounded border border-[#F17625] bg-[#FFF3D1] p-2 transition hover:bg-[#FAAE3A]" onClick={() => setShowPlaceholders(v => !v)}>
-                <HelpCircle size={18} color="#F17625" />
-              </button>
-              {showPlaceholders && (
-                <div ref={placeholderRef} className="absolute z-30 bg-white border rounded shadow-lg p-4 w-full left-0 top-12">
-                  <div className="font-semibold text-gray-700 mb-2">Available placeholders</div>
-                  <ul className="text-[#404042] text-sm space-y-1 mb-2">
-                    <li>Item Description</li>
-                    <li>Item Category</li>
-                    <li>ID</li>
-                    <li>Image URL</li>
-                    <li>Final URL</li>
-                    <li>Item Title</li>
-                  </ul>
-                  <div className="bg-gray-100 text-xs p-2 rounded">
-                    Need Additional Help....Visit <a href="#" className="text-blue-600 underline">Here</a>
+      <div className="w-full">
+        {/* Encabezado principal eliminado */}
+        {/* Caja de edición */}
+        {showBox && (
+          <div className="bg-white rounded-xl shadow border border-[#e5e7eb] p-8 relative">
+            {/* Encabezado pequeño y acciones */}
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-bold text-[#404042] text-lg">URL Appends</span>
+              <div className="flex gap-2">
+                <button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white rounded w-10 h-10 flex items-center justify-center transition-colors" title="Eliminar seleccionados" onClick={handleDeleteSelected}>
+                  <Trash2 size={20} />
+                </button>
+                <button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white rounded w-10 h-10 flex items-center justify-center transition-colors" title="Ayuda" onClick={() => setShowPlaceholders(v => !v)}>
+                  <HelpCircle size={20} />
+                </button>
+                {showPlaceholders && (
+                  <div ref={placeholderRef} className="absolute right-0 top-16 z-50 w-64 bg-white border rounded shadow-xl">
+                    <div className="bg-gray-100 px-4 py-2 font-semibold border-b">Available placeholders</div>
+                    <ul className="max-h-80 overflow-y-auto px-4 py-2">
+                      <li className="py-1 text-[#404042]">Item Description</li>
+                      <li className="py-1 text-[#404042]">Item Category</li>
+                      <li className="py-1 text-[#404042]">ID</li>
+                      <li className="py-1 text-[#404042]">Image URL</li>
+                      <li className="py-1 text-[#404042]">Final URL</li>
+                      <li className="py-1 text-[#404042]">Item Title</li>
+                    </ul>
+                    <div className="border-t px-4 py-2 text-xs text-gray-500">
+                      Need Additional Help....Visit <a href="#" className="text-blue-600 underline">Here</a>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-            {urlAppendError && <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded mb-2 w-full">{urlAppendError}</div>}
-            <div className="border rounded bg-yellow-50 text-yellow-800 text-center py-2 mb-2 w-full" style={{ display: formData.urlAppends.length === 0 ? 'block' : 'none' }}>
-              No URL Appends have been added yet
-            </div>
-            {formData.urlAppends.length > 0 && (
-              <table className="w-full mb-2">
+            {/* Tabla de URL Appends */}
+            <div className="w-full">
+              <table className="w-full text-sm table-fixed">
+                <colgroup>
+                  <col className="w-1/12" />
+                  <col className="w-5/12" />
+                  <col className="w-5/12" />
+                  <col className="w-1/12" />
+                </colgroup>
                 <thead>
                   <tr>
-                    <th className="text-left px-2">Name</th>
-                    <th className="text-left px-2">Value</th>
-                    <th></th>
+                    <th className="text-center font-bold text-[#404042]"><input type="checkbox" checked={allSelected} onChange={e => handleSelectAll(e.target.checked)} /></th>
+                    <th className="text-left px-2 font-bold text-[#404042]">Name</th>
+                    <th className="text-left px-2 font-bold text-[#404042]">Value</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {formData.urlAppends.map((u, i) => (
-                    <tr key={i}>
-                      <td className="px-2">{u.name}</td>
-                      <td className="px-2">{u.value}</td>
-                      <td><Button type="button" variant="destructive" size="sm" onClick={() => handleRemoveUrlAppend(i)}>🗑️</Button></td>
+                  {(!formData.urlAppends || formData.urlAppends.length === 0) ? (
+                    <tr>
+                      <td colSpan={3}>
+                        <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded mb-2 text-center">No URL Appends have been added yet</div>
+                      </td>
                     </tr>
-                  ))}
+                  ) : (
+                    formData.urlAppends.map((ua: any, idx: number) => (
+                      <tr key={idx}>
+                        <td className="text-center">
+                          <input type="checkbox" checked={selectedAppends.includes(idx)} onChange={e => handleSelect(idx, e.target.checked)} />
+                        </td>
+                        <td className="px-2"><Input value={ua.name} readOnly className="w-full h-12 text-base" /></td>
+                        <td className="px-2"><Input value={ua.value} readOnly className="w-full h-12 text-base" /></td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-            )}
+            </div>
+            {/* Inputs para agregar alineados con la tabla */}
+            <div className="grid grid-cols-12 gap-0 mt-6 w-full items-center">
+              <div className="col-span-1" />
+              <div className="col-span-5 pr-2">
+                <Input className="h-12 text-base w-full" value={urlAppendInput.name} onChange={e => setUrlAppendInput({ ...urlAppendInput, name: e.target.value })} placeholder="Name" />
+              </div>
+              <div className="col-span-5 pr-2">
+                <Input className="h-12 text-base w-full" value={urlAppendInput.value} onChange={e => setUrlAppendInput({ ...urlAppendInput, value: e.target.value })} placeholder="Value" />
+              </div>
+              <div className="col-span-1 flex items-center justify-center">
+                <button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white rounded w-12 h-12 flex items-center justify-center transition-colors" title="Agregar URL Append" onClick={handleAdd}>
+                  <Plus size={24} />
+                </button>
+              </div>
+            </div>
           </div>
         )}
-      </>
+        {/* Botón +URL solo si la caja está cerrada */}
+        {!showBox && (
+          <button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white font-bold text-lg rounded px-6 py-2 transition mt-2" onClick={() => setShowBox(true)}>
+            +URL
+          </button>
+        )}
+      </div>
     );
   }
 
@@ -367,9 +397,48 @@ export default function FeedSubscriptionPage() {
               error={showAdvertiserError ? 'At least one advertiser is required.' : undefined}
             />
           </div>
+          {/* Solo para Facebook Automotive: checkboxes después de Advertisers */}
+          {formData.feedFormat === "Facebook (Automotive)" && (
+            <>
+              <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Missing Price to $1</label>
+              <div className="md:col-span-9 flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.missingPrice}
+                  onChange={e => setFormData({ ...formData, missingPrice: e.target.checked })}
+                  className="mr-2"
+                />
+              </div>
+              <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Set new vehicles' miles to 0</label>
+              <div className="md:col-span-9 flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.setMilesZero}
+                  onChange={e => setFormData({ ...formData, setMilesZero: e.target.checked })}
+                  className="mr-2"
+                />
+              </div>
+              <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4 flex items-center gap-1">Add sale_price Column
+                <span className="relative group inline-block">
+                  <span className="cursor-pointer ml-1 text-[#404042] bg-[#FFF3D1] rounded-full px-1">?</span>
+                  <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-10 w-[36rem] bg-[#404E5A] text-white text-xs rounded p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity text-center pointer-events-none">
+                    If not set, the feed will include the vehicle price listed in the 'price' attribute column. If set, vehicle's price will be displayed in 'sale_price' attribute and 'price' attribute will display vehicle's MSRP.
+                  </span>
+                </span>
+              </label>
+              <div className="md:col-span-9 flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.addSalePrice}
+                  onChange={e => setFormData({ ...formData, addSalePrice: e.target.checked })}
+                  className="mr-2"
+                />
+              </div>
+            </>
+          )}
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">URL Appends</label>
           <div className="md:col-span-9">
-            <UrlAppendsSection />
+            <UrlAppendsSection showBox={showUrlAppendsBox} setShowBox={setShowUrlAppendsBox} />
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Campaign URL Preview</label>
           <div className="md:col-span-9">
@@ -452,7 +521,7 @@ export default function FeedSubscriptionPage() {
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">URL Appends</label>
           <div className="md:col-span-9">
-            <UrlAppendsSection />
+            <UrlAppendsSection showBox={showUrlAppendsBox} setShowBox={setShowUrlAppendsBox} />
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Campaign URL Preview</label>
           <div className="md:col-span-9">

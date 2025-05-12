@@ -18,6 +18,7 @@ export interface FeedAdvertiser {
   customFeeds: number;
   hasAds?: boolean;
   status?: boolean;
+  addresses?: { address: string }[];
 }
 
 interface CustomFeedsTableProps {
@@ -28,6 +29,10 @@ interface CustomFeedsTableProps {
 function CustomFeedsTable({ advertisers, onRowClick }: CustomFeedsTableProps) {
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [feedsByAdvertiser, setFeedsByAdvertiser] = useState<Record<string, any[]>>({});
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [feedToDelete, setFeedToDelete] = useState<any>(null);
+  const [advIdToDelete, setAdvIdToDelete] = useState<string | null>(null);
+  const [openFeedDetails, setOpenFeedDetails] = useState<Record<string, Set<string>>>({}); // { advertiserId: Set<feedId> }
   const router = useRouter();
 
   useEffect(() => {
@@ -39,6 +44,15 @@ function CustomFeedsTable({ advertisers, onRowClick }: CustomFeedsTableProps) {
     setOpenRow(openRow === advId ? null : advId);
   };
 
+  const handleFeedNameClick = (advId: string, feedId: string) => {
+    setOpenFeedDetails(prev => {
+      const set = new Set(prev[advId] || []);
+      if (set.has(feedId)) set.delete(feedId);
+      else set.add(feedId);
+      return { ...prev, [advId]: set };
+    });
+  };
+
   // Handlers básicos para acciones
   const handleEdit = (feed: any) => alert(`Edit feed: ${feed.name}`);
   const handleDuplicate = (feed: any) => alert(`Duplicate feed: ${feed.name}`);
@@ -46,12 +60,24 @@ function CustomFeedsTable({ advertisers, onRowClick }: CustomFeedsTableProps) {
   const handleCopy = (feed: any) => alert(`Copy feed: ${feed.name}`);
   const handleDownload = (feed: any) => alert(`Download feed: ${feed.name}`);
   const handleDelete = (feed: any, advId: string) => {
-    if (window.confirm(`Delete feed: ${feed.name}?`)) {
-      const updated = { ...feedsByAdvertiser };
-      updated[advId] = updated[advId].filter((f: any) => f.id !== feed.id);
-      setFeedsByAdvertiser(updated);
-      localStorage.setItem('customFeeds', JSON.stringify(updated));
-    }
+    setFeedToDelete(feed);
+    setAdvIdToDelete(advId);
+    setShowDeleteModal(true);
+  };
+  const confirmDelete = () => {
+    if (!feedToDelete || !advIdToDelete) return;
+    const updated = { ...feedsByAdvertiser };
+    updated[advIdToDelete] = updated[advIdToDelete].filter((f: any) => f.id !== feedToDelete.id);
+    setFeedsByAdvertiser(updated);
+    localStorage.setItem('customFeeds', JSON.stringify(updated));
+    setShowDeleteModal(false);
+    setFeedToDelete(null);
+    setAdvIdToDelete(null);
+  };
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setFeedToDelete(null);
+    setAdvIdToDelete(null);
   };
 
   return (
@@ -95,17 +121,61 @@ function CustomFeedsTable({ advertisers, onRowClick }: CustomFeedsTableProps) {
                     {feedsByAdvertiser[adv.id]?.length ? (
                       <ul className="pl-0">
                         {feedsByAdvertiser[adv.id].map(feed => (
-                          <li key={feed.id} className="flex items-center justify-between border-b last:border-b-0 px-6 py-2">
-                            <span className="font-semibold text-[#404042]">{feed.name}</span>
-                            <span className="flex gap-2">
-                              <Edit2 size={18} className="cursor-pointer text-[#404042] hover:text-[#FAAE3A] transition-colors" aria-label="Edit" onClick={e => { e.stopPropagation(); router.push(`/dashboard/feeds/edit/${feed.id}`); }} />
-                              <Copy size={18} className="cursor-pointer text-[#404042] hover:text-[#FAAE3A] transition-colors" aria-label="Duplicate" onClick={e => { e.stopPropagation(); handleDuplicate(feed); }} />
-                              <Search size={18} className="cursor-pointer text-[#404042] hover:text-[#FAAE3A] transition-colors" aria-label="View" onClick={e => { e.stopPropagation(); handleView(feed); }} />
-                              <FileText size={18} className="cursor-pointer text-[#404042] hover:text-[#FAAE3A] transition-colors" aria-label="Copy" onClick={e => { e.stopPropagation(); handleCopy(feed); }} />
-                              <Download size={18} className="cursor-pointer text-[#404042] hover:text-[#FAAE3A] transition-colors" aria-label="Download" onClick={e => { e.stopPropagation(); handleDownload(feed); }} />
-                              <Trash2 size={18} className="cursor-pointer text-[#F17625] hover:text-[#FAAE3A] transition-colors" aria-label="Delete" onClick={e => { e.stopPropagation(); handleDelete(feed, adv.id); }} />
-                            </span>
-                          </li>
+                          <React.Fragment key={feed.id}>
+                            <li
+                              className="flex items-center justify-between border-b last:border-b-0 px-6 py-2 cursor-pointer hover:bg-[#FFF3D1]/40 transition"
+                              onClick={e => { e.stopPropagation(); handleFeedNameClick(adv.id, feed.id); }}
+                            >
+                              <span className="font-semibold text-[#404042]">{feed.name}</span>
+                              <span className="flex gap-2">
+                                <Edit2 size={18} className="cursor-pointer text-[#404042] hover:text-[#FAAE3A] transition-colors" aria-label="Edit" onClick={e => { e.stopPropagation(); router.push(`/dashboard/feeds/edit/${feed.id}`); }} />
+                                <Copy size={18} className="cursor-pointer text-[#404042] hover:text-[#FAAE3A] transition-colors" aria-label="Duplicate" onClick={e => { e.stopPropagation(); handleDuplicate(feed); }} />
+                                <Search size={18} className="cursor-pointer text-[#404042] hover:text-[#FAAE3A] transition-colors" aria-label="View" onClick={e => { e.stopPropagation(); handleView(feed); }} />
+                                <FileText size={18} className="cursor-pointer text-[#404042] hover:text-[#FAAE3A] transition-colors" aria-label="Copy" onClick={e => { e.stopPropagation(); handleCopy(feed); }} />
+                                <Download size={18} className="cursor-pointer text-[#404042] hover:text-[#FAAE3A] transition-colors" aria-label="Download" onClick={e => { e.stopPropagation(); handleDownload(feed); }} />
+                                <Trash2 size={18} className="cursor-pointer text-[#F17625] hover:text-[#FAAE3A] transition-colors" aria-label="Delete" onClick={e => { e.stopPropagation(); handleDelete(feed, adv.id); }} />
+                              </span>
+                            </li>
+                            {/* Dropdown de detalles del feed */}
+                            {openFeedDetails[adv.id]?.has(feed.id) && (
+                              <li className="bg-[#f7f7f9] border-b last:border-b-0 px-10 py-4 text-sm text-[#404042]">
+                                <div className="grid grid-cols-1 md:grid-cols-6 gap-y-1 gap-x-4 items-center">
+                                  <div className="md:col-span-1"><span className="text-[#404042]">Feed Type</span></div>
+                                  <div className="md:col-span-5 font-bold">{feed.type}</div>
+                                  <div className="md:col-span-1"><span className="text-[#404042]">Feed Format</span></div>
+                                  <div className="md:col-span-5 font-bold">{feed.format}</div>
+                                  <div className="md:col-span-1"><span className="text-[#404042]">Address</span></div>
+                                  <div className="md:col-span-5 font-bold">{feed.address || (Array.isArray(adv.addresses) && adv.addresses[0]?.address) || '-'}</div>
+                                  {feed.filters && feed.filters.length > 0 && (
+                                    <><div className="md:col-span-1"><span className="text-[#404042]">Filter</span></div>
+                                    <div className="md:col-span-5">
+                                      {feed.filters.map((f: any, i: number) => (
+                                        <span key={i}>
+                                          <span className="text-blue-700 font-semibold">({f.field} {f.operator} <span className="text-[#F17625]">{Array.isArray(f.value) ? f.value.map((v: string) => `"${v}"`).join(', ') : `"${f.value}"`}</span>)</span>
+                                        </span>
+                                      ))}
+                                    </div></>
+                                  )}
+                                  {/* Url: principal y extras */}
+                                  <div className="md:col-span-1"><span className="text-[#404042]">Url</span></div>
+                                  <div className="md:col-span-5 flex flex-col gap-1">
+                                    {/* URL principal */}
+                                    {feed.url ? (
+                                      <a href={feed.url} className="text-blue-600 underline break-all" target="_blank" rel="noopener noreferrer">{feed.url}</a>
+                                    ) : (
+                                      <span className="text-gray-400">-</span>
+                                    )}
+                                    {/* URLs adicionales de urlAppends si existen y tienen value que parezca url */}
+                                    {feed.urlAppends && Array.isArray(feed.urlAppends) && feed.urlAppends.length > 0 && feed.urlAppends.map((u: { name: string; value: string }, idx: number) => (
+                                      u.value && (u.value.startsWith('http://') || u.value.startsWith('https://')) ? (
+                                        <a key={idx} href={u.value} className="text-blue-600 underline break-all ml-2" target="_blank" rel="noopener noreferrer">{u.value}</a>
+                                      ) : null
+                                    ))}
+                                  </div>
+                                </div>
+                              </li>
+                            )}
+                          </React.Fragment>
                         ))}
                       </ul>
                     ) : (
@@ -118,6 +188,19 @@ function CustomFeedsTable({ advertisers, onRowClick }: CustomFeedsTableProps) {
           ))}
         </TableBody>
       </Table>
+      {/* Modal de confirmación para eliminar feed */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#f7f7f9]/80">
+          <div className="bg-white rounded-lg shadow-lg p-8 min-w-[320px] max-w-[90vw]">
+            <div className="mb-4 text-lg font-semibold text-[#404042]">Delete Feed</div>
+            <div className="mb-6 text-[#404042]">Are you sure you want to delete the feed <span className="font-bold">{feedToDelete?.name}</span>?</div>
+            <div className="flex justify-end gap-4">
+              <button onClick={cancelDelete} className="px-4 py-2 rounded bg-gray-200 text-[#404042] font-semibold hover:bg-gray-300">Cancel</button>
+              <button onClick={confirmDelete} className="px-4 py-2 rounded bg-[#F17625] text-white font-semibold hover:bg-[#FAAE3A]">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -130,7 +213,7 @@ export default function CustomFeedsPage() {
   // Estado para feeds custom locales
   const [customFeeds, setCustomFeeds] = useState<any[]>([]);
 
-  // Convertir advertisers a FeedAdvertiser
+  // Convertir advertisers a FeedAdvertiser y agregar addresses
   const feedAdvertisers: FeedAdvertiser[] = advertisers.map(adv => ({
     id: adv.id,
     name: adv.name,
@@ -139,7 +222,8 @@ export default function CustomFeedsPage() {
     noImage: 0,
     customFeeds: 0,
     hasAds: adv.hasAds,
-    status: adv.status
+    status: adv.status,
+    addresses: adv.addresses || []
   }));
 
   return (
