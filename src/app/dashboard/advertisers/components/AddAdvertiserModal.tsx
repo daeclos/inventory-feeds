@@ -1,7 +1,7 @@
 // Versión mejorada visualmente de AddAdvertiserModal con sugerencias aplicadas
 "use client";
 
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -193,6 +193,7 @@ export default function AddAdvertiserModal({
       </DialogTrigger>
 
       <DialogContent className="w-screen md:max-w-7xl">
+        <DialogTitle>Add Advertiser</DialogTitle>
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             {stepLabels.map((label, idx) => (

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
 interface AddFeedSubscriptionModalProps {
@@ -18,6 +18,7 @@ export function AddFeedSubscriptionModal({ open, onOpenChange }: AddFeedSubscrip
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl w-[95vw] p-0">
+        <DialogTitle>New Feed Subscription</DialogTitle>
         <div className="px-8 py-6">
           <h2 className="text-2xl font-bold mb-6" style={{ color: '#404042' }}>New Feed Subscription</h2>
           <div className="flex flex-col gap-4">

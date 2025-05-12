@@ -45,9 +45,11 @@ export function AdvertiserRow({ advertiser }: Props) {
     <tr className="border-b text-sm text-[#404042] hover:bg-gray-100">
       {/* Status LED */}
       <td className="px-4 py-2 text-center">
-        <Badge variant={advertiser.hasAds ? "success" : "inactive"}>
-          {advertiser.hasAds ? "Active" : "Inactive"}
-        </Badge>
+        {advertiser.hasAds ? (
+          <span className="px-3 py-1 rounded-lg font-semibold text-sm bg-green-100 text-green-600">Active</span>
+        ) : (
+          <span className="px-3 py-1 rounded-lg font-semibold text-sm bg-red-100 text-red-600">Inactive</span>
+        )}
       </td>
 
       {/* Name */}

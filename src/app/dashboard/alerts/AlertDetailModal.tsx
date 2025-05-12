@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface AlertDetail {
   advertiser: string;
@@ -34,6 +34,7 @@ export function AlertDetailModal({ open, onOpenChange, alert }: AlertDetailModal
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl w-full p-0">
+        <DialogTitle>Alert detail</DialogTitle>
         <div className="border-b px-6 py-4 bg-[#F5F6FA] rounded-t-lg">
           <h2 className="text-lg font-bold text-[#404042]">Alert detail</h2>
         </div>

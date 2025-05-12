@@ -11,11 +11,16 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const router = useRouter();
 
   const handleLogin = () => {
     if (email && password) {
-      router.push("/dashboard/advertisers");
+      setIsTransitioning(true);
+      // Esperamos a que termine la animación antes de redirigir
+      setTimeout(() => {
+        router.push("/dashboard/advertisers");
+      }, 800); // Duración de la animación
     }
   };
 
@@ -27,11 +32,11 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-[#FAAE3A]/10 to-[#F17625]/10" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md mx-4">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
+      <div className={`w-full max-w-md px-4 z-10 ${isTransitioning ? 'animate-login-exit' : 'animate-fade-in'}`}>
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-500 hover:shadow-3xl hover:scale-[1.02]">
           {/* Header con gradiente y logo */}
           <div className="bg-gradient-to-br from-[#FAAE3A] to-[#F17625] w-full flex flex-col items-center justify-center p-8 rounded-t-2xl">
-            <div className="bg-white p-4 rounded-full shadow-lg mb-4 transform transition-transform duration-300 hover:scale-105">
+            <div className="bg-white p-4 rounded-full shadow-lg mb-4 transform transition-all duration-300 hover:scale-110 hover:rotate-3">
               <Image
                 src="/logo.png"
                 alt="Fountain Forward Logo"
@@ -40,7 +45,7 @@ export default function LoginPage() {
                 className="object-contain"
               />
             </div>
-            <h1 className="text-2xl font-black text-white">Welcome Back</h1>
+            <h1 className="text-2xl font-black text-white transform transition-all duration-300 hover:scale-105">Welcome Back</h1>
           </div>
 
           {/* Formulario */}
@@ -51,7 +56,7 @@ export default function LoginPage() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full"
+                className="w-full transition-all duration-300 focus:scale-[1.02] focus:border-[#FAAE3A] focus:ring-2 focus:ring-[#FAAE3A]/20"
               />
               
               <div className="relative">
@@ -60,12 +65,12 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pr-10"
+                  className="w-full pr-10 transition-all duration-300 focus:scale-[1.02] focus:border-[#FAAE3A] focus:ring-2 focus:ring-[#FAAE3A]/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-300"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -74,14 +79,14 @@ export default function LoginPage() {
 
             <Button
               onClick={handleLogin}
-              className="w-full"
+              className="w-full bg-gradient-to-r from-[#FAAE3A] to-[#F17625] text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={!email || !password}
             >
               Sign In
             </Button>
 
             <div className="text-center">
-              <a href="#" className="text-sm text-[#404042] hover:text-[#FAAE3A] transition-colors">
+              <a href="#" className="text-sm text-[#404042] hover:text-[#FAAE3A] transition-colors duration-300">
                 Forgot your password?
               </a>
             </div>

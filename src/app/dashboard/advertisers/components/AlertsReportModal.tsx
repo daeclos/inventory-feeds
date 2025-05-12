@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
@@ -29,6 +29,7 @@ export function AlertsReportModal({ open, onOpenChange, advertiser, alerts }: Al
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl w-[90vw]">
+        <DialogTitle>Alerts Report</DialogTitle>
         <h2 className="text-2xl font-bold mb-4" style={{ color: '#404042' }}>Alerts Report</h2>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">

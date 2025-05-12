@@ -3,7 +3,7 @@ import { Advertiser } from "@/types/advertiser";
 import { Switch } from "@/components/ui/switch";
 import { CORPORATE_COLORS } from "@/constants/colors";
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Pencil, Trash2 } from "lucide-react";
 
 interface AdvertiserDetailsProps {
@@ -197,6 +197,7 @@ export function AdvertiserDetails({ advertiser, onChange }: AdvertiserDetailsPro
       {/* Modal para crear/editar dirección */}
       <Dialog open={showAddressModal} onOpenChange={setShowAddressModal}>
         <DialogContent className="max-w-md">
+          <DialogTitle>Save Address</DialogTitle>
           <h2 className="text-2xl font-bold text-[#2A6BE9] text-center mb-4">Save Address</h2>
           {addressError && <div className="text-red-600 text-center mb-2 font-semibold">{addressError}</div>}
           <div className="space-y-4">

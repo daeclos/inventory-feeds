@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,8 @@ import {
   ArrowRight,
   X, 
   Check,
-  Filter
+  Filter,
+  HelpCircle
 } from "lucide-react";
 import {
   Select,
@@ -25,6 +26,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import React from "react";
 
 export default function FeedSubscriptionPage() {
   const router = useRouter();
@@ -34,7 +36,7 @@ export default function FeedSubscriptionPage() {
     feedName: "",
     feedType: "Default",
     feedFormat: "Google Ads",
-    advertiserId: "",
+    advertiserIds: [] as string[],
     missingPrice: false,
     setMilesZero: false,
     addSalePrice: false,
@@ -68,6 +70,27 @@ export default function FeedSubscriptionPage() {
     { value: "contains", label: "Contains" },
   ];
 
+  // Agregar estado para Google VLA
+  const [vehicleFulfillment, setVehicleFulfillment] = useState<string[]>([]);
+  const [vehicleDropdownOpen, setVehicleDropdownOpen] = useState(false);
+  const vehicleDropdownRef = useRef<HTMLDivElement>(null);
+  const [storeCode, setStoreCode] = useState("");
+  const [setMilesZero, setSetMilesZero] = useState(false);
+  const vehicleFulfillmentOptions = [
+    "In Store",
+    "Ship to Store",
+    "Online"
+  ];
+
+  // Cerrar dropdown al hacer clic fuera
+  React.useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (vehicleDropdownRef.current && !vehicleDropdownRef.current.contains(e.target as Node)) setVehicleDropdownOpen(false);
+    }
+    if (vehicleDropdownOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [vehicleDropdownOpen]);
+
   const handleAddUrlAppend = () => {
     if (!urlAppendInput.name || !urlAppendInput.value) {
       setUrlAppendError("Please complete all fields before adding more.");
@@ -93,7 +116,9 @@ export default function FeedSubscriptionPage() {
       if (!formData.feedName) return;
       setStep(2);
     } else if (step === 2) {
-      if (formData.feedFormat === "Facebook (Automotive)" && !formData.advertiserId) {
+      if ((formData.feedFormat === "Facebook (Automotive)" || 
+           formData.feedFormat === "Facebook (Retail)" ||
+           formData.feedFormat === "Google Ads") && formData.advertiserIds.length === 0) {
         setShowAdvertiserError(true);
         return;
       }
@@ -107,6 +132,94 @@ export default function FeedSubscriptionPage() {
 
   // Campaign URL Preview (simple example)
   const campaignUrlPreview = `https://example.com/feed?name=${formData.feedName}&type=${formData.feedType}&format=${formData.feedFormat}${formData.urlAppends.map(u => `&${u.name}=${u.value}`).join("")}`;
+
+  // Estado para mostrar/ocultar campos de URL Appends
+  const [showUrlAppendFields, setShowUrlAppendFields] = useState(false);
+
+  // Extrae la UI de URL Appends a un componente interno reutilizable
+  function UrlAppendsSection() {
+    const [showPlaceholders, setShowPlaceholders] = useState(false);
+    const placeholderRef = useRef<HTMLDivElement>(null);
+    // Cerrar popup de placeholders al hacer clic fuera
+    React.useEffect(() => {
+      function handleClick(e: MouseEvent) {
+        if (placeholderRef.current && !placeholderRef.current.contains(e.target as Node)) setShowPlaceholders(false);
+      }
+      if (showPlaceholders) document.addEventListener("mousedown", handleClick);
+      return () => document.removeEventListener("mousedown", handleClick);
+    }, [showPlaceholders]);
+    return (
+      <>
+        {!showUrlAppendFields ? (
+          <div className="w-full">
+            <Button type="button" className="bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold px-4" onClick={() => setShowUrlAppendFields(true)}>+URL</Button>
+          </div>
+        ) : (
+          <div className="w-full flex flex-col gap-2 relative">
+            <div className="flex gap-2 w-full items-center">
+              <Input
+                value={urlAppendInput.name}
+                onChange={e => setUrlAppendInput({ ...urlAppendInput, name: e.target.value })}
+                placeholder="Name"
+                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
+              />
+              <Input
+                value={urlAppendInput.value}
+                onChange={e => setUrlAppendInput({ ...urlAppendInput, value: e.target.value })}
+                placeholder="Value"
+                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
+              />
+              <Button type="button" style={{ background: '#FAAE3A', color: 'white' }} className="font-semibold px-4 rounded hover:bg-[#F17625]" onClick={() => { handleAddUrlAppend(); setShowUrlAppendFields(false); }}>Add</Button>
+              <Button type="button" style={{ background: '#F17625', color: 'white' }} className="font-semibold px-4 rounded hover:bg-[#FAAE3A]" onClick={() => { setShowUrlAppendFields(false); setUrlAppendInput({ name: '', value: '' }); }}>Cancel</Button>
+              <button type="button" className="ml-1 flex items-center justify-center rounded border border-[#F17625] bg-[#FFF3D1] p-2 transition hover:bg-[#FAAE3A]" onClick={() => setShowPlaceholders(v => !v)}>
+                <HelpCircle size={18} color="#F17625" />
+              </button>
+              {showPlaceholders && (
+                <div ref={placeholderRef} className="absolute z-30 bg-white border rounded shadow-lg p-4 w-full left-0 top-12">
+                  <div className="font-semibold text-gray-700 mb-2">Available placeholders</div>
+                  <ul className="text-[#404042] text-sm space-y-1 mb-2">
+                    <li>Item Description</li>
+                    <li>Item Category</li>
+                    <li>ID</li>
+                    <li>Image URL</li>
+                    <li>Final URL</li>
+                    <li>Item Title</li>
+                  </ul>
+                  <div className="bg-gray-100 text-xs p-2 rounded">
+                    Need Additional Help....Visit <a href="#" className="text-blue-600 underline">Here</a>
+                  </div>
+                </div>
+              )}
+            </div>
+            {urlAppendError && <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded mb-2 w-full">{urlAppendError}</div>}
+            <div className="border rounded bg-yellow-50 text-yellow-800 text-center py-2 mb-2 w-full" style={{ display: formData.urlAppends.length === 0 ? 'block' : 'none' }}>
+              No URL Appends have been added yet
+            </div>
+            {formData.urlAppends.length > 0 && (
+              <table className="w-full mb-2">
+                <thead>
+                  <tr>
+                    <th className="text-left px-2">Name</th>
+                    <th className="text-left px-2">Value</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {formData.urlAppends.map((u, i) => (
+                    <tr key={i}>
+                      <td className="px-2">{u.name}</td>
+                      <td className="px-2">{u.value}</td>
+                      <td><Button type="button" variant="destructive" size="sm" onClick={() => handleRemoveUrlAppend(i)}>🗑️</Button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+      </>
+    );
+  }
 
   // Step 1: Campos principales
   const renderStep1 = () => (
@@ -162,9 +275,75 @@ export default function FeedSubscriptionPage() {
     </div>
   );
 
-  // Step 2: Solo si es Facebook Automotive o Facebook Retail
+  // Multiselect custom para advertisers
+  function AdvertiserMultiSelect({ advertisers, value, onChange, error }: { advertisers: any[], value: string[], onChange: (v: string[]) => void, error?: string }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    // Cerrar el menú si se hace clic fuera
+    React.useEffect(() => {
+      function handleClick(e: MouseEvent) {
+        if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      }
+      if (open) document.addEventListener("mousedown", handleClick);
+      return () => document.removeEventListener("mousedown", handleClick);
+    }, [open]);
+
+    const allSelected = value.length === advertisers.length;
+
+    return (
+      <div className="relative" ref={ref}>
+        <div
+          className={`border rounded w-full min-h-[40px] bg-white flex items-center flex-wrap gap-1 px-2 py-1 cursor-pointer ${error ? 'border-red-400' : ''}`}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {value.length === 0 ? (
+            <span className="text-gray-400">Select advertisers...</span>
+          ) : (
+            <span className="flex flex-wrap gap-1">
+              {advertisers.filter(a => value.includes(a.id)).map(a => (
+                <span key={a.id} className="bg-[#FAAE3A]/20 text-[#404042] rounded px-2 py-0.5 text-xs font-semibold">{a.name}</span>
+              ))}
+            </span>
+          )}
+          <span className="ml-auto text-gray-400">▼</span>
+        </div>
+        {open && (
+          <div className="absolute z-20 bg-white border rounded shadow w-full mt-1 max-h-60 overflow-y-auto">
+            <div className="flex justify-between items-center px-2 py-1 border-b">
+              <button type="button" className="text-xs text-blue-600 hover:underline" onClick={e => {e.stopPropagation(); onChange(advertisers.map(a => a.id));}}>Select All</button>
+              <button type="button" className="text-xs text-blue-600 hover:underline" onClick={e => {e.stopPropagation(); onChange([]);}}>Deselect All</button>
+            </div>
+            {advertisers.map(a => (
+              <label key={a.id} className="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={value.includes(a.id)}
+                  onChange={e => {
+                    if (e.target.checked) {
+                      onChange([...value, a.id]);
+                    } else {
+                      onChange(value.filter(id => id !== a.id));
+                    }
+                  }}
+                  className="mr-2"
+                  onClick={e => e.stopPropagation()}
+                />
+                {a.name}
+              </label>
+            ))}
+          </div>
+        )}
+        {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
+      </div>
+    );
+  }
+
+  // Step 2: Para Facebook Automotive, Facebook Retail y Google Ads
   const renderStep2 = () => {
-    if (formData.feedFormat === "Facebook (Automotive)") {
+    if (formData.feedFormat === "Facebook (Automotive)" || 
+        formData.feedFormat === "Facebook (Retail)" ||
+        formData.feedFormat === "Google Ads") {
       return (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-y-6 gap-x-4 items-center max-w-4xl mx-auto">
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Name</label>
@@ -181,86 +360,16 @@ export default function FeedSubscriptionPage() {
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Advertisers</label>
           <div className="md:col-span-9">
-            <Select
-              value={formData.advertiserId}
-              onValueChange={value => { setFormData({ ...formData, advertiserId: value }); setShowAdvertiserError(false); }}
-              disabled={advertisers.length === 0}
-            >
-              <SelectTrigger className={`w-full ${showAdvertiserError ? 'border-red-400' : ''}`} >
-                <SelectValue placeholder="Nothing selected" />
-              </SelectTrigger>
-              <SelectContent>
-                {advertisers.map(a => (
-                  <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {showAdvertiserError && <div className="text-red-500 text-sm mt-1">This field is required.</div>}
-          </div>
-          <label className="md:col-span-3" />
-          <div className="md:col-span-9 flex flex-col gap-2">
-            <label className="flex items-center gap-2 text-[#404042]">
-              <input type="checkbox" checked={formData.missingPrice} onChange={e => setFormData({ ...formData, missingPrice: e.target.checked })} />
-              Missing Price to $1
-            </label>
-            <label className="flex items-center gap-2 text-[#404042]">
-              <input type="checkbox" checked={formData.setMilesZero} onChange={e => setFormData({ ...formData, setMilesZero: e.target.checked })} />
-              Set new vehicles' miles to 0
-            </label>
-            <label className="flex items-center gap-2 text-[#404042]">
-              <input type="checkbox" checked={formData.addSalePrice} onChange={e => setFormData({ ...formData, addSalePrice: e.target.checked })} />
-              Add sale_price Column
-              <span className="relative group">
-                <Info size={16} className="text-[#FAAE3A] cursor-pointer" onMouseEnter={() => setShowHelp(true)} onMouseLeave={() => setShowHelp(false)} />
-                {showHelp && (
-                  <span className="absolute left-6 top-0 bg-white border border-gray-300 rounded shadow px-3 py-2 text-xs text-[#404042] z-10 w-56">
-                    Adds a column named <b>sale_price</b> to the feed for promotional pricing.
-                  </span>
-                )}
-              </span>
-            </label>
+            <AdvertiserMultiSelect
+              advertisers={advertisers}
+              value={formData.advertiserIds}
+              onChange={ids => { setFormData({ ...formData, advertiserIds: ids }); setShowAdvertiserError(false); }}
+              error={showAdvertiserError ? 'At least one advertiser is required.' : undefined}
+            />
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">URL Appends</label>
           <div className="md:col-span-9">
-            <div className="flex gap-2 mb-2">
-              <Input
-                value={urlAppendInput.name}
-                onChange={e => setUrlAppendInput({ ...urlAppendInput, name: e.target.value })}
-                placeholder="Name"
-                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
-              />
-              <Input
-                value={urlAppendInput.value}
-                onChange={e => setUrlAppendInput({ ...urlAppendInput, value: e.target.value })}
-                placeholder="Value"
-                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
-              />
-              <Button type="button" className="bg-[#FAAE3A] hover:bg-[#F17625] text-white font-semibold px-4" onClick={handleAddUrlAppend}>+Add new</Button>
-            </div>
-            {urlAppendError && <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded mb-2">{urlAppendError}</div>}
-            <div className="border rounded bg-yellow-50 text-yellow-800 text-center py-2 mb-2" style={{ display: formData.urlAppends.length === 0 ? 'block' : 'none' }}>
-              No URL Appends have been added yet
-            </div>
-            {formData.urlAppends.length > 0 && (
-              <table className="w-full mb-2">
-                <thead>
-                  <tr>
-                    <th className="text-left px-2">Name</th>
-                    <th className="text-left px-2">Value</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {formData.urlAppends.map((u, i) => (
-                    <tr key={i}>
-                      <td className="px-2">{u.name}</td>
-                      <td className="px-2">{u.value}</td>
-                      <td><Button type="button" variant="destructive" size="sm" onClick={() => handleRemoveUrlAppend(i)}>🗑️</Button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <UrlAppendsSection />
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Campaign URL Preview</label>
           <div className="md:col-span-9">
@@ -268,99 +377,82 @@ export default function FeedSubscriptionPage() {
           </div>
         </div>
       );
-    } else if (formData.feedFormat === "Facebook (Retail)") {
+    } else if (formData.feedFormat === "Google VLA") {
       return (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-y-6 gap-x-4 items-center max-w-4xl mx-auto">
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Name</label>
           <div className="md:col-span-9">
-            <Input value={formData.feedName} readOnly className="w-full" />
+            <Input value={formData.feedName} readOnly className="w-full bg-gray-100" />
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Type</label>
           <div className="md:col-span-9">
-            <Input value={formData.feedType} readOnly className="w-full" />
+            <Input value={formData.feedType} readOnly className="w-full bg-gray-100" />
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Format</label>
           <div className="md:col-span-9">
-            <Input value={formData.feedFormat} readOnly className="w-full" />
+            <Input value={formData.feedFormat} readOnly className="w-full bg-gray-100" />
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Advertisers</label>
           <div className="md:col-span-9">
-            <Select
-              value={formData.advertiserId}
-              onValueChange={value => { setFormData({ ...formData, advertiserId: value }); setShowAdvertiserError(false); }}
-              disabled={advertisers.length === 0}
-            >
-              <SelectTrigger className={`w-full ${showAdvertiserError ? 'border-red-400' : ''}`} >
-                <SelectValue placeholder="Nothing selected" />
-              </SelectTrigger>
-              <SelectContent>
-                {advertisers.map(a => (
-                  <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {showAdvertiserError && <div className="text-red-500 text-sm mt-1">This field is required.</div>}
+            <Input value={advertisers.filter(a => formData.advertiserIds.includes(a.id)).map(a => a.name).join(", ")} readOnly className="w-full bg-gray-100" placeholder="Nothing selected" />
           </div>
-          <label className="md:col-span-3" />
-          <div className="md:col-span-9 flex flex-col gap-2">
-            <label className="flex items-center gap-2 text-[#404042]">
-              <input type="checkbox" checked={formData.missingPrice} onChange={e => setFormData({ ...formData, missingPrice: e.target.checked })} />
-              Missing Price to $1
-            </label>
-            <label className="flex items-center gap-2 text-[#404042]">
-              <input type="checkbox" checked={formData.addSalePrice} onChange={e => setFormData({ ...formData, addSalePrice: e.target.checked })} />
-              Add sale_price Column
-              <span className="relative group">
-                <Info size={16} className="text-[#FAAE3A] cursor-pointer" onMouseEnter={() => setShowHelp(true)} onMouseLeave={() => setShowHelp(false)} />
-                {showHelp && (
-                  <span className="absolute left-6 top-0 bg-white border border-gray-300 rounded shadow px-3 py-2 text-xs text-[#404042] z-10 w-56">
-                    Adds a column named <b>sale_price</b> to the feed for promotional pricing.
-                  </span>
-                )}
-              </span>
-            </label>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4 flex items-center gap-1">Store Code
+            <span className="relative group cursor-pointer">
+              <span className="ml-1 text-[#404042] bg-[#FFF3D1] rounded-full px-1">?</span>
+              <span className="absolute left-0 top-full mt-2 z-10 w-72 bg-[#404042] text-white text-xs rounded p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">If is not set, the Store Code at the Advertiser level will be used</span>
+            </span>
+          </label>
+          <div className="md:col-span-9">
+            <Input value={storeCode} onChange={e => setStoreCode(e.target.value)} className="w-full" />
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Vehicle Fulfillment</label>
+          <div className="md:col-span-9">
+            <div className="relative" ref={vehicleDropdownRef}>
+              <div className="border rounded w-full min-h-[40px] bg-white flex items-center flex-wrap gap-1 px-2 py-1 cursor-pointer" onClick={() => setVehicleDropdownOpen(v => !v)}>
+                <span className="flex flex-wrap gap-1">
+                  {vehicleFulfillment.length === 0 ? (
+                    <span className="text-gray-400">Nothing selected</span>
+                  ) : (
+                    vehicleFulfillment.map(opt => (
+                      <span key={opt} className="bg-[#FAAE3A]/20 text-[#404042] rounded px-2 py-0.5 text-xs font-semibold">{opt}</span>
+                    ))
+                  )}
+                </span>
+                <span className="ml-auto text-gray-400">▼</span>
+              </div>
+              {vehicleDropdownOpen && (
+                <div className="absolute z-20 bg-white border rounded shadow w-full mt-1 max-h-60 overflow-y-auto">
+                  <div className="flex justify-between items-center px-2 py-1 border-b">
+                    <button type="button" className="text-xs text-[#FAAE3A] hover:underline" onClick={e => {e.stopPropagation(); setVehicleFulfillment(vehicleFulfillmentOptions); setVehicleDropdownOpen(false);}}>Select All</button>
+                    <button type="button" className="text-xs text-[#FAAE3A] hover:underline" onClick={e => {e.stopPropagation(); setVehicleFulfillment([]); setVehicleDropdownOpen(false);}}>Deselect All</button>
+                  </div>
+                  {vehicleFulfillmentOptions.map(opt => (
+                    <label key={opt} className="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        checked={vehicleFulfillment.includes(opt)}
+                        onChange={e => {
+                          if (e.target.checked) setVehicleFulfillment([...vehicleFulfillment, opt]);
+                          else setVehicleFulfillment(vehicleFulfillment.filter(o => o !== opt));
+                          setVehicleDropdownOpen(false);
+                        }}
+                        className="mr-2"
+                        onClick={e => e.stopPropagation()}
+                      />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Set new vehicles' miles to 0</label>
+          <div className="md:col-span-9 flex items-center">
+            <input type="checkbox" checked={setMilesZero} onChange={e => setSetMilesZero(e.target.checked)} className="mr-2" />
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">URL Appends</label>
           <div className="md:col-span-9">
-            <div className="flex gap-2 mb-2">
-              <Input
-                value={urlAppendInput.name}
-                onChange={e => setUrlAppendInput({ ...urlAppendInput, name: e.target.value })}
-                placeholder="Name"
-                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
-              />
-              <Input
-                value={urlAppendInput.value}
-                onChange={e => setUrlAppendInput({ ...urlAppendInput, value: e.target.value })}
-                placeholder="Value"
-                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
-              />
-              <Button type="button" className="bg-[#FAAE3A] hover:bg-[#F17625] text-white font-semibold px-4" onClick={handleAddUrlAppend}>+Add new</Button>
-            </div>
-            {urlAppendError && <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded mb-2">{urlAppendError}</div>}
-            <div className="border rounded bg-yellow-50 text-yellow-800 text-center py-2 mb-2" style={{ display: formData.urlAppends.length === 0 ? 'block' : 'none' }}>
-              No URL Appends have been added yet
-            </div>
-            {formData.urlAppends.length > 0 && (
-              <table className="w-full mb-2">
-                <thead>
-                  <tr>
-                    <th className="text-left px-2">Name</th>
-                    <th className="text-left px-2">Value</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {formData.urlAppends.map((u, i) => (
-                    <tr key={i}>
-                      <td className="px-2">{u.name}</td>
-                      <td className="px-2">{u.value}</td>
-                      <td><Button type="button" variant="destructive" size="sm" onClick={() => handleRemoveUrlAppend(i)}>🗑️</Button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <UrlAppendsSection />
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Campaign URL Preview</label>
           <div className="md:col-span-9">
@@ -407,9 +499,23 @@ export default function FeedSubscriptionPage() {
   };
 
   const handleFinalSubmit = () => {
-    // Simular validación y guardado
-    // Aquí iría la llamada a la API o lógica real
-    alert("Feed creado correctamente con filtros: " + JSON.stringify(filterGroups));
+    // Crear el nuevo feed
+    const newFeed = {
+      id: Date.now().toString(),
+      name: formData.feedName,
+      type: formData.feedType,
+      format: formData.feedFormat,
+      urlAppends: formData.urlAppends,
+      advertisers: formData.advertiserIds,
+      filters: filterGroups,
+    };
+    // Guardar en localStorage por cada advertiser
+    const existing = JSON.parse(localStorage.getItem('customFeeds') || '{}');
+    formData.advertiserIds.forEach(id => {
+      if (!existing[id]) existing[id] = [];
+      existing[id].push(newFeed);
+    });
+    localStorage.setItem('customFeeds', JSON.stringify(existing));
     router.push("/dashboard/feeds");
   };
 
@@ -425,10 +531,12 @@ export default function FeedSubscriptionPage() {
         <div className="md:col-span-9"><Input value={formData.feedFormat} readOnly className="w-full border-2 border-[#e5e7eb] bg-gray-100 text-[#404042]" /></div>
         <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Advertisers</label>
         <div className="md:col-span-9">
-          <Input value={advertisers.find(a => a.id === formData.advertiserId)?.name || "-"} readOnly className="w-full border-2 border-[#e5e7eb] bg-gray-100 text-[#404042] mb-2" />
+          <Input value={advertisers.filter(a => formData.advertiserIds.includes(a.id)).map(a => a.name).join(", ") || "-"} readOnly className="w-full border-2 border-[#e5e7eb] bg-gray-100 text-[#404042] mb-2" />
           <span className="font-semibold text-[#404042] mr-2">Address</span>
           <select disabled className="border-2 border-[#e5e7eb] bg-gray-100 text-[#404042] px-2 py-1 rounded">
-            <option>{advertisers.find(a => a.id === formData.advertiserId)?.addresses?.[0]?.address || "-"}</option>
+            {advertisers.filter(a => formData.advertiserIds.includes(a.id)).map(a => (
+              <option key={a.id} value={a.id}>{a.addresses?.[0]?.address || "-"}</option>
+            ))}
           </select>
         </div>
         <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Missing Price to $1</label>
@@ -520,7 +628,7 @@ export default function FeedSubscriptionPage() {
           </div>
           <form className="w-full px-6 py-8" onSubmit={e => { e.preventDefault(); handleNext(); }}>
             {step === 1 && renderStep1()}
-            {step === 2 && (formData.feedFormat === "Facebook (Automotive)" || formData.feedFormat === "Facebook (Retail)") && renderStep2()}
+            {step === 2 && renderStep2()}
             {step === 3 && renderFinalStep()}
             <div className="flex flex-row justify-start md:justify-end gap-4 mt-8 max-w-4xl mx-auto">
               {step === 2 && (
@@ -540,7 +648,9 @@ export default function FeedSubscriptionPage() {
                   className="px-6 bg-[#404042] hover:bg-[#FAAE3A] text-white font-semibold border-2 border-[#404042] hover:border-[#FAAE3A] flex items-center gap-2"
                   disabled={
                     (step === 1 && !formData.feedName) ||
-                    (step === 2 && (formData.feedFormat === "Facebook (Automotive)" || formData.feedFormat === "Facebook (Retail)") && !formData.advertiserId)
+                    (step === 2 && (formData.feedFormat === "Facebook (Automotive)" || 
+                                  formData.feedFormat === "Facebook (Retail)" ||
+                                  formData.feedFormat === "Google Ads") && formData.advertiserIds.length === 0)
                   }
                 >
                   Next
