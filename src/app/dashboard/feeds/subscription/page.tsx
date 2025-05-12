@@ -6,7 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/ui/DashboardLayout";
 import { useAdvertiserStore } from "@/app/dashboard/advertisers/store";
-import { Info } from "lucide-react";
+import { 
+  Info, 
+  Plus, 
+  Minus, 
+  Copy, 
+  Trash2, 
+  ArrowLeft, 
+  ArrowRight,
+  X, 
+  Check,
+  Filter
+} from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -151,110 +162,215 @@ export default function FeedSubscriptionPage() {
     </div>
   );
 
-  // Step 2: Solo si es Facebook Automotive
-  const renderStep2 = () => (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-y-6 gap-x-4 items-center max-w-4xl mx-auto">
-      <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Name</label>
-      <div className="md:col-span-9">
-        <Input value={formData.feedName} readOnly className="w-full" />
-      </div>
-      <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Type</label>
-      <div className="md:col-span-9">
-        <Input value={formData.feedType} readOnly className="w-full" />
-      </div>
-      <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Format</label>
-      <div className="md:col-span-9">
-        <Input value={formData.feedFormat} readOnly className="w-full" />
-      </div>
-      <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Advertisers</label>
-      <div className="md:col-span-9">
-        <Select
-          value={formData.advertiserId}
-          onValueChange={value => { setFormData({ ...formData, advertiserId: value }); setShowAdvertiserError(false); }}
-          disabled={advertisers.length === 0}
-        >
-          <SelectTrigger className={`w-full ${showAdvertiserError ? 'border-red-400' : ''}`} >
-            <SelectValue placeholder="Nothing selected" />
-          </SelectTrigger>
-          <SelectContent>
-            {advertisers.map(a => (
-              <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {showAdvertiserError && <div className="text-red-500 text-sm mt-1">This field is required.</div>}
-      </div>
-      <label className="md:col-span-3" />
-      <div className="md:col-span-9 flex flex-col gap-2">
-        <label className="flex items-center gap-2 text-[#404042]">
-          <input type="checkbox" checked={formData.missingPrice} onChange={e => setFormData({ ...formData, missingPrice: e.target.checked })} />
-          Missing Price to $1
-        </label>
-        <label className="flex items-center gap-2 text-[#404042]">
-          <input type="checkbox" checked={formData.setMilesZero} onChange={e => setFormData({ ...formData, setMilesZero: e.target.checked })} />
-          Set new vehicles' miles to 0
-        </label>
-        <label className="flex items-center gap-2 text-[#404042]">
-          <input type="checkbox" checked={formData.addSalePrice} onChange={e => setFormData({ ...formData, addSalePrice: e.target.checked })} />
-          Add sale_price Column
-          <span className="relative group">
-            <Info size={16} className="text-[#FAAE3A] cursor-pointer" onMouseEnter={() => setShowHelp(true)} onMouseLeave={() => setShowHelp(false)} />
-            {showHelp && (
-              <span className="absolute left-6 top-0 bg-white border border-gray-300 rounded shadow px-3 py-2 text-xs text-[#404042] z-10 w-56">
-                Adds a column named <b>sale_price</b> to the feed for promotional pricing.
+  // Step 2: Solo si es Facebook Automotive o Facebook Retail
+  const renderStep2 = () => {
+    if (formData.feedFormat === "Facebook (Automotive)") {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-y-6 gap-x-4 items-center max-w-4xl mx-auto">
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Name</label>
+          <div className="md:col-span-9">
+            <Input value={formData.feedName} readOnly className="w-full" />
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Type</label>
+          <div className="md:col-span-9">
+            <Input value={formData.feedType} readOnly className="w-full" />
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Format</label>
+          <div className="md:col-span-9">
+            <Input value={formData.feedFormat} readOnly className="w-full" />
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Advertisers</label>
+          <div className="md:col-span-9">
+            <Select
+              value={formData.advertiserId}
+              onValueChange={value => { setFormData({ ...formData, advertiserId: value }); setShowAdvertiserError(false); }}
+              disabled={advertisers.length === 0}
+            >
+              <SelectTrigger className={`w-full ${showAdvertiserError ? 'border-red-400' : ''}`} >
+                <SelectValue placeholder="Nothing selected" />
+              </SelectTrigger>
+              <SelectContent>
+                {advertisers.map(a => (
+                  <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {showAdvertiserError && <div className="text-red-500 text-sm mt-1">This field is required.</div>}
+          </div>
+          <label className="md:col-span-3" />
+          <div className="md:col-span-9 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-[#404042]">
+              <input type="checkbox" checked={formData.missingPrice} onChange={e => setFormData({ ...formData, missingPrice: e.target.checked })} />
+              Missing Price to $1
+            </label>
+            <label className="flex items-center gap-2 text-[#404042]">
+              <input type="checkbox" checked={formData.setMilesZero} onChange={e => setFormData({ ...formData, setMilesZero: e.target.checked })} />
+              Set new vehicles' miles to 0
+            </label>
+            <label className="flex items-center gap-2 text-[#404042]">
+              <input type="checkbox" checked={formData.addSalePrice} onChange={e => setFormData({ ...formData, addSalePrice: e.target.checked })} />
+              Add sale_price Column
+              <span className="relative group">
+                <Info size={16} className="text-[#FAAE3A] cursor-pointer" onMouseEnter={() => setShowHelp(true)} onMouseLeave={() => setShowHelp(false)} />
+                {showHelp && (
+                  <span className="absolute left-6 top-0 bg-white border border-gray-300 rounded shadow px-3 py-2 text-xs text-[#404042] z-10 w-56">
+                    Adds a column named <b>sale_price</b> to the feed for promotional pricing.
+                  </span>
+                )}
               </span>
+            </label>
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">URL Appends</label>
+          <div className="md:col-span-9">
+            <div className="flex gap-2 mb-2">
+              <Input
+                value={urlAppendInput.name}
+                onChange={e => setUrlAppendInput({ ...urlAppendInput, name: e.target.value })}
+                placeholder="Name"
+                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
+              />
+              <Input
+                value={urlAppendInput.value}
+                onChange={e => setUrlAppendInput({ ...urlAppendInput, value: e.target.value })}
+                placeholder="Value"
+                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
+              />
+              <Button type="button" className="bg-[#FAAE3A] hover:bg-[#F17625] text-white font-semibold px-4" onClick={handleAddUrlAppend}>+Add new</Button>
+            </div>
+            {urlAppendError && <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded mb-2">{urlAppendError}</div>}
+            <div className="border rounded bg-yellow-50 text-yellow-800 text-center py-2 mb-2" style={{ display: formData.urlAppends.length === 0 ? 'block' : 'none' }}>
+              No URL Appends have been added yet
+            </div>
+            {formData.urlAppends.length > 0 && (
+              <table className="w-full mb-2">
+                <thead>
+                  <tr>
+                    <th className="text-left px-2">Name</th>
+                    <th className="text-left px-2">Value</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {formData.urlAppends.map((u, i) => (
+                    <tr key={i}>
+                      <td className="px-2">{u.name}</td>
+                      <td className="px-2">{u.value}</td>
+                      <td><Button type="button" variant="destructive" size="sm" onClick={() => handleRemoveUrlAppend(i)}>🗑️</Button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
-          </span>
-        </label>
-      </div>
-      <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">URL Appends</label>
-      <div className="md:col-span-9">
-        <div className="flex gap-2 mb-2">
-          <Input
-            value={urlAppendInput.name}
-            onChange={e => setUrlAppendInput({ ...urlAppendInput, name: e.target.value })}
-            placeholder="Name"
-            className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
-          />
-          <Input
-            value={urlAppendInput.value}
-            onChange={e => setUrlAppendInput({ ...urlAppendInput, value: e.target.value })}
-            placeholder="Value"
-            className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
-          />
-          <Button type="button" className="bg-[#FAAE3A] hover:bg-[#F17625] text-white font-semibold px-4" onClick={handleAddUrlAppend}>+Add new</Button>
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Campaign URL Preview</label>
+          <div className="md:col-span-9">
+            <Input value={campaignUrlPreview} readOnly className="w-full border-2 border-[#e5e7eb] bg-gray-100 text-[#404042]" />
+          </div>
         </div>
-        {urlAppendError && <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded mb-2">{urlAppendError}</div>}
-        <div className="border rounded bg-yellow-50 text-yellow-800 text-center py-2 mb-2" style={{ display: formData.urlAppends.length === 0 ? 'block' : 'none' }}>
-          No URL Appends have been added yet
+      );
+    } else if (formData.feedFormat === "Facebook (Retail)") {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-y-6 gap-x-4 items-center max-w-4xl mx-auto">
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Name</label>
+          <div className="md:col-span-9">
+            <Input value={formData.feedName} readOnly className="w-full" />
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Type</label>
+          <div className="md:col-span-9">
+            <Input value={formData.feedType} readOnly className="w-full" />
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Feed Format</label>
+          <div className="md:col-span-9">
+            <Input value={formData.feedFormat} readOnly className="w-full" />
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Advertisers</label>
+          <div className="md:col-span-9">
+            <Select
+              value={formData.advertiserId}
+              onValueChange={value => { setFormData({ ...formData, advertiserId: value }); setShowAdvertiserError(false); }}
+              disabled={advertisers.length === 0}
+            >
+              <SelectTrigger className={`w-full ${showAdvertiserError ? 'border-red-400' : ''}`} >
+                <SelectValue placeholder="Nothing selected" />
+              </SelectTrigger>
+              <SelectContent>
+                {advertisers.map(a => (
+                  <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {showAdvertiserError && <div className="text-red-500 text-sm mt-1">This field is required.</div>}
+          </div>
+          <label className="md:col-span-3" />
+          <div className="md:col-span-9 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-[#404042]">
+              <input type="checkbox" checked={formData.missingPrice} onChange={e => setFormData({ ...formData, missingPrice: e.target.checked })} />
+              Missing Price to $1
+            </label>
+            <label className="flex items-center gap-2 text-[#404042]">
+              <input type="checkbox" checked={formData.addSalePrice} onChange={e => setFormData({ ...formData, addSalePrice: e.target.checked })} />
+              Add sale_price Column
+              <span className="relative group">
+                <Info size={16} className="text-[#FAAE3A] cursor-pointer" onMouseEnter={() => setShowHelp(true)} onMouseLeave={() => setShowHelp(false)} />
+                {showHelp && (
+                  <span className="absolute left-6 top-0 bg-white border border-gray-300 rounded shadow px-3 py-2 text-xs text-[#404042] z-10 w-56">
+                    Adds a column named <b>sale_price</b> to the feed for promotional pricing.
+                  </span>
+                )}
+              </span>
+            </label>
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">URL Appends</label>
+          <div className="md:col-span-9">
+            <div className="flex gap-2 mb-2">
+              <Input
+                value={urlAppendInput.name}
+                onChange={e => setUrlAppendInput({ ...urlAppendInput, name: e.target.value })}
+                placeholder="Name"
+                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
+              />
+              <Input
+                value={urlAppendInput.value}
+                onChange={e => setUrlAppendInput({ ...urlAppendInput, value: e.target.value })}
+                placeholder="Value"
+                className="w-1/2 border-2 border-[#e5e7eb] focus:border-[#FAAE3A] focus:ring-0 text-[#404042]"
+              />
+              <Button type="button" className="bg-[#FAAE3A] hover:bg-[#F17625] text-white font-semibold px-4" onClick={handleAddUrlAppend}>+Add new</Button>
+            </div>
+            {urlAppendError && <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded mb-2">{urlAppendError}</div>}
+            <div className="border rounded bg-yellow-50 text-yellow-800 text-center py-2 mb-2" style={{ display: formData.urlAppends.length === 0 ? 'block' : 'none' }}>
+              No URL Appends have been added yet
+            </div>
+            {formData.urlAppends.length > 0 && (
+              <table className="w-full mb-2">
+                <thead>
+                  <tr>
+                    <th className="text-left px-2">Name</th>
+                    <th className="text-left px-2">Value</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {formData.urlAppends.map((u, i) => (
+                    <tr key={i}>
+                      <td className="px-2">{u.name}</td>
+                      <td className="px-2">{u.value}</td>
+                      <td><Button type="button" variant="destructive" size="sm" onClick={() => handleRemoveUrlAppend(i)}>🗑️</Button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+          <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Campaign URL Preview</label>
+          <div className="md:col-span-9">
+            <Input value={campaignUrlPreview} readOnly className="w-full border-2 border-[#e5e7eb] bg-gray-100 text-[#404042]" />
+          </div>
         </div>
-        {formData.urlAppends.length > 0 && (
-          <table className="w-full mb-2">
-            <thead>
-              <tr>
-                <th className="text-left px-2">Name</th>
-                <th className="text-left px-2">Value</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {formData.urlAppends.map((u, i) => (
-                <tr key={i}>
-                  <td className="px-2">{u.name}</td>
-                  <td className="px-2">{u.value}</td>
-                  <td><Button type="button" variant="destructive" size="sm" onClick={() => handleRemoveUrlAppend(i)}>🗑️</Button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-      <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Campaign URL Preview</label>
-      <div className="md:col-span-9">
-        <Input value={campaignUrlPreview} readOnly className="w-full border-2 border-[#e5e7eb] bg-gray-100 text-[#404042]" />
-      </div>
-    </div>
-  );
+      );
+    }
+    return null;
+  };
 
   const addFilterGroup = () => {
     setFilterGroups([...filterGroups, { id: nextGroupId, filters: [] }]);
@@ -325,18 +441,33 @@ export default function FeedSubscriptionPage() {
       {/* Filtros por grupo */}
       <div className="max-w-5xl mx-auto mb-8">
         <div className="flex items-center gap-2 mb-2">
-          <Button type="button" className="bg-[#3498db] text-white px-2 py-1 rounded" onClick={addFilterGroup}>+</Button>
+          <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={addFilterGroup}>
+            <Plus size={16} />
+            <span>Add Filter Group</span>
+          </Button>
         </div>
         {filterGroups.map((group, idx) => (
           <div key={group.id} className="border rounded bg-[#f7f7f9] mb-4">
             <div className="flex items-center gap-2 px-4 py-2 border-b">
               <span className="font-semibold text-[#404042]">Filter Group {idx + 1}</span>
-              <Button type="button" className="bg-[#27ae60] text-white px-2 py-1 rounded" onClick={() => addFilter(group.id)}>+</Button>
-              <Button type="button" className="bg-[#e74c3c] text-white px-2 py-1 rounded" onClick={() => removeFilterGroup(group.id)}>-</Button>
-              <Button type="button" className="bg-[#2980b9] text-white px-2 py-1 rounded" onClick={() => duplicateFilterGroup(group.id)}>📋</Button>
+              <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => addFilter(group.id)}>
+                <Plus size={16} />
+                <span>Add Filter</span>
+              </Button>
+              <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => removeFilterGroup(group.id)}>
+                <Trash2 size={16} />
+                <span>Remove Group</span>
+              </Button>
+              <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => duplicateFilterGroup(group.id)}>
+                <Copy size={16} />
+                <span>Duplicate</span>
+              </Button>
             </div>
             {group.filters.length === 0 ? (
-              <div className="bg-yellow-100 text-yellow-800 text-center py-4 px-2">There are currently no filters added. If you like, you can add one by clicking the plus sign on the filter group.</div>
+              <div className="bg-yellow-100 text-yellow-800 text-center py-4 px-2 flex items-center justify-center gap-2">
+                <Filter size={20} />
+                <span>There are currently no filters added. If you like, you can add one by clicking the plus sign on the filter group.</span>
+              </div>
             ) : (
               <div className="p-4">
                 {group.filters.map((filter, fidx) => (
@@ -348,7 +479,9 @@ export default function FeedSubscriptionPage() {
                       {filterOperators.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                     <Input value={filter.value} onChange={e => updateFilter(group.id, filter.id, "value", e.target.value)} className="w-40 border" />
-                    <Button type="button" className="bg-[#e74c3c] text-white px-2 py-1 rounded" onClick={() => removeFilter(group.id, filter.id)}>-</Button>
+                    <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => removeFilter(group.id, filter.id)}>
+                      <Trash2 size={16} />
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -361,15 +494,17 @@ export default function FeedSubscriptionPage() {
           type="button"
           variant="outline"
           onClick={() => router.push("/dashboard/feeds")}
-          className="px-6 border-2 border-[#404042] text-[#404042] bg-white hover:bg-[#f7f7f9] hover:text-[#404042]"
+          className="px-6 border-2 border-[#404042] text-[#404042] bg-white hover:bg-[#FAAE3A] hover:text-white hover:border-[#FAAE3A] flex items-center gap-2"
         >
+          <X size={16} />
           Cancel
         </Button>
         <Button
           type="button"
-          className="px-6 bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold border-2 border-[#3498db] hover:border-[#2980b9]"
+          className="px-6 bg-[#404042] hover:bg-[#FAAE3A] text-white font-semibold border-2 border-[#404042] hover:border-[#FAAE3A] flex items-center gap-2"
           onClick={handleFinalSubmit}
         >
+          <Check size={16} />
           Submit
         </Button>
       </div>
@@ -385,7 +520,7 @@ export default function FeedSubscriptionPage() {
           </div>
           <form className="w-full px-6 py-8" onSubmit={e => { e.preventDefault(); handleNext(); }}>
             {step === 1 && renderStep1()}
-            {step === 2 && formData.feedFormat === "Facebook (Automotive)" && renderStep2()}
+            {step === 2 && (formData.feedFormat === "Facebook (Automotive)" || formData.feedFormat === "Facebook (Retail)") && renderStep2()}
             {step === 3 && renderFinalStep()}
             <div className="flex flex-row justify-start md:justify-end gap-4 mt-8 max-w-4xl mx-auto">
               {step === 2 && (
@@ -393,21 +528,23 @@ export default function FeedSubscriptionPage() {
                   type="button"
                   variant="outline"
                   onClick={handleBack}
-                  className="px-6 border-2 border-[#404042] text-[#404042] bg-white hover:bg-[#f7f7f9] hover:text-[#404042]"
+                  className="px-6 border-2 border-[#404042] text-[#404042] bg-white hover:bg-[#FAAE3A] hover:text-white hover:border-[#FAAE3A] flex items-center gap-2"
                 >
+                  <ArrowLeft size={16} />
                   Back
                 </Button>
               )}
               {step < 3 && (
                 <Button
                   type="submit"
-                  className="px-6 bg-[#FAAE3A] hover:bg-[#F17625] text-white font-semibold border-2 border-[#FAAE3A] hover:border-[#F17625]"
+                  className="px-6 bg-[#404042] hover:bg-[#FAAE3A] text-white font-semibold border-2 border-[#404042] hover:border-[#FAAE3A] flex items-center gap-2"
                   disabled={
                     (step === 1 && !formData.feedName) ||
-                    (step === 2 && formData.feedFormat === "Facebook (Automotive)" && !formData.advertiserId)
+                    (step === 2 && (formData.feedFormat === "Facebook (Automotive)" || formData.feedFormat === "Facebook (Retail)") && !formData.advertiserId)
                   }
                 >
-                  {step === 1 ? "Next" : "Next"}
+                  Next
+                  <ArrowRight size={16} />
                 </Button>
               )}
             </div>
