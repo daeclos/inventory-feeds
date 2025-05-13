@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import Topbar from "./Topbar";
+import { ToastProvider } from "@/components/ui/use-toast";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -14,9 +15,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="fixed w-[calc(100%-16rem)] z-30">
           <Topbar />
         </div>
-        <main className="flex-1 overflow-y-auto mt-20">
-          {children}
-        </main>
+        <ToastProvider>
+          <main className="flex-1 overflow-y-auto mt-20">
+            {children}
+          </main>
+        </ToastProvider>
       </div>
     </div>
   );

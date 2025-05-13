@@ -132,7 +132,7 @@ export default function CustomFeedsPage() {
         <main className="max-w-7xl mx-auto px-4 py-8 w-full">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <h1 className="text-2xl font-bold text-[#404042]">Subscribed Feeds per Advertiser</h1>
-            <Button variant="outline">Agency Feeds</Button>
+            <Button variant="outline" onClick={() => router.push("/dashboard/feeds/agency-feeds")}>Agency Feeds</Button>
           </div>
           <div className="flex gap-2 mb-4">
             <Button 
