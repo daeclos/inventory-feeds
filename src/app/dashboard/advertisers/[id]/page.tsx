@@ -40,6 +40,14 @@ export default function AdvertiserSettingsPage() {
     setAdvertiser(adv);
   }, [adv]);
 
+  // Nuevo: sincronizar el step con el parámetro de la URL
+  useEffect(() => {
+    const stepParam = searchParams.get("step");
+    if (stepParam && !isNaN(Number(stepParam))) {
+      setStep(Number(stepParam));
+    }
+  }, [searchParams]);
+
   if (!advertiser) {
     return <div className="p-8 text-center text-xl">Advertiser not found</div>;
   }

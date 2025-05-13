@@ -581,8 +581,9 @@ export default function FeedSubscriptionPage() {
     // Guardar en localStorage por cada advertiser
     const existing = JSON.parse(localStorage.getItem('customFeeds') || '{}');
     formData.advertiserIds.forEach(id => {
-      if (!existing[id]) existing[id] = [];
-      existing[id].push(newFeed);
+      const strId = String(id);
+      if (!existing[strId]) existing[strId] = [];
+      existing[strId].push(newFeed);
     });
     localStorage.setItem('customFeeds', JSON.stringify(existing));
     router.push("/dashboard/feeds");

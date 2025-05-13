@@ -2,8 +2,8 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Edit2, Search, Copy, FileText, Trash2 } from "lucide-react";
 import { fetchAdvertisersWithFeeds } from "@/lib/supabaseFeeds";
-import { useParams } from "next/navigation";
-import type { FeedAd, AdvertiserGroup } from "@/app/dashboard/feeds/data/feeds";
+import { useParams, useRouter } from "next/navigation";
+import { AdvertiserFeedsAccordion, FeedAdvertiser } from "@/app/dashboard/feeds/components/AdvertiserFeedsAccordion";
 
 // Colores corporativos
 const CORPORATE = {
@@ -14,19 +14,44 @@ const CORPORATE = {
 
 export function InventoryFeeds() {
   const params = useParams();
-  const advertiserId = params.id as string;
-  const [feeds, setFeeds] = React.useState<FeedAd[]>([]);
+  const router = useRouter();
+  const advertiserId = String(params.id);
+  const [feeds, setFeeds] = React.useState<any[]>([]);
   const [summary, setSummary] = React.useState<{ total: number; noPrice: number; noImage: number }>({ total: 0, noPrice: 0, noImage: 0 });
+  const [advertiser, setAdvertiser] = React.useState<FeedAdvertiser | null>(null);
 
   React.useEffect(() => {
-    fetchAdvertisersWithFeeds().then((groups: AdvertiserGroup[]) => {
-      const group = groups.find((g: AdvertiserGroup) => g.advertiser === advertiserId);
+    fetchAdvertisersWithFeeds().then((groups: any[]) => {
+      const group = groups.find((g: any) => g.advertiser === advertiserId);
       if (group) {
         setFeeds(group.ads || []);
         setSummary({
           total: group.totalRecords || 0,
           noPrice: group.noPrice || 0,
           noImage: group.noImage || 0,
+        });
+        setAdvertiser({
+          id: advertiserId,
+          name: group.advertiserName || '',
+          totalRecords: group.totalRecords || 0,
+          noPrice: group.noPrice || 0,
+          noImage: group.noImage || 0,
+          customFeeds: (group.ads || []).length,
+          hasAds: true,
+          status: true,
+          addresses: group.addresses || [],
+        });
+      } else {
+        setAdvertiser({
+          id: advertiserId,
+          name: '',
+          totalRecords: 0,
+          noPrice: 0,
+          noImage: 0,
+          customFeeds: 0,
+          hasAds: false,
+          status: false,
+          addresses: [],
         });
       }
     });
@@ -39,17 +64,27 @@ export function InventoryFeeds() {
         <div className="flex gap-2">
           <Button
             className="flex items-center gap-2 bg-[#404042] text-white hover:bg-[#FAAE3A] hover:text-[#404042] active:bg-[#F17625] active:text-white transition-colors"
+            onClick={() => router.push('/dashboard/feeds/subscription')}
           >
             + Feed Subscription
           </Button>
           <Button
-            className="flex items-center gap-2 border border-[#404042] text-[#404042] hover:bg-[#FAAE3A] hover:text-[#404042] active:bg-[#F17625] active:text-white transition-colors"
+            className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            onClick={() => router.push('/dashboard/product-alias')}
           >
-            <Download size={18} />
+            Product Alias
           </Button>
+          <button
+            className="p-2 rounded hover:bg-[#FAAE3A] transition-colors"
+            style={{ border: 'none', background: 'none' }}
+            title="Download"
+          >
+            <Download size={28} />
+          </button>
         </div>
         <Button
-          className="ml-auto px-4 py-2 bg-[#404042] text-white hover:bg-[#FAAE3A] hover:text-[#404042] active:bg-[#F17625] active:text-white transition-colors"
+          className="ml-auto px-4 py-2 bg-[#FAAE3A] text-[#404042] hover:bg-[#404042] hover:text-white active:bg-[#F17625] active:text-white transition-colors"
+          onClick={() => router.push(`/dashboard/advertisers/${advertiserId}?tab=settings&step=2`)}
         >
           Script Installation
         </Button>
@@ -70,20 +105,7 @@ export function InventoryFeeds() {
           </div>
         </div>
       </div>
-      <div className="bg-gray-50 rounded-md border border-gray-200 mt-2">
-        {feeds.map((feed) => (
-          <div key={feed.id} className="flex items-center justify-between px-6 py-3 border-b last:border-b-0 border-gray-200">
-            <span className="font-medium text-[#404042]">{feed.name}</span>
-            <div className="flex gap-2">
-              <Edit2 size={22} className="cursor-pointer transition-colors text-[#404042] hover:text-[#FAAE3A] active:text-[#F17625]" />
-              <Search size={22} className="cursor-pointer transition-colors text-[#404042] hover:text-[#FAAE3A] active:text-[#F17625]" />
-              <Copy size={22} className="cursor-pointer transition-colors text-[#404042] hover:text-[#FAAE3A] active:text-[#F17625]" />
-              <FileText size={22} className="cursor-pointer transition-colors text-[#404042] hover:text-[#FAAE3A] active:text-[#F17625]" />
-              <Trash2 size={22} className="cursor-pointer transition-colors text-[#F17625] hover:text-[#FAAE3A] active:text-[#404042]" />
-            </div>
-          </div>
-        ))}
-      </div>
+      {advertiser && <AdvertiserFeedsAccordion advertisers={[advertiser]} simple={true} />}
     </div>
   );
-} 
+}
