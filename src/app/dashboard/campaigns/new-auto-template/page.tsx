@@ -29,6 +29,139 @@ const negativeKeywordLists = [
   { id: 2, name: "Competitor Exclusions" },
 ];
 
+// Configuración dinámica de atributos
+const filterConfig = {
+  Color: {
+    operators: ["is", "is not"],
+    valueType: "multiselect",
+    options: ["null", "black", "blue", "burgundy", "green", "grey", "orange", "pink", "purple", "red", "white", "yellow"]
+  },
+  condition: {
+    operators: ["is", "is not"],
+    valueType: "multiselect",
+    options: ["certified", "new", "used"]
+  },
+  "count condition": {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  description: {
+    operators: ["contains", "not contains", "starts with", "ends with"],
+    valueType: "text"
+  },
+  discount: {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  doors: {
+    operators: ["is", "is not"],
+    valueType: "multiselect",
+    options: ["2", "3", "4", "5"]
+  },
+  drivertrain: {
+    operators: ["is", "is not"],
+    valueType: "dropdown",
+    options: ["4x2", "4x4", "AWD", "FWD", "RWD", "Other"]
+  },
+  "fuel type": {
+    operators: ["is", "is not"],
+    valueType: "multiselect",
+    options: ["Electric", "Flex", "Gasoline", "Hybrid", "Other"]
+  },
+  "image type": {
+    operators: ["is", "is not"],
+    valueType: "multiselect",
+    options: ["Dealer", "Placeholder", "Stock"]
+  },
+  make: {
+    operators: ["contains", "not contains", "starts with", "ends with"],
+    valueType: "text"
+  },
+  "make count condition": {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  mileage: {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  model: {
+    operators: ["contains", "not contains", "starts with", "ends with"],
+    valueType: "text"
+  },
+  "model count": {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  "model count condition": {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  price: {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  "price alt.": {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  title: {
+    operators: ["contains", "not contains", "starts with", "ends with"],
+    valueType: "text"
+  },
+  "title orig.": {
+    operators: ["contains", "not contains", "starts with", "ends with"],
+    valueType: "text"
+  },
+  transmission: {
+    operators: ["is", "is not"],
+    valueType: "multiselect",
+    options: ["Automatic", "Manual", "Other"]
+  },
+  trim: {
+    operators: ["contains", "not contains", "starts with", "ends with"],
+    valueType: "text"
+  },
+  type: {
+    operators: ["is", "is not"],
+    valueType: "multiselect",
+    options: ["Convertible", "Coupe", "Crossover", "Hatchback", "Minivan", "Sedan", "SUV", "Truck", "Van Wagon", "Wagon", "Other"]
+  },
+  "type count": {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  "type count condition": {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  URL: {
+    operators: ["contains", "not contains", "starts with", "ends with"],
+    valueType: "text"
+  },
+  VIN: {
+    operators: ["contains", "not contains", "starts with", "ends with"],
+    valueType: "text"
+  },
+  "vehicle type": {
+    operators: ["is", "is not"],
+    valueType: "multiselect",
+    options: ["Car_Truck", "Boat", "Commercial", "Motorcycle", "PowerSport", "RV_Camper", "Trailer", "Other"]
+  },
+  year: {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  "year count": {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  },
+  "year model count condition": {
+    operators: [">", ">=", "<", "<=", "between", "=", "!="],
+    valueType: "number"
+  }
+} as const;
+
 export default function NewAutoTemplatePage() {
   const router = useRouter();
   const [templateName, setTemplateName] = useState("");
@@ -59,6 +192,41 @@ export default function NewAutoTemplatePage() {
   const [newMatchType, setNewMatchType] = useState("Broad");
   // Estado para mostrar el modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  // Estado para custom parameters
+  const [customParams, setCustomParams] = useState<{ name: string; value: string }[]>([]);
+  const [selectedParams, setSelectedParams] = useState<number[]>([]);
+  const [newParamName, setNewParamName] = useState("");
+  const [newParamValue, setNewParamValue] = useState("");
+  const [showCustomError, setShowCustomError] = useState(false);
+  // Estado para filter groups
+  const [filterGroups, setFilterGroups] = useState([
+    { id: 1, filters: [] as { id: number; field: string; operator: string; value: string }[], showAttrDropdown: false }
+  ]);
+  const [nextGroupId, setNextGroupId] = useState(2);
+  const [nextFilterId, setNextFilterId] = useState(1);
+  // Estado para búsqueda de atributos en el dropdown
+  const [attributeSearch, setAttributeSearch] = useState("");
+
+  const filterFields = [
+    { value: "make", label: "Make" },
+    { value: "model", label: "Model" },
+    { value: "year", label: "Year" },
+    { value: "price", label: "Price" },
+    { value: "mileage", label: "Mileage" },
+  ];
+  const filterOperators = [
+    { value: "is", label: "is" },
+    { value: "is_not", label: "is not" },
+  ];
+
+  // Opciones de atributos para el filtro
+  const filterAttributes = [
+    "Color","condition", "count condition", "description", "discount", "doors", "drivertrain",
+     "fuel type", "image type", "make", "make count condition", "mileage", "model", "model count",
+      "model count condition", "price", "price alt.", "title", "title orig.", "transmission", "trim", 
+      "type count", "type count condition", "URL", "VIN", "vehicle type", "year", "year count", 
+      "year model count condition"
+  ];
 
   // Validación robusta para alerta
   const handleAdvertiserChange = (e: any) => {
@@ -84,6 +252,55 @@ export default function NewAutoTemplatePage() {
   function handleSelectKeyword(idx: number, checked: boolean) {
     if (checked) setSelectedKeywords([...selectedKeywords, idx]);
     else setSelectedKeywords(selectedKeywords.filter(i => i !== idx));
+  }
+
+  function handleAddCustomParam() {
+    if (!newParamName.trim() || !newParamValue.trim()) {
+      setShowCustomError(true);
+      return;
+    }
+    setCustomParams([...customParams, { name: newParamName, value: newParamValue }]);
+    setNewParamName("");
+    setNewParamValue("");
+  }
+
+  function handleSelectParam(idx: number, checked: boolean) {
+    if (checked) setSelectedParams([...selectedParams, idx]);
+    else setSelectedParams(selectedParams.filter(i => i !== idx));
+  }
+
+  function addFilterGroup() {
+    setFilterGroups([...filterGroups, { id: nextGroupId, filters: [], showAttrDropdown: false }]);
+    setNextGroupId(nextGroupId + 1);
+  }
+  function removeFilterGroup(groupId: number) {
+    setFilterGroups(filterGroups.filter(g => g.id !== groupId));
+  }
+  function duplicateFilterGroup(groupId: number) {
+    const group = filterGroups.find(g => g.id === groupId);
+    if (group) {
+      setFilterGroups([...filterGroups, { id: nextGroupId, filters: group.filters.map(f => ({ ...f, id: nextFilterId + Math.random() })), showAttrDropdown: false }]);
+      setNextGroupId(nextGroupId + 1);
+    }
+  }
+  function addFilter(groupId: number) {
+    setFilterGroups(filterGroups.map(g => g.id === groupId ? {
+      ...g,
+      filters: [...g.filters, { id: nextFilterId, field: "make", operator: "equals", value: "" }]
+    } : g));
+    setNextFilterId(nextFilterId + 1);
+  }
+  function removeFilter(groupId: number, filterId: number) {
+    setFilterGroups(filterGroups.map(g => g.id === groupId ? {
+      ...g,
+      filters: g.filters.filter(f => f.id !== filterId)
+    } : g));
+  }
+  function updateFilter(groupId: number, filterId: number, key: string, value: string) {
+    setFilterGroups(filterGroups.map(g => g.id === groupId ? {
+      ...g,
+      filters: g.filters.map(f => f.id === filterId ? { ...f, [key]: value } : f)
+    } : g));
   }
 
   return (
@@ -155,6 +372,250 @@ export default function NewAutoTemplatePage() {
               </div>
             </CardContent>
           </Card>
+          {/* SECCIÓN DE FILTER GROUPS */}
+          {advertiser && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-2">
+                <Tooltip text="Add new filter group">
+                  <button
+                    type="button"
+                    className="group bg-[#FAAE3A] transition-colors rounded w-8 h-8 flex items-center justify-center text-lg border border-[#FAAE3A] focus:outline-none"
+                    onClick={() => {
+                      // Solo permite agregar si todos los filtros de todos los grupos tienen campos usados
+                      const allUsed = filterGroups.every(g => g.filters.length === 0 || g.filters.every(f => f.field && f.operator && f.value));
+                      if (allUsed) addFilterGroup();
+                    }}
+                    aria-label="Add Filter Group"
+                  >
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" fill="none" />
+                      <path d="M12 8v8M8 12h8" stroke="#404042" strokeWidth="2" strokeLinecap="round" className="group-hover:stroke-white group-active:stroke-white"/>
+                    </svg>
+                    <style jsx>{`
+                      button.group:hover {
+                        background: #404042;
+                        border-color: #404042;
+                      }
+                      button.group:active {
+                        background: #F17625;
+                        border-color: #F17625;
+                      }
+                    `}</style>
+                  </button>
+                </Tooltip>
+              </div>
+              {filterGroups.map((group, idx) => (
+                <div key={group.id} className="border rounded bg-[#f7f7f9] mb-4">
+                  <div className="flex items-center gap-2 px-4 py-2 border-b">
+                    <span className="font-semibold text-[#404042]">Filter Group {idx + 1}</span>
+                    <Tooltip text="Add new filter attribute">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="group bg-[#FAAE3A] transition-colors rounded w-8 h-8 flex items-center justify-center text-lg border border-[#FAAE3A] focus:outline-none"
+                          onClick={() => {
+                            setFilterGroups(filterGroups.map(g => g.id === group.id ? { ...g, showAttrDropdown: !g.showAttrDropdown } : { ...g, showAttrDropdown: false }));
+                            setAttributeSearch("");
+                          }}
+                          aria-label="Add Filter"
+                        >
+                          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" />
+                            <path d="M12 8v8M8 12h8" stroke="#404042" strokeWidth="2" strokeLinecap="round" className="group-hover:stroke-white group-active:stroke-white"/>
+                          </svg>
+                          <style jsx>{`
+                            button.group:hover {
+                              background: #404042;
+                              border-color: #404042;
+                            }
+                            button.group:active {
+                              background: #F17625;
+                              border-color: #F17625;
+                            }
+                          `}</style>
+                        </button>
+                        {group.showAttrDropdown && (
+                          <div className="absolute left-0 mt-2 z-10 bg-white border rounded shadow-lg w-56 max-h-60 overflow-y-auto">
+                            <div className="p-2 border-b">
+                              <input
+                                type="text"
+                                value={attributeSearch}
+                                onChange={e => setAttributeSearch(e.target.value)}
+                                placeholder="Search attribute..."
+                                className="w-full border rounded px-2 py-1 text-sm"
+                                autoFocus
+                              />
+                            </div>
+                            {filterAttributes.filter(attr => attr.toLowerCase().includes(attributeSearch.toLowerCase())).map(attr => (
+                              <div
+                                key={attr}
+                                className="px-4 py-2 hover:bg-[#FAAE3A] cursor-pointer text-[#404042]"
+                                onClick={() => {
+                                  setFilterGroups(fgs => fgs.map(g => g.id === group.id ? {
+                                    ...g,
+                                    filters: [...g.filters, { id: nextFilterId, field: attr, operator: "is", value: "" }],
+                                    showAttrDropdown: false
+                                  } : g));
+                                  setNextFilterId(id => id + 1);
+                                }}
+                              >
+                                {attr}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </Tooltip>
+                    <Tooltip text="Delete filter group">
+                      <button type="button" className="group border border-[#404042] bg-white transition-colors rounded w-8 h-8 flex items-center justify-center text-lg focus:outline-none" onClick={() => removeFilterGroup(group.id)} aria-label="Remove Group">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                          <rect x="5" y="6" width="14" height="12" rx="2" stroke="#404042" strokeWidth="2" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <path d="M10 11v4m4-4v4" stroke="#404042" strokeWidth="2" strokeLinecap="round" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="#404042" strokeWidth="2" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                        </svg>
+                        <style jsx>{`
+                          button.group:hover {
+                            background: #FAAE3A;
+                          }
+                          button.group:active {
+                            background: #F17625;
+                          }
+                        `}</style>
+                      </button>
+                    </Tooltip>
+                    <Tooltip text="Duplicate filter group">
+                      <button type="button" className="group bg-[#404042] transition-colors rounded w-8 h-8 flex items-center justify-center text-lg focus:outline-none" onClick={() => duplicateFilterGroup(group.id)} aria-label="Duplicate Group">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                          <rect x="8" y="8" width="8" height="8" rx="2" stroke="#fff" strokeWidth="2" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <rect x="4" y="4" width="8" height="8" rx="2" stroke="#fff" strokeWidth="2" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                        </svg>
+                        <style jsx>{`
+                          button.group:hover {
+                            background: #FAAE3A;
+                          }
+                          button.group:active {
+                            background: #F17625;
+                          }
+                        `}</style>
+                      </button>
+                    </Tooltip>
+                  </div>
+                  <div className="p-0">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-[#f5f5f5]">
+                          <th className="text-left px-4 py-2 font-semibold text-[#404042]">Attribute</th>
+                          <th className="text-left px-4 py-2 font-semibold text-[#404042]">Operator</th>
+                          <th className="text-left px-4 py-2 font-semibold text-[#404042]">Values</th>
+                          <th className="text-center px-4 py-2 font-semibold text-[#404042]">Delete</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.filters.length === 0 ? (
+                          <tr>
+                            <td colSpan={4}>
+                              <div className="bg-[#FFF8E1] text-[#404042] text-center py-4 px-2 flex items-center justify-center gap-2">
+                                <span>There are currently no filters added. If you like, you can add one by clicking the plus sign on the filter group.</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          group.filters.map((filter, fidx) => {
+                            const config = filterConfig[filter.field as keyof typeof filterConfig] || { operators: ["is", "is not"], valueType: "text" };
+                            const hasOptions = 'options' in config;
+                            return (
+                              <tr key={filter.id}>
+                                <td className="px-4 py-2">
+                                  <span className="block font-semibold text-[#404042] bg-white border rounded px-2 py-1">{filter.field}</span>
+                                </td>
+                                <td className="px-4 py-2">
+                                  <select value={filter.operator} onChange={e => updateFilter(group.id, filter.id, "operator", e.target.value)} className="border rounded px-2 py-1 w-full">
+                                    {config.operators.map((o: string) => <option key={o} value={o}>{o}</option>)}
+                                  </select>
+                                </td>
+                                <td className="px-4 py-2">
+                                  {/* Value dinámico */}
+                                  {config.valueType === "multiselect" && hasOptions && (
+                                    <MultiSelect
+                                      options={config.options.map((opt: string) => ({ id: opt, name: opt }))}
+                                      value={filter.value ? filter.value.split(",") : []}
+                                      onChange={selected => updateFilter(group.id, filter.id, "value", selected.join(","))}
+                                      placeholder="Select values..."
+                                    />
+                                  )}
+                                  {config.valueType === "dropdown" && (
+                                    <select
+                                      value={filter.value}
+                                      onChange={e => updateFilter(group.id, filter.id, "value", e.target.value)}
+                                      className="border rounded px-2 py-1 w-full"
+                                    >
+                                      <option value="">Select option</option>
+                                      {hasOptions && config.options.map((opt: string) => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                      ))}
+                                    </select>
+                                  )}
+                                  {config.valueType === "number" && filter.operator === "between" && (
+                                    <div className="flex gap-2">
+                                      <input
+                                        type="number"
+                                        value={filter.value?.split(",")[0] || ""}
+                                        onChange={e => {
+                                          const v2 = filter.value?.split(",")[1] || "";
+                                          updateFilter(group.id, filter.id, "value", `${e.target.value},${v2}`);
+                                        }}
+                                        className="border rounded px-2 py-1 w-1/2"
+                                        placeholder="From"
+                                      />
+                                      <input
+                                        type="number"
+                                        value={filter.value?.split(",")[1] || ""}
+                                        onChange={e => {
+                                          const v1 = filter.value?.split(",")[0] || "";
+                                          updateFilter(group.id, filter.id, "value", `${v1},${e.target.value}`);
+                                        }}
+                                        className="border rounded px-2 py-1 w-1/2"
+                                        placeholder="To"
+                                      />
+                                    </div>
+                                  )}
+                                  {config.valueType === "number" && filter.operator !== "between" && (
+                                    <input
+                                      type="number"
+                                      value={filter.value}
+                                      onChange={e => updateFilter(group.id, filter.id, "value", e.target.value)}
+                                      className="border rounded px-2 py-1 w-full"
+                                      placeholder="Enter value"
+                                    />
+                                  )}
+                                  {config.valueType === "text" && (
+                                    <input
+                                      type="text"
+                                      value={filter.value}
+                                      onChange={e => updateFilter(group.id, filter.id, "value", e.target.value)}
+                                      className="border rounded px-2 py-1 w-full"
+                                      placeholder="Enter value"
+                                    />
+                                  )}
+                                </td>
+                                <td className="px-4 py-2 text-center">
+                                  <button type="button" className="group bg-[#3498DB] hover:bg-[#404042] active:bg-[#F17625] text-white rounded w-8 h-8 flex items-center justify-center text-lg focus:outline-none" onClick={() => removeFilter(group.id, filter.id)} aria-label="Remove Filter">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+                                      <path d="M6 6l12 12M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    </svg>
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {/* SECCIÓN 2: Campaign Settings */}
           <Card className="mb-6">
             <CardHeader>
@@ -331,29 +792,67 @@ export default function NewAutoTemplatePage() {
                   <div className="flex justify-end gap-2 mb-4">
                     <Tooltip text="Download CSV template">
                       <button
-                        className="bg-[#2ECC71] hover:bg-[#27AE60] text-white rounded px-3 py-2 flex items-center justify-center"
+                        className="group border border-[#404042] bg-white transition-colors rounded px-3 py-2 flex items-center justify-center focus:outline-none"
+                        style={{ boxShadow: 'none' }}
                         onClick={() => {/* lógica de descarga */}}
                         type="button"
                       >
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M12 16V4m0 12l-4-4m4 4l4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="18" width="16" height="2" rx="1" fill="#fff"/></svg>
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                          <path fill="none" d="M0 0h24v24H0z" />
+                          <path fill="#404042" d="M12 16V4m0 12l-4-4m4 4l4-4" stroke="#404042" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <rect x="4" y="18" width="16" height="2" rx="1" fill="#404042" className="group-hover:fill-[#404042] group-active:fill-white"/>
+                        </svg>
+                        <style jsx>{`
+                          button.group:hover {
+                            background: #FAAE3A;
+                          }
+                          button.group:active {
+                            background: #F17625;
+                          }
+                        `}</style>
                       </button>
                     </Tooltip>
                     <Tooltip text="Update keywords from file">
                       <button
-                        className="bg-[#3498DB] hover:bg-[#2980B9] text-white rounded px-3 py-2 flex items-center justify-center"
+                        className="group bg-[#404042] transition-colors rounded px-3 py-2 flex items-center justify-center focus:outline-none"
                         onClick={() => {/* lógica de upload */}}
                         type="button"
                       >
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M12 8v8m0-8l-4 4m4-4l4 4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="18" width="16" height="2" rx="1" fill="#fff"/></svg>
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                          <path fill="none" d="M0 0h24v24H0z" />
+                          <path fill="#fff" d="M12 8v8m0-8l-4 4m4-4l4 4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <rect x="4" y="18" width="16" height="2" rx="1" fill="#fff" className="group-hover:fill-[#404042] group-active:fill-white"/>
+                        </svg>
+                        <style jsx>{`
+                          button.group:hover {
+                            background: #FAAE3A;
+                          }
+                          button.group:active {
+                            background: #F17625;
+                          }
+                        `}</style>
                       </button>
                     </Tooltip>
                     <Tooltip text="Delete selected keywords">
                       <button
-                        className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white rounded px-3 py-2 flex items-center justify-center"
+                        className="group border border-[#404042] bg-white transition-colors rounded px-3 py-2 flex items-center justify-center focus:outline-none"
+                        style={{ boxShadow: 'none' }}
                         onClick={() => setShowDeleteModal(true)}
                         type="button"
                       >
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><rect x="5" y="6" width="14" height="12" rx="2" stroke="#fff" strokeWidth="2"/><path d="M10 11v4m4-4v4" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="#fff" strokeWidth="2"/></svg>
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                          <rect x="5" y="6" width="14" height="12" rx="2" stroke="#404042" strokeWidth="2" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <path d="M10 11v4m4-4v4" stroke="#404042" strokeWidth="2" strokeLinecap="round" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="#404042" strokeWidth="2" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                        </svg>
+                        <style jsx>{`
+                          button.group:hover {
+                            background: #FAAE3A;
+                          }
+                          button.group:active {
+                            background: #F17625;
+                          }
+                        `}</style>
                       </button>
                     </Tooltip>
                   </div>
@@ -389,26 +888,194 @@ export default function NewAutoTemplatePage() {
                             </td>
                             <td className="px-2 text-center">
                               <input type="checkbox" checked={selectedKeywords.includes(idx)} onChange={e => handleSelectKeyword(idx, e.target.checked)} />
-                              {/* Botón + solo en la última fila */}
-                              {idx === keywords.length - 1 && (
-                                <button
-                                  className="bg-[#FAAE3A] hover:bg-[#F17625] active:bg-[#F17625] text-[#404042] rounded w-8 h-8 flex items-center justify-center text-lg border border-[#FAAE3A] ml-2"
-                                  onClick={() => setKeywords([...keywords, { keyword: '', matchType: 'Broad' }])}
-                                  type="button"
-                                >
-                                  +
-                                </button>
-                              )}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
+                    {/* Input, select y botón + siempre visibles debajo de la tabla */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <input
+                        className="border rounded px-2 py-1 flex-1"
+                        value={newKeyword}
+                        onChange={e => setNewKeyword(e.target.value)}
+                        placeholder="Add keyword..."
+                        onKeyDown={e => { if (e.key === 'Enter') handleAddKeyword(); }}
+                      />
+                      <select
+                        className="border rounded px-2 py-1 w-40 min-w-[100px]"
+                        value={newMatchType}
+                        onChange={e => setNewMatchType(e.target.value)}
+                      >
+                        <option value="Broad">Broad</option>
+                        <option value="Phrase">Phrase</option>
+                        <option value="Exact">Exact</option>
+                      </select>
+                      <button
+                        className="group bg-[#FAAE3A] transition-colors rounded w-8 h-8 flex items-center justify-center text-lg border border-[#FAAE3A] focus:outline-none"
+                        onClick={handleAddKeyword}
+                        type="button"
+                        aria-label="Add keyword"
+                      >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10" fill="none" />
+                          <path d="M12 8v8M8 12h8" stroke="#404042" strokeWidth="2" strokeLinecap="round" className="group-hover:stroke-white group-active:stroke-white"/>
+                        </svg>
+                        <style jsx>{`
+                          button.group:hover {
+                            background: #404042;
+                            border-color: #404042;
+                          }
+                          button.group:active {
+                            background: #F17625;
+                            border-color: #F17625;
+                          }
+                        `}</style>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
               {activeTab === "custom" && (
-                <div>[Custom Params config aquí]</div>
+                <div className="bg-card border rounded p-6 min-h-[200px]">
+                  <div className="flex justify-end gap-2 mb-4">
+                    <Tooltip text="Delete selected parameters">
+                      <button
+                        className="group border border-[#404042] bg-white transition-colors rounded px-3 py-2 flex items-center justify-center focus:outline-none"
+                        style={{ boxShadow: 'none' }}
+                        onClick={() => setCustomParams(customParams.filter((_, idx) => !selectedParams.includes(idx)))}
+                        type="button"
+                      >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                          <rect x="5" y="6" width="14" height="12" rx="2" stroke="#404042" strokeWidth="2" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <path d="M10 11v4m4-4v4" stroke="#404042" strokeWidth="2" strokeLinecap="round" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="#404042" strokeWidth="2" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                        </svg>
+                        <style jsx>{`
+                          button.group:hover {
+                            background: #FAAE3A;
+                          }
+                          button.group:active {
+                            background: #F17625;
+                          }
+                        `}</style>
+                      </button>
+                    </Tooltip>
+                    <Tooltip text="Help about custom parameters">
+                      <button
+                        className="group bg-[#404042] transition-colors rounded px-3 py-2 flex items-center justify-center focus:outline-none"
+                        type="button"
+                        onClick={() => alert('Custom parameters allow you to append URL parameters to your ad group URLs.')}
+                      >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10" stroke="#fff" strokeWidth="2" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <path d="M12 16v-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" className="group-hover:stroke-[#404042] group-active:stroke-white"/>
+                          <circle cx="12" cy="8" r="1" fill="#fff" className="group-hover:fill-[#404042] group-active:fill-white"/>
+                        </svg>
+                        <style jsx>{`
+                          button.group:hover {
+                            background: #FAAE3A;
+                          }
+                          button.group:active {
+                            background: #F17625;
+                          }
+                        `}</style>
+                      </button>
+                    </Tooltip>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm mb-2">
+                      <thead>
+                        <tr>
+                          <th className="text-left px-4 py-2 font-semibold text-[#404042]">Name</th>
+                          <th className="text-left px-4 py-2 font-semibold text-[#404042]">Value</th>
+                          <th className="px-2"><input type="checkbox" /></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {customParams.length === 0 && (
+                          <tr>
+                            <td colSpan={3}>
+                              <div className="bg-[#FFF8E1] text-[#404042] rounded px-4 py-3 text-center border border-[#FAAE3A]">No URL Appends have been added yet</div>
+                            </td>
+                          </tr>
+                        )}
+                        {customParams.map((param, idx) => (
+                          <tr key={idx}>
+                            <td className="px-4 py-2">
+                              <input className="w-full border rounded px-2 py-1" value={param.name} readOnly />
+                            </td>
+                            <td className="px-4 py-2">
+                              <input className="w-full border rounded px-2 py-1" value={param.value} readOnly />
+                            </td>
+                            <td className="px-2 text-center">
+                              <input type="checkbox" checked={selectedParams.includes(idx)} onChange={e => handleSelectParam(idx, e.target.checked)} />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <div className="flex items-center gap-2 mt-2">
+                      <input
+                        className="border rounded px-2 py-1 flex-1"
+                        value={newParamName}
+                        onChange={e => setNewParamName(e.target.value)}
+                        placeholder="Name"
+                        onKeyDown={e => { if (e.key === 'Enter') handleAddCustomParam(); }}
+                      />
+                      <input
+                        className="border rounded px-2 py-1 flex-1"
+                        value={newParamValue}
+                        onChange={e => setNewParamValue(e.target.value)}
+                        placeholder="Value"
+                        onKeyDown={e => { if (e.key === 'Enter') handleAddCustomParam(); }}
+                      />
+                      <button
+                        className="group bg-[#FAAE3A] transition-colors rounded w-8 h-8 flex items-center justify-center text-lg border border-[#FAAE3A] focus:outline-none"
+                        onClick={handleAddCustomParam}
+                        type="button"
+                        aria-label="Add custom param"
+                      >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10" fill="none" />
+                          <path d="M12 8v8M8 12h8" stroke="#404042" strokeWidth="2" strokeLinecap="round" className="group-hover:stroke-white group-active:stroke-white"/>
+                        </svg>
+                        <style jsx>{`
+                          button.group:hover {
+                            background: #404042;
+                            border-color: #404042;
+                          }
+                          button.group:active {
+                            background: #F17625;
+                            border-color: #F17625;
+                          }
+                        `}</style>
+                      </button>
+                    </div>
+                  </div>
+                  {showCustomError && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-xs w-full flex flex-col items-center border border-[#FF6B6B]/40">
+                        <div className="flex flex-col items-center mb-4">
+                          <div className="rounded-full border-4 border-[#FF6B6B] bg-[#FFF8E1] flex items-center justify-center mb-2" style={{ width: 60, height: 60 }}>
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                              <circle cx="16" cy="16" r="13" stroke="#FF6B6B" strokeWidth="3" fill="#FFF8E1" />
+                              <path d="M10 10l12 12M22 10l-12 12" stroke="#FF6B6B" strokeWidth="2.5" strokeLinecap="round"/>
+                            </svg>
+                          </div>
+                          <h2 className="text-xl font-bold text-[#FF6B6B] mb-1 text-center">Error</h2>
+                          <p className="text-[#404042] text-center text-base">Please complete all fields before adding more.</p>
+                        </div>
+                        <button
+                          className="bg-[#3498DB] hover:bg-[#2980B9] text-white font-semibold px-6 py-2 rounded-lg shadow transition-all border-2 border-[#3498DB] focus:outline-none focus:ring-2 focus:ring-[#3498DB]/40"
+                          onClick={() => setShowCustomError(false)}
+                        >
+                          OK
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
