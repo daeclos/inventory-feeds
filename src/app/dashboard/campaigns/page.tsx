@@ -75,7 +75,7 @@ export default function CampaignsPage() {
   return (
     <DashboardLayout>
       <div className="w-full flex justify-center bg-background min-h-[calc(100vh-64px)]">
-        <div className="w-full max-w-5xl px-4 sm:px-8 pt-8">
+        <div className="w-full max-w-7xl px-4 sm:px-8 pt-8">
           {/* Botones superiores */}
           <div className="flex gap-4 mb-6">
             <DropdownMenu>
