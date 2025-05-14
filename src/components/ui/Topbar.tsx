@@ -6,8 +6,14 @@ import { Power, Menu, MessageCircle, Search, X as CloseIcon } from "lucide-react
 import ContactSupportModal from "@/components/ui/ContactSupportModal";
 import { Input } from "@/components/ui/input";
 import { useSidebarStore } from "@/lib/store/sidebar";
+import { Notifications } from "./Notifications";
+import { Alert } from "@/types/alerts";
 
-export default function Topbar() {
+interface TopbarProps {
+  onAlertClick: (alert: Alert) => void;
+}
+
+export default function Topbar({ onAlertClick }: TopbarProps) {
   const [showSupport, setShowSupport] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { expanded, setExpanded } = useSidebarStore();
@@ -61,6 +67,7 @@ export default function Topbar() {
           </div>
 
           <div className="flex items-center gap-4">
+            <Notifications onAlertClick={onAlertClick} />
             {/* Botón Log out */}
             <Link
               href="/"

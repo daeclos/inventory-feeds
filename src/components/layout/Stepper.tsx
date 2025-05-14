@@ -26,10 +26,10 @@ export function Stepper({ steps, currentStep, onStepClick, showDescriptions = fa
           <button
             className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold mb-2 transition-colors duration-200 border-4
               ${currentStep === idx
-                ? "bg-[#FAAE3A] text-white border-[#F17625] shadow-lg"
+                ? "bg-[#FAAE3A] text-[#404042] border-[#FFD95A] shadow-lg"
                 : currentStep > idx
-                ? "bg-[#F17625] text-white border-[#F17625]"
-                : "bg-gray-200 text-[#404042] border-gray-200"}
+                ? "bg-[#FFD95A] text-white border-[#FFD95A]"
+                : "bg-gray-200 text-[#4C3D3D] border-gray-200"}
             `}
             onClick={() => onStepClick(idx)}
             type="button"
@@ -39,7 +39,7 @@ export function Stepper({ steps, currentStep, onStepClick, showDescriptions = fa
           </button>
           <div className="flex flex-col items-center">
             <span
-              className={`text-xs text-center mt-1 truncate ${currentStep === idx ? "font-bold text-[#404042]" : "text-gray-500"}`}
+              className={`text-xs text-center mt-1 truncate ${currentStep === idx ? "font-bold text-[#4C3D3D]" : "text-gray-500"}`}
               style={{ maxWidth: 90, width: '90px', display: 'block' }}
               title={step.label}
             >
