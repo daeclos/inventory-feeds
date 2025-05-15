@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 // Ejemplo de datos dinámicos
 const templates = [
@@ -111,7 +112,9 @@ export default function CampaignsPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => handlePrebuildTemplates('New Template')}>New Template</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handlePrebuildTemplates('Edit Libraries')}>Edit Libraries</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/campaigns/edit-libraries">Edit Libraries</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handlePrebuildTemplates('Negative Keywords')}>Negative Keywords</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
