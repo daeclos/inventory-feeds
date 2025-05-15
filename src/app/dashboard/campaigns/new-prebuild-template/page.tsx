@@ -212,7 +212,7 @@ export default function NewPrebuildTemplatePage() {
             </div>
           </div>
           <div className="bg-white border border-[#FAAE3A]/30 rounded-xl shadow p-6 mb-8">
-            <div className="flex gap-2 border-b mb-6">
+            <div className="flex gap-0 border-b border-[#FAAE3A] bg-[#FFF8E1] rounded-t-xl overflow-x-auto mb-6">
               {[
                 { key: "campaign", label: "Campaign Naming" },
                 { key: "adgroup", label: "Ad Group Naming" },
@@ -220,25 +220,22 @@ export default function NewPrebuildTemplatePage() {
                 { key: "keywords", label: "Keywords" },
                 { key: "adext", label: "Ad Extensions" },
               ].map(tab => (
-                <div key={tab.key} className="flex items-center gap-2">
-                  <button
-                    className={clsx(
-                      "px-4 py-2 font-medium transition",
-                      activeTab === tab.key && tabSwitches[tab.key]
-                        ? "bg-[#FAAE3A] text-[#404042] rounded-t"
-                        : "bg-transparent text-[#404042] hover:bg-[#FFF3D1]",
-                      !tabSwitches[tab.key] && "opacity-50 cursor-not-allowed"
-                    )}
-                    onClick={() => tabSwitches[tab.key] && setActiveTab(tab.key)}
-                    disabled={!tabSwitches[tab.key]}
-                  >
-                    {tab.label}
-                  </button>
-                  <Switch checked={tabSwitches[tab.key]} onCheckedChange={v => handleTabSwitch(tab.key, v)} />
-                </div>
+                <button
+                  key={tab.key}
+                  className={clsx(
+                    "px-6 py-3 font-semibold text-sm transition-all focus:outline-none",
+                    activeTab === tab.key
+                      ? "bg-[#faad39ff] text-[#404042] border-b-4 border-[#faad39ff] rounded-t-xl"
+                      : "bg-white text-[#404042]/70 border-b-4 border-transparent hover:bg-[#FFF3D1] rounded-t-lg"
+                  )}
+                  onClick={() => setActiveTab(tab.key)}
+                  style={{ minWidth: 160 }}
+                >
+                  {tab.label}
+                </button>
               ))}
             </div>
-            {activeTab === "campaign" && tabSwitches.campaign && (
+            {activeTab === "campaign" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-4">
                   <label className="font-semibold text-[#404042]">Campaign Name</label>
@@ -270,7 +267,7 @@ export default function NewPrebuildTemplatePage() {
                 </div>
               </div>
             )}
-            {activeTab === "adgroup" && tabSwitches.adgroup && (
+            {activeTab === "adgroup" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-4">
                   <label className="font-semibold text-[#404042]">Ad Group Name</label>
@@ -306,14 +303,14 @@ export default function NewPrebuildTemplatePage() {
                 )}
               </div>
             )}
-            {activeTab === "ads" && tabSwitches.ads && (
+            {activeTab === "ads" && (
               <div className="flex flex-col gap-6">
                 <div className="bg-[#FFF3D1] text-[#404042] rounded p-4 text-center">There are no Responsive Search Ads added, if you like, you can add one by clicking the plus sign.</div>
                 <div className="bg-[#FFF3D1] text-[#404042] rounded p-4 text-center">There are no Call-Only Ads added, if you like, you can add one by clicking the plus sign.</div>
                 <Button className="mt-4 bg-[#FF9F00] text-white rounded self-center" variant="secondary">+ Add Ad</Button>
               </div>
             )}
-            {activeTab === "keywords" && tabSwitches.keywords && (
+            {activeTab === "keywords" && (
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-4 max-w-2xl bg-[#FFFDF7] border border-[#FAAE3A]/40 rounded-xl p-6 shadow-sm">
                   <label className="font-semibold text-[#404042] mb-2">Keyword</label>
@@ -382,7 +379,7 @@ export default function NewPrebuildTemplatePage() {
                 </div>
               </div>
             )}
-            {activeTab === "adext" && tabSwitches.adext && (
+            {activeTab === "adext" && (
               <div className="flex flex-col gap-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex items-center gap-2 mb-2">

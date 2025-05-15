@@ -187,7 +187,7 @@ export default function NewAutoTemplatePage() {
   const [finalUrl, setFinalUrl] = useState("");
   const [showPlaceholders, setShowPlaceholders] = useState(false);
   // Estado para tabs
-  const [activeTab, setActiveTab] = useState("adgroup");
+  const [activeTab, setActiveTab] = useState("campaign");
   const [adsTab, setAdsTab] = useState("responsive");
   const [showAdTypeMenu, setShowAdTypeMenu] = useState(false);
   const [adsPanels, setAdsPanels] = useState({ responsive: true, callonly: true });
@@ -214,14 +214,6 @@ export default function NewAutoTemplatePage() {
   const [attributeSearch, setAttributeSearch] = useState("");
   // Estado para negative keywords dinámico
   const [negativeKeywordLists, setNegativeKeywordLists] = useState<string[]>([]);
-  // Estados para switches de cada tab
-  const [tabSwitches, setTabSwitches] = useState<Record<string, boolean>>({
-    campaign: true,
-    adgroup: true,
-    ads: false,
-    keywords: false,
-    adext: false,
-  });
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("negativeKeywordLists") || "[]");
@@ -324,14 +316,13 @@ export default function NewAutoTemplatePage() {
     } : g));
   }
 
-  const handleTabSwitch = (tab: string, value: boolean) => {
-    setTabSwitches((prev) => ({ ...prev, [tab]: value }));
-    // Si el tab activo se apaga, cambiar a otro tab activo
-    if (!value && activeTab === tab) {
-      const nextActive = Object.keys(tabSwitches).find((t) => t !== tab && tabSwitches[t]);
-      if (nextActive) setActiveTab(nextActive);
-    }
-  };
+  const tabList = [
+    { key: "campaign", label: "Campaign Settings" },
+    { key: "adgroup", label: "Ad Group Naming" },
+    { key: "ads", label: "Ads" },
+    { key: "keywords", label: "Keywords" },
+    { key: "adext", label: "Ad Group Custom Parameters" },
+  ];
 
   return (
     <DashboardLayout>
@@ -412,71 +403,170 @@ export default function NewAutoTemplatePage() {
             </div>
           </div>
           <div className="bg-white border border-[#FAAE3A]/30 rounded-xl shadow p-6 mb-8">
-            <div className="flex gap-2 border-b mb-6">
-              {[
-                { key: "campaign", label: "Campaign Naming" },
-                { key: "adgroup", label: "Ad Group Naming" },
-                { key: "ads", label: "Ads" },
-                { key: "keywords", label: "Keywords" },
-                { key: "adext", label: "Ad Extensions" },
-              ].map(tab => (
-                <div key={tab.key} className="flex items-center gap-2">
-                  <button
-                    className={clsx(
-                      "px-4 py-2 font-medium transition",
-                      activeTab === tab.key && tabSwitches[tab.key]
-                        ? "bg-[#FAAE3A] text-[#404042] rounded-t"
-                        : "bg-transparent text-[#404042] hover:bg-[#FFF3D1]",
-                      !tabSwitches[tab.key] && "opacity-50 cursor-not-allowed"
-                    )}
-                    onClick={() => tabSwitches[tab.key] && setActiveTab(tab.key)}
-                    disabled={!tabSwitches[tab.key]}
-                  >
-                    {tab.label}
-                  </button>
-                </div>
+            <div className="flex gap-0 border-b border-[#FAAE3A] bg-[#FFF8E1] rounded-t-xl overflow-x-auto">
+              {tabList.map(tab => (
+                <button
+                  key={tab.key}
+                  className={clsx(
+                    "px-6 py-3 font-semibold text-sm transition-all focus:outline-none",
+                    activeTab === tab.key
+                      ? "bg-[#faad39ff] text-[#404042] border-b-4 border-[#faad39ff] rounded-t-xl"
+                      : "bg-white text-[#404042]/70 border-b-4 border-transparent hover:bg-[#FFF3D1] rounded-t-lg"
+                  )}
+                  onClick={() => setActiveTab(tab.key)}
+                  style={{ minWidth: 160 }}
+                >
+                  {tab.label}
+                </button>
               ))}
             </div>
             {activeTab === "campaign" && (
-              <div>{/* contenido de Campaign Naming */}</div>
+              <div className="bg-white border border-[#FAAE3A]/30 rounded-b-xl p-8 mt-0">
+                <div className="mb-6">
+                  <span className="text-[#FAAE3A] font-bold text-lg">Campaign Settings</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-6 items-center">
+                  <div className="md:col-span-2 text-right font-semibold text-[#404042]">Campaign Selection</div>
+                  <div className="md:col-span-3">
+                    <select className="w-full border border-[#FAAE3A]/40 rounded-lg h-11 px-3 bg-[#FFF8E1] text-[#404042] focus:ring-2 focus:ring-[#FAAE3A]" value={campaign} onChange={e => setCampaign(e.target.value)}>
+                      <option value="">Select a Google Ads customer before set the campaign.</option>
+                      {campaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="md:col-span-1 flex justify-center">
+                    <Button variant="secondary" type="button" className="bg-[#1976D2] hover:bg-[#1251a3] text-white p-2 rounded-lg min-w-[40px] min-h-[40px] flex items-center justify-center shadow-none"><span className="material-icons">refresh</span></Button>
+                  </div>
+                  <div className="md:col-span-2 text-right font-semibold text-[#404042]">Negative Keywords Lists Selection</div>
+                  <div className="md:col-span-4">
+                    <MultiSelect
+                      options={negativeKeywordLists.map(nk => ({ id: nk, name: nk }))}
+                      value={negativeLists}
+                      onChange={setNegativeLists}
+                      placeholder="Nothing selected"
+                    />
+                  </div>
+                </div>
+              </div>
             )}
             {activeTab === "adgroup" && (
-              <div className="flex flex-col gap-6">
-                <div className="flex justify-between items-center mb-4">
-                  <button type="button" onClick={() => setShowPlaceholders(true)}
-                    className="flex items-center gap-1 text-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] px-2 py-1 rounded transition-colors">
-                    <Search className="w-4 h-4" />
-                    <span className="text-xs">Available Placeholders</span>
+              <div className="bg-white border border-[#FAAE3A]/30 rounded-b-xl p-8 mt-0">
+                <div className="mb-6 flex justify-between items-center">
+                  <span className="text-[#FAAE3A] font-bold text-lg">Ad Group Naming</span>
+                  <button type="button" onClick={() => setShowPlaceholders(true)} className="flex items-center gap-1 text-[#1976D2] hover:underline text-xs font-semibold">
+                    <span className="material-icons text-base">search</span> Available Placeholders
                   </button>
                 </div>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Ad Group Name</Label>
-                    <Input value={adGroupName} onChange={e => setAdGroupName(e.target.value)} placeholder="Ad Group Name" />
-                  </div>
-                  <div>
-                    <Label>Max CPC Bid</Label>
-                    <Input value={maxCpcBid} onChange={e => setMaxCpcBid(e.target.value)} placeholder="0.01" type="number" min="0" step="0.01" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={setMaxCpcOnCreate} onCheckedChange={setSetMaxCpcOnCreate} />
-                    <Label>Set Max CPC Bid only on creation</Label>
-                  </div>
-                  <div>
-                    <Label>Final URL</Label>
-                    <Input value={finalUrl} onChange={e => setFinalUrl(e.target.value)} placeholder="Final URL" />
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-6 items-center">
+                  <div className="md:col-span-2 text-right font-semibold text-[#404042]">Ad Group Name</div>
+                  <div className="md:col-span-4"><Input value={adGroupName} onChange={e => setAdGroupName(e.target.value)} className="bg-[#FFF8E1] border-[#FAAE3A]/40 rounded-lg" /></div>
+                  <div className="md:col-span-2 text-right font-semibold text-[#404042]">Max CPC Bid</div>
+                  <div className="md:col-span-4"><Input value={maxCpcBid} disabled className="bg-[#F5F5F5] border-[#FAAE3A]/40 rounded-lg text-[#404042]/60" /></div>
+                  <div className="md:col-span-2 text-right font-semibold text-[#404042]">Set Max CPC Bid only on creation</div>
+                  <div className="md:col-span-4"><Switch checked={setMaxCpcOnCreate} onCheckedChange={setSetMaxCpcOnCreate} /></div>
+                  <div className="md:col-span-2 text-right font-semibold text-[#404042]">Final URL</div>
+                  <div className="md:col-span-4 flex items-center gap-2">
+                    <Input value={finalUrl} onChange={e => setFinalUrl(e.target.value)} className="bg-[#FFF8E1] border-[#FAAE3A]/40 rounded-lg" />
+                    <span className="material-icons text-[#1976D2] cursor-pointer" title="Help">help_outline</span>
                   </div>
                 </div>
               </div>
             )}
             {activeTab === "ads" && (
-              <div>{/* contenido de Ads */}</div>
+              <div className="bg-white border border-[#FAAE3A]/30 rounded-b-xl p-8 mt-0">
+                <div className="mb-6 text-[#FAAE3A] font-bold text-lg">Ads</div>
+                <div className="space-y-6">
+                  <div className="border border-[#FAAE3A]/20 rounded-lg bg-[#FFF8E1]">
+                    <div className="px-4 py-2 border-b border-[#FAAE3A]/20 text-[#1976D2] font-semibold">Responsive Search Ads</div>
+                    <div className="px-4 py-4 text-[#404042]/80 text-sm">There are no Responsive Search Ads added, if you like, you can add one by clicking the plus sign.</div>
+                  </div>
+                  <div className="border border-[#FAAE3A]/20 rounded-lg bg-[#FFF8E1]">
+                    <div className="px-4 py-2 border-b border-[#FAAE3A]/20 text-[#1976D2] font-semibold">Call-Only Ads</div>
+                    <div className="px-4 py-4 text-[#404042]/80 text-sm">There are no Call-Only Ads added, if you like, you can add one by clicking the plus sign.</div>
+                  </div>
+                  <Button variant="secondary" type="button" className="bg-[#1976D2] hover:bg-[#1251a3] text-white p-2 rounded-lg min-w-[40px] min-h-[40px] flex items-center justify-center shadow-none"><span className="material-icons">add</span></Button>
+                </div>
+              </div>
             )}
             {activeTab === "keywords" && (
-              <div>{/* contenido de Keywords */}</div>
+              <div className="bg-white border border-[#FAAE3A]/30 rounded-b-xl p-8 mt-0">
+                <div className="mb-6 text-[#FAAE3A] font-bold text-lg">Keywords</div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full mb-2 rounded-lg overflow-hidden">
+                    <thead>
+                      <tr>
+                        <th className="text-left px-4 py-2 font-semibold text-[#404042] bg-[#FFF3D1]">Keyword</th>
+                        <th className="text-left px-4 py-2 font-semibold text-[#404042] bg-[#FFF3D1]">Match Type</th>
+                        <th className="px-4 py-2 bg-[#FFF3D1]"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {keywords.length === 0 ? (
+                        <tr><td colSpan={3} className="bg-[#FFF8E1] text-[#404042]/70 px-4 py-4 text-center text-sm">No keywords have been added yet</td></tr>
+                      ) : (
+                        keywords.map((kw, idx) => (
+                          <tr key={idx} className="hover:bg-[#FFF3D1]">
+                            <td className="px-4 py-2">{kw.keyword}</td>
+                            <td className="px-4 py-2">{kw.matchType}</td>
+                            <td className="px-4 py-2"><input type="checkbox" checked={selectedKeywords.includes(idx)} onChange={e => handleSelectKeyword(idx, e.target.checked)} /></td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                  <div className="flex gap-2 mb-2">
+                    <Button variant="secondary" className="bg-[#43A047] hover:bg-[#357a38] text-white shadow-none"><span className="material-icons">file_upload</span></Button>
+                    <Button variant="secondary" className="bg-[#1976D2] hover:bg-[#1251a3] text-white shadow-none"><span className="material-icons">file_download</span></Button>
+                    <Button variant="secondary" className="bg-[#E53935] hover:bg-[#b71c1c] text-white shadow-none" onClick={() => setShowDeleteModal(true)}><span className="material-icons">delete</span></Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input value={newKeyword} onChange={e => setNewKeyword(e.target.value)} className="bg-[#FFF8E1] border-[#FAAE3A]/40 rounded-lg" />
+                    <select className="border border-[#FAAE3A]/40 rounded-lg h-11 px-2 bg-[#FFF8E1] text-[#404042] focus:ring-2 focus:ring-[#FAAE3A]" value={newMatchType} onChange={e => setNewMatchType(e.target.value)}>
+                      <option value="Broad">Broad</option>
+                      <option value="Phrase">Phrase</option>
+                      <option value="Exact">Exact</option>
+                    </select>
+                    <Button variant="secondary" className="bg-[#1976D2] hover:bg-[#1251a3] text-white shadow-none" onClick={handleAddKeyword}><span className="material-icons">add</span></Button>
+                  </div>
+                </div>
+              </div>
             )}
             {activeTab === "adext" && (
-              <div>{/* contenido de Ad Extensions */}</div>
+              <div className="bg-white border border-[#FAAE3A]/30 rounded-b-xl p-8 mt-0">
+                <div className="mb-6 text-[#FAAE3A] font-bold text-lg">Ad Group Custom Parameters</div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full mb-2 rounded-lg overflow-hidden">
+                    <thead>
+                      <tr>
+                        <th className="text-left px-4 py-2 font-semibold text-[#404042] bg-[#FFF3D1]">Name</th>
+                        <th className="text-left px-4 py-2 font-semibold text-[#404042] bg-[#FFF3D1]">Value</th>
+                        <th className="px-4 py-2 bg-[#FFF3D1]"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {customParams.length === 0 ? (
+                        <tr><td colSpan={3} className="bg-[#FFF8E1] text-[#404042]/70 px-4 py-4 text-center text-sm">No URL Appends have been added yet</td></tr>
+                      ) : (
+                        customParams.map((param, idx) => (
+                          <tr key={idx} className="hover:bg-[#FFF3D1]">
+                            <td className="px-4 py-2">{param.name}</td>
+                            <td className="px-4 py-2">{param.value}</td>
+                            <td className="px-4 py-2"><input type="checkbox" checked={selectedParams.includes(idx)} onChange={e => handleSelectParam(idx, e.target.checked)} /></td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                  <div className="flex gap-2 mb-2">
+                    <Button variant="secondary" className="bg-[#E53935] hover:bg-[#b71c1c] text-white shadow-none"><span className="material-icons">delete</span></Button>
+                    <Button variant="secondary" className="bg-[#1976D2] hover:bg-[#1251a3] text-white shadow-none"><span className="material-icons">help_outline</span></Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input value={newParamName} onChange={e => setNewParamName(e.target.value)} className="bg-[#FFF8E1] border-[#FAAE3A]/40 rounded-lg" />
+                    <Input value={newParamValue} onChange={e => setNewParamValue(e.target.value)} className="bg-[#FFF8E1] border-[#FAAE3A]/40 rounded-lg" />
+                    <Button variant="secondary" className="bg-[#1976D2] hover:bg-[#1251a3] text-white shadow-none" onClick={handleAddCustomParam}><span className="material-icons">add</span></Button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
           {showPlaceholders && (
