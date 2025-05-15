@@ -36,7 +36,7 @@ export function Sidebar() {
   useEffect(() => {
     setOpenMenus({
       services: ["/dashboard/advertisers", "/dashboard/campaigns", "/dashboard/feeds", "/dashboard/alerts"].some((p) => pathname.includes(p)),
-      settings: ["/dashboard/users", "/dashboard/billing", "/dashboard/clients"].some((p) => pathname.includes(p)),
+      settings: ["/dashboard/users", "/dashboard/clients"].some((p) => pathname.includes(p)),
       support: ["/dashboard/support-guides", "/dashboard/customer-service"].some((p) => pathname.includes(p)),
     });
   }, [pathname]);
@@ -145,7 +145,6 @@ export function Sidebar() {
           <div className="border-b border-[#FAAE3A]/10 my-2" />
           <DropdownSection icon={<BarChart2 size={18} />} title="Settings" id="settings">
             <NavItem href="/dashboard/users" icon={<User size={16} />} label="User Admin" />
-            <NavItem href="/dashboard/billing" icon={<DollarSign size={16} />} label="Billing Reports" />
             <NavItem href="/dashboard/clients" icon={<Settings size={16} />} label="Client Settings" />
           </DropdownSection>
           <div className="border-b border-[#FAAE3A]/10 my-2" />
@@ -203,7 +202,6 @@ export function Sidebar() {
             <div className="border-b border-[#FAAE3A]/10 my-2" />
             <DropdownSection icon={<BarChart2 size={18} />} title="Settings" id="settings">
               <NavItem href="/dashboard/users" icon={<User size={16} />} label="User Admin" />
-              <NavItem href="/dashboard/billing" icon={<DollarSign size={16} />} label="Billing Reports" />
               <NavItem href="/dashboard/clients" icon={<Settings size={16} />} label="Client Settings" />
             </DropdownSection>
             <div className="border-b border-[#FAAE3A]/10 my-2" />

@@ -24,6 +24,7 @@ export default function MyProfile() {
     advertisers: [],
     primaryAccount: false,
     includeAllRelated: false,
+    active: true
   });
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -131,34 +132,23 @@ export default function MyProfile() {
           </select>
         </div>
         <div className="flex flex-col gap-2">
-          <label className="block text-sm font-semibold text-[#404042] mb-1">Receive billing report:</label>
+          <label className="block text-sm font-semibold text-[#404042] mb-1">Account Settings:</label>
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              name="primaryAccount"
-              checked={profile.primaryAccount}
+              name="active"
+              checked={profile.active}
               onChange={handleChange}
               disabled={!editing}
               className="w-5 h-5 accent-[#FAAE3A]"
             />
-            <span>Primary Account</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="includeAllRelated"
-              checked={profile.includeAllRelated}
-              onChange={handleChange}
-              disabled={!editing}
-              className="w-5 h-5 accent-[#FAAE3A]"
-            />
-            <span>Include All Related</span>
+            <span>Active Account</span>
           </div>
         </div>
         <div className="flex gap-2 mt-4">
           <button
             type="button"
-            className="px-4 py-2 rounded bg-[#2A6BE9] text-white font-semibold hover:bg-[#FAAE3A] hover:text-[#404042] active:bg-[#F17625] active:text-white transition-colors"
+            className="px-4 py-2 rounded bg-[#309898] text-white font-semibold hover:bg-[#FAAE3A] hover:text-[#404042] active:bg-[#F17625] active:text-white transition-colors"
             onClick={() => alert('Password modification not implemented')}
             disabled={!editing}
           >

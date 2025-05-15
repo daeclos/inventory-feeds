@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import { Label } from "@/components/ui/label";
 
 // Ejemplo de datos dinámicos
 const templates = [
@@ -46,12 +47,24 @@ export default function CampaignsPage() {
   const handleAutoTemplates = (action: string) => {
     if (action === 'New Template') {
       window.location.href = '/dashboard/campaigns/new-auto-template';
+    } else if (action === 'Product Alias') {
+      window.location.href = '/dashboard/product-alias';
+    } else if (action === 'Negative Keywords') {
+      window.location.href = '/dashboard/negative-keywords';
     } else {
       alert(`Auto-Templates: ${action}`);
     }
   };
   const handlePrebuildTemplates = (action: string) => {
-    alert(`Prebuild-Templates: ${action}`);
+    if (action === 'New Template') {
+      window.location.href = '/dashboard/campaigns/new-prebuild-template';
+    } else if (action === 'Edit Libraries') {
+      window.location.href = '/dashboard/campaigns/edit-libraries';
+    } else if (action === 'Negative Keywords') {
+      window.location.href = '/dashboard/negative-keywords';
+    } else {
+      alert(`Prebuild-Templates: ${action}`);
+    }
   };
   const handleExport = (type: string) => {
     alert(`Exportar a ${type}`);

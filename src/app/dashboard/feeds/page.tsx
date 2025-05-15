@@ -128,7 +128,7 @@ export default function CustomFeedsPage() {
     <div className="flex min-h-screen bg-[#f7f7f9] font-geist">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        <Topbar />
+        <Topbar onAlertClick={() => {}} />
         <main className="max-w-7xl mx-auto px-4 py-8 w-full">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <h1 className="text-2xl font-bold text-[#404042]">Subscribed Feeds per Advertiser</h1>
