@@ -7,9 +7,84 @@ import { Download, Search as SearchIcon, Grid, Copy, Trash2, AlertTriangle, Edit
 import { useAdvertiserStore } from "../../store";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import type { Advertiser } from "@/types/advertiser";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 export function SearchTemplates({ advertiser }: { advertiser: Advertiser }) {
   const advertisers = useAdvertiserStore(state => state.advertisers);
+  const [showImport, setShowImport] = React.useState(false);
+  const [showCampaigns, setShowCampaigns] = React.useState(false);
+
+  // Handlers para menús (copiados de Campaigns)
+  const handleAutoTemplates = (action: string) => {
+    if (action === 'New Template') {
+      window.location.href = '/dashboard/campaigns/new-auto-template';
+    } else if (action === 'Product Alias') {
+      window.location.href = '/dashboard/product-alias';
+    } else if (action === 'Negative Keywords') {
+      window.location.href = '/dashboard/negative-keywords';
+    } else {
+      alert(`Auto-Templates: ${action}`);
+    }
+  };
+  const handlePrebuildTemplates = (action: string) => {
+    if (action === 'New Template') {
+      window.location.href = '/dashboard/campaigns/new-prebuild-template';
+    } else if (action === 'Edit Libraries') {
+      window.location.href = '/dashboard/campaigns/edit-libraries';
+    } else if (action === 'Negative Keywords') {
+      window.location.href = '/dashboard/negative-keywords';
+    } else {
+      alert(`Prebuild-Templates: ${action}`);
+    }
+  };
+
+  // Exportación CSV
+  function exportCSV() {
+    if (!advertisers.length) return;
+    const header = [
+      'Advertiser Name', 'Template Name', 'Associated Account', 'Library', 'Campaign Name', 'Max. CPC', 'Template Filter'
+    ];
+    const csv = [header.join(",")].concat(
+      advertisers.map(row =>
+        [row.name, '', '', '', '', '', ''].map(val => `"${String(val).replace(/"/g, '""')}"`).join(",")
+      )
+    ).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "search_templates.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // Exportación Excel (HTML table)
+  function exportExcel() {
+    if (!advertisers.length) return;
+    const header = [
+      'Advertiser Name', 'Template Name', 'Associated Account', 'Library', 'Campaign Name', 'Max. CPC', 'Template Filter'
+    ];
+    const table = `
+      <table>
+        <tr>${header.map(h => `<th>${h}</th>`).join("")}</tr>
+        ${advertisers.map(row => `<tr>${[row.name, '', '', '', '', '', ''].map(val => `<td>${val}</td>`).join("")}</tr>`).join("")}
+      </table>
+    `;
+    const blob = new Blob([
+      `\ufeff<html><head><meta charset='UTF-8'></head><body>${table}</body></html>`
+    ], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "search_templates.xls";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="flex flex-col gap-6 w-full max-w-none">
       {/* Ad Customizers */}
@@ -38,7 +113,7 @@ export function SearchTemplates({ advertiser }: { advertiser: Advertiser }) {
         </div>
         <div className="mt-2 font-medium text-sm flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />
-          0 Eligible campaigns - <span className="underline cursor-pointer text-[#2A6BE9]">Show Campaigns</span>
+          0 Eligible campaigns - <span className="underline cursor-pointer text-[#2A6BE9]" onClick={() => setShowCampaigns(true)}>Show Campaigns</span>
         </div>
       </div>
 
@@ -51,8 +126,9 @@ export function SearchTemplates({ advertiser }: { advertiser: Advertiser }) {
               <Button variant="outline">Auto-Templates</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>Option 1</DropdownMenuItem>
-              <DropdownMenuItem>Option 2</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAutoTemplates('New Template')}>New Template</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAutoTemplates('Product Alias')}>Product Alias</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAutoTemplates('Negative Keywords')}>Negative Keywords</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <DropdownMenu>
@@ -60,19 +136,20 @@ export function SearchTemplates({ advertiser }: { advertiser: Advertiser }) {
               <Button variant="outline">Prebuild-Templates</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>Option 1</DropdownMenuItem>
-              <DropdownMenuItem>Option 2</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePrebuildTemplates('New Template')}>New Template</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePrebuildTemplates('Edit Libraries')}>Edit Libraries</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePrebuildTemplates('Negative Keywords')}>Negative Keywords</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline">Import Template</Button>
+          <Button variant="outline" onClick={() => setShowImport(true)}>Import Template</Button>
         </div>
         <div className="flex flex-wrap items-center gap-4 mt-2">
           <div className="flex items-center gap-2">
             <Switch id="activeOnly" />
             <span className="text-sm font-medium text-[#404042]">Active Only</span>
           </div>
-          <Button variant="outline" size="sm">Excel</Button>
-          <Button variant="outline" size="sm">CSV</Button>
+          <Button variant="outline" size="sm" onClick={exportExcel}>Excel</Button>
+          <Button variant="outline" size="sm" onClick={exportCSV}>CSV</Button>
           <div className="flex items-center gap-2 ml-auto">
             <span className="text-sm text-[#404042]">Search:</span>
             <input className="border rounded px-2 py-1 text-sm" placeholder="" />
@@ -157,7 +234,70 @@ export function SearchTemplates({ advertiser }: { advertiser: Advertiser }) {
             </div>
           </div>
         </div>
+        <Dialog open={showImport} onOpenChange={setShowImport}>
+          <DialogContent className="max-w-lg w-full border-2" style={{ borderColor: '#FAAE3A' }}>
+            <DialogHeader>
+              <DialogTitle>Import Template</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-4">
+              <div className="font-semibold text-[#404042]">Copy From</div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm">Advertiser:</label>
+                <select className="border rounded px-2 py-1">
+                  {advertisers.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+                <label className="text-sm">Template:</label>
+                <select className="border rounded px-2 py-1">
+                  <option value="">(Select template)</option>
+                </select>
+              </div>
+              <div className="font-semibold text-[#404042] mt-2">To</div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm">Advertiser:</label>
+                <input className="border rounded px-2 py-1 bg-gray-100" value={advertiser?.name || ""} readOnly />
+                <label className="text-sm">Google Ads Customer:</label>
+                <select className="border rounded px-2 py-1">
+                  <option value="">(Select customer)</option>
+                </select>
+                <label className="text-sm">New Template Name:</label>
+                <input className="border rounded px-2 py-1" />
+                <label className="text-sm">Google Ads Campaign:</label>
+                <input className="border rounded px-2 py-1" />
+              </div>
+            </div>
+            <DialogFooter className="flex gap-2 justify-end mt-4">
+              <Button variant="outline" onClick={() => setShowImport(false)}>Close</Button>
+              <Button variant="default">Copy template</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
+      <Dialog open={showCampaigns} onOpenChange={setShowCampaigns}>
+        <DialogContent className="max-w-2xl w-full border-2" style={{ borderColor: '#FAAE3A' }}>
+          <DialogHeader>
+            <DialogTitle>Google Ads Campaigns for {advertiser?.name || ''}</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-x-auto mt-4">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left font-semibold">Customer ID</th>
+                  <th className="px-4 py-2 text-left font-semibold">Campaign Name</th>
+                  <th className="px-4 py-2 text-left font-semibold">Status</th>
+                  <th className="px-4 py-2 text-left font-semibold">Inclusion Label</th>
+                  <th className="px-4 py-2 text-left font-semibold">Eligibility</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* No rows yet */}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex justify-center mt-6">
+            <Button variant="default" onClick={() => setShowCampaigns(false)}>OK</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

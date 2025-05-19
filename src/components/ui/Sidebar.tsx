@@ -18,7 +18,7 @@ import {
   X as CloseIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import React from "react";
 import Image from "next/image";
 import { useSidebarStore } from "@/lib/store/sidebar";
@@ -49,7 +49,7 @@ export function Sidebar() {
     });
   };
 
-  const NavItem = ({ href, icon, label }: any) => {
+  const NavItem = ({ href, icon, label, collapsed }: any) => {
     const isActive = pathname === href;
     return (
       <li>
@@ -59,41 +59,55 @@ export function Sidebar() {
             ${isActive
               ? "bg-[#FAAE3A] text-[#404042] shadow-md"
               : "text-gray-200 hover:bg-[#FFF3D1] hover:text-[#404042]"}
-          `}
+            ${collapsed ? 'justify-center px-0' : ''}`}
         >
           <span className="flex-shrink-0">{icon}</span>
-          <span className="flex-grow">{label}</span>
+          {!collapsed && <span className="flex-grow">{label}</span>}
         </Link>
       </li>
     );
   };
 
-  const DropdownSection = ({ icon, title, id, children }: any) => {
+  const DropdownSection = ({ icon, title, id, children, collapsed }: any) => {
     const isOpen = openMenus[id as keyof typeof openMenus];
-    const items = React.Children.toArray(children).map((child: any) => ({
-      href: child.props.href,
-      icon: child.props.icon,
-      label: child.props.label,
-    }));
     return (
-      <div className="mb-6 relative">
+      <div className="mb-2 relative">
         <button
           onClick={() => toggleMenu(id as keyof typeof openMenus)}
           className={`group flex items-center justify-between w-full px-4 py-2.5 rounded-lg text-sm transition-all duration-200 font-semibold
             ${isOpen ? "text-[#FAAE3A] bg-white/5" : "text-gray-200 hover:text-[#FAAE3A] hover:bg-white/5"}
-          `}
+            ${collapsed ? 'justify-center px-0' : ''}`}
+          aria-haspopup="true"
+          aria-expanded={isOpen}
         >
           <div className="flex items-center gap-3">
             <span className="flex-shrink-0">{icon}</span>
-            <span>{title}</span>
+            {!collapsed && <span>{title}</span>}
           </div>
-          <span className="flex-shrink-0 transition-transform duration-200">
-            {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          </span>
+          {!collapsed && (
+            <span className="flex-shrink-0 transition-transform duration-200">
+              {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </span>
+          )}
         </button>
-        {isOpen && (
+        {/* Submenú clásico si expandido, vertical solo íconos si retraído */}
+        {isOpen && !collapsed && (
           <ul className="mt-2 space-y-1 pl-4 border-l-2 border-[#FAAE3A]">
             {children}
+          </ul>
+        )}
+        {isOpen && collapsed && (
+          <ul className="flex flex-col items-center gap-1 mt-2">
+            {React.Children.map(children, (child: any, idx: number) => (
+              <li key={idx}>
+                <Link
+                  href={child.props.href}
+                  className="flex items-center justify-center w-10 h-10 text-gray-200 hover:bg-[#FAAE3A] hover:text-[#404042] rounded-lg transition-all duration-200"
+                >
+                  <span className="flex-shrink-0">{child.props.icon}</span>
+                </Link>
+              </li>
+            ))}
           </ul>
         )}
       </div>
@@ -136,21 +150,21 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 p-4 overflow-y-auto">
-          <DropdownSection icon={<Rocket size={18} />} title="Services" id="services">
-            <NavItem href="/dashboard/advertisers" icon={<LayoutGrid size={16} />} label="Advertisers" />
-            <NavItem href="/dashboard/campaigns" icon={<Package size={16} />} label="Campaign Builder" />
-            <NavItem href="/dashboard/feeds" icon={<MenuIcon size={16} />} label="Custom Feeds" />
-            <NavItem href="/dashboard/alerts" icon={<AlertTriangle size={16} />} label="Alerts" />
+          <DropdownSection icon={<Rocket size={18} />} title="Services" id="services" collapsed={!expanded}>
+            <NavItem href="/dashboard/advertisers" icon={<LayoutGrid size={16} />} label="Advertisers" collapsed={!expanded} />
+            <NavItem href="/dashboard/campaigns" icon={<Package size={16} />} label="Campaign Builder" collapsed={!expanded} />
+            <NavItem href="/dashboard/feeds" icon={<MenuIcon size={16} />} label="Custom Feeds" collapsed={!expanded} />
+            <NavItem href="/dashboard/alerts" icon={<AlertTriangle size={16} />} label="Alerts" collapsed={!expanded} />
           </DropdownSection>
           <div className="border-b border-[#FAAE3A]/10 my-2" />
-          <DropdownSection icon={<BarChart2 size={18} />} title="Settings" id="settings">
-            <NavItem href="/dashboard/users" icon={<User size={16} />} label="User Admin" />
-            <NavItem href="/dashboard/clients" icon={<Settings size={16} />} label="Client Settings" />
+          <DropdownSection icon={<BarChart2 size={18} />} title="Settings" id="settings" collapsed={!expanded}>
+            <NavItem href="/dashboard/users" icon={<User size={16} />} label="User Admin" collapsed={!expanded} />
+            <NavItem href="/dashboard/clients" icon={<Settings size={16} />} label="Client Settings" collapsed={!expanded} />
           </DropdownSection>
           <div className="border-b border-[#FAAE3A]/10 my-2" />
-          <DropdownSection icon={<HelpCircle size={18} />} title="Support" id="support">
-            <NavItem href="/dashboard/support-guides" icon={<Ticket size={16} />} label="Support Guides" />
-            <NavItem href="/dashboard/customer-service" icon={<Ticket size={16} />} label="Customer Service" />
+          <DropdownSection icon={<HelpCircle size={18} />} title="Support" id="support" collapsed={!expanded}>
+            <NavItem href="/dashboard/support-guides" icon={<Ticket size={16} />} label="Support Guides" collapsed={!expanded} />
+            <NavItem href="/dashboard/customer-service" icon={<Ticket size={16} />} label="Customer Service" collapsed={!expanded} />
           </DropdownSection>
         </nav>
 
@@ -175,10 +189,10 @@ export function Sidebar() {
       <div className="md:block">
         {/* Solo renderizar sidebar móvil en pantallas pequeñas */}
         <div className="md:hidden">{MobileSidebar}</div>
-        {/* Sidebar normal en desktop */}
-        <aside className="hidden md:flex bg-[#404042] text-white flex-col w-64 min-h-screen border-r border-[#FAAE3A]/20 relative shadow-xl">
-          <div className="p-6 flex flex-col items-center border-b border-[#FAAE3A]/20">
-            <div className="relative w-14 h-14 mb-3">
+        {/* Sidebar normal en desktop, ahora soporta modo retraído */}
+        <aside className={`hidden md:flex bg-[#404042] text-white flex-col min-h-screen border-r border-[#FAAE3A]/20 relative shadow-xl transition-all duration-300 ${expanded ? 'w-64' : 'w-20'}`}>
+          <div className={`flex flex-col items-center border-b border-[#FAAE3A]/20 transition-all duration-300 ${expanded ? 'p-6' : 'py-6 px-2'}`}>
+            <div className={`relative ${expanded ? 'w-14 h-14 mb-3' : 'w-10 h-10 mb-1'}`}>
               <Image
                 src="/logo.png"
                 alt="Logo"
@@ -186,40 +200,45 @@ export function Sidebar() {
                 className="object-contain"
               />
             </div>
-            <div className="text-center">
-              <p className="text-base font-bold text-[#FAAE3A]">Fountain Forward</p>
-              <p className="text-xs text-gray-300">Admin Dashboard</p>
-            </div>
+            {expanded && (
+              <div className="text-center">
+                <p className="text-base font-bold text-[#FAAE3A]">Fountain Forward</p>
+                <p className="text-xs text-gray-300">Admin Dashboard</p>
+              </div>
+            )}
           </div>
 
-          <nav className="flex-1 p-4 overflow-y-auto">
-            <DropdownSection icon={<Rocket size={18} />} title="Services" id="services">
-              <NavItem href="/dashboard/advertisers" icon={<LayoutGrid size={16} />} label="Advertisers" />
-              <NavItem href="/dashboard/campaigns" icon={<Package size={16} />} label="Campaign Builder" />
-              <NavItem href="/dashboard/feeds" icon={<MenuIcon size={16} />} label="Custom Feeds" />
-              <NavItem href="/dashboard/alerts" icon={<AlertTriangle size={16} />} label="Alerts" />
+          <nav className="flex-1 p-2 overflow-y-auto">
+            {/* Menú principal: solo íconos si retraído */}
+            <DropdownSection icon={<Rocket size={18} />} title="Services" id="services" collapsed={!expanded}>
+              <NavItem href="/dashboard/advertisers" icon={<LayoutGrid size={16} />} label="Advertisers" collapsed={!expanded} />
+              <NavItem href="/dashboard/campaigns" icon={<Package size={16} />} label="Campaign Builder" collapsed={!expanded} />
+              <NavItem href="/dashboard/feeds" icon={<MenuIcon size={16} />} label="Custom Feeds" collapsed={!expanded} />
+              <NavItem href="/dashboard/alerts" icon={<AlertTriangle size={16} />} label="Alerts" collapsed={!expanded} />
             </DropdownSection>
             <div className="border-b border-[#FAAE3A]/10 my-2" />
-            <DropdownSection icon={<BarChart2 size={18} />} title="Settings" id="settings">
-              <NavItem href="/dashboard/users" icon={<User size={16} />} label="User Admin" />
-              <NavItem href="/dashboard/clients" icon={<Settings size={16} />} label="Client Settings" />
+            <DropdownSection icon={<BarChart2 size={18} />} title="Settings" id="settings" collapsed={!expanded}>
+              <NavItem href="/dashboard/users" icon={<User size={16} />} label="User Admin" collapsed={!expanded} />
+              <NavItem href="/dashboard/clients" icon={<Settings size={16} />} label="Client Settings" collapsed={!expanded} />
             </DropdownSection>
             <div className="border-b border-[#FAAE3A]/10 my-2" />
-            <DropdownSection icon={<HelpCircle size={18} />} title="Support" id="support">
-              <NavItem href="/dashboard/support-guides" icon={<Ticket size={16} />} label="Support Guides" />
-              <NavItem href="/dashboard/customer-service" icon={<Ticket size={16} />} label="Customer Service" />
+            <DropdownSection icon={<HelpCircle size={18} />} title="Support" id="support" collapsed={!expanded}>
+              <NavItem href="/dashboard/support-guides" icon={<Ticket size={16} />} label="Support Guides" collapsed={!expanded} />
+              <NavItem href="/dashboard/customer-service" icon={<Ticket size={16} />} label="Customer Service" collapsed={!expanded} />
             </DropdownSection>
           </nav>
 
-          <div className="p-4 border-t border-[#FAAE3A]/20 bg-[#39393B]">
+          <div className={`p-4 border-t border-[#FAAE3A]/20 bg-[#39393B] ${expanded ? '' : 'flex flex-col items-center'}`}>
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg group relative">
               <div className="w-9 h-9 rounded-full bg-[#FAAE3A] flex items-center justify-center shadow-md">
                 <User size={18} className="text-white" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white truncate">Admin User</p>
-                <p className="text-xs text-gray-300 truncate">admin@fountain.com</p>
-              </div>
+              {expanded && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white truncate">Admin User</p>
+                  <p className="text-xs text-gray-300 truncate">admin@fountain.com</p>
+                </div>
+              )}
             </div>
           </div>
         </aside>

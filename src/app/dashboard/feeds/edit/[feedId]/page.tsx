@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Info, Plus, Minus, Copy, Trash2, HelpCircle } from "lucide-react";
 import { useAdvertiserStore } from "@/app/dashboard/advertisers/store";
 import DashboardLayout from "@/components/ui/DashboardLayout";
+import { FilterBuilder, filterAttributes } from "@/components/ui/FilterBuilder";
 import React from "react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
@@ -17,6 +18,12 @@ export default function EditFeedPage() {
   const [feed, setFeed] = useState<any>(null);
   const [form, setForm] = useState<any>(null);
   const advertisers = useAdvertiserStore(state => state.advertisers);
+
+  // Estado para los grupos de filtros
+  const [filterGroups, setFilterGroups] = useState([
+    { id: 1, filters: [] as { id: number; field: string; operator: string; value: string }[] }
+  ]);
+  const [nextGroupId, setNextGroupId] = useState(2);
 
   // Estado para los valores seleccionados en el filtro demo
   const [filterValues, setFilterValues] = React.useState<string[]>(["Placeholder"]);
@@ -186,6 +193,24 @@ export default function EditFeedPage() {
     else setSelectedAppends(prev => prev.filter(i => i !== idx));
   };
 
+  // Handlers para los filtros
+  const addFilterGroup = () => {
+    setFilterGroups([...filterGroups, { id: nextGroupId, filters: [] }]);
+    setNextGroupId(nextGroupId + 1);
+  };
+
+  const removeFilterGroup = (groupId: number) => {
+    setFilterGroups(filterGroups.filter(g => g.id !== groupId));
+  };
+
+  const duplicateFilterGroup = (groupId: number) => {
+    const group = filterGroups.find(g => g.id === groupId);
+    if (group) {
+      setFilterGroups([...filterGroups, { id: nextGroupId, filters: group.filters.map(f => ({ ...f, id: Date.now() + Math.random() })) }]);
+      setNextGroupId(nextGroupId + 1);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="bg-[#f7f7f9] min-h-screen py-8 px-2">
@@ -351,59 +376,54 @@ export default function EditFeedPage() {
               <div className="flex items-center gap-2 mb-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"><Plus size={16} /></Button>
+                    <Button 
+                      type="button" 
+                      className="bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                      onClick={addFilterGroup}
+                    >
+                      <Plus size={16} />
+                      <span>Add Filter Group</span>
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent>Agregar grupo de filtro</TooltipContent>
                 </Tooltip>
-                <span className="font-bold text-[#F17625] text-lg">Filter Group 1</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"><Plus size={16} /></Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Agregar nuevo atributo de filtro</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"><Minus size={16} /></Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Eliminar grupo de filtro</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"><Copy size={16} /></Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Clonar grupo de filtro</TooltipContent>
-                </Tooltip>
               </div>
-              <div className="border rounded bg-white p-4">
-                <div className="grid grid-cols-12 gap-2 mb-2 font-semibold text-[#404042]">
-                  <div className="col-span-3">Attribute</div>
-                  <div className="col-span-3">Operator</div>
-                  <div className="col-span-5">Values</div>
-                  <div className="col-span-1 text-center">Delete</div>
+              {filterGroups.map((group, idx) => (
+                <div key={group.id} className="mb-4">
+                  <FilterBuilder
+                    attributes={filterAttributes}
+                    onCancel={() => removeFilterGroup(group.id)}
+                    onSubmit={(filters) => {
+                      setFilterGroups(groups => 
+                        groups.map(g => g.id === group.id 
+                          ? { ...g, filters: filters.map(f => ({ 
+                              id: Date.now() + Math.random(), 
+                              field: f.attribute, 
+                              operator: f.operator, 
+                              value: f.values.join(", ") 
+                            }))}
+                          : g
+                        )
+                      );
+                    }}
+                  />
                 </div>
-                <div className="grid grid-cols-12 gap-2 mb-2 items-center">
-                  <div className="col-span-3">
-                    <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 focus:border-[#FAAE3A] focus:ring-2 focus:ring-[#FAAE3A]/20 font-semibold text-[#404042]" />
-                  </div>
-                  <select
-                    className="col-span-3 border border-gray-300 rounded px-2 py-1 focus:border-[#FAAE3A] focus:ring-2 focus:ring-[#FAAE3A]/20 font-semibold text-[#404042]"
-                    value={filterOperator}
-                    onChange={e => setFilterOperator(e.target.value)}
-                  >
-                    <option>Is not</option>
-                    <option>Is</option>
-                  </select>
-                  <div className="col-span-5">
-                    <MultiSelect options={valueOptions} value={filterValues} onChange={setFilterValues} placeholder="Select option" />
-                  </div>
-                  <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] text-white px-2 py-1 rounded flex items-center gap-1 col-span-1 transition-colors"><Trash2 size={16} /></Button>
-                </div>
-              </div>
+              ))}
             </div>
             <div className="flex justify-end gap-4 mt-8">
-              <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] text-white font-semibold px-6 transition-colors" onClick={() => router.push("/dashboard/feeds")}>Cancel</Button>
-              <Button type="submit" className="bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] text-white font-semibold px-6 transition-colors">Submit</Button>
+              <Button 
+                type="button" 
+                className="bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] text-white font-semibold px-6 transition-colors" 
+                onClick={() => router.push("/dashboard/feeds")}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                className="bg-[#404042] hover:bg-[#FAAE3A] active:bg-[#F17625] text-white font-semibold px-6 transition-colors"
+              >
+                Submit
+              </Button>
             </div>
           </form>
         </div>

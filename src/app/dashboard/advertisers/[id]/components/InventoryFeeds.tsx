@@ -1,9 +1,15 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Edit2, Search, Copy, FileText, Trash2 } from "lucide-react";
-import { fetchAdvertisersWithFeeds } from "@/lib/supabaseFeeds";
+
 import { useParams, useRouter } from "next/navigation";
 import { AdvertiserFeedsAccordion, FeedAdvertiser } from "@/app/dashboard/feeds/components/AdvertiserFeedsAccordion";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Colores corporativos
 const CORPORATE = {
@@ -11,6 +17,46 @@ const CORPORATE = {
   yellow: "#FAAE3A",
   orange: "#F17625",
 };
+
+async function fetchAdvertisersWithFeeds() {
+  // Get feeds from localStorage
+  const customFeeds = JSON.parse(localStorage.getItem('customFeeds') || '{}');
+  
+  // Transform the data into the expected format
+  const groups = Object.entries(customFeeds).map(([advertiserId, feeds]) => {
+    const feedsArray = Array.isArray(feeds) ? feeds : [];
+
+    // Preparar contadores
+    let totalRecords = 0;
+    let noPrice = 0;
+    let noImage = 0;
+
+    // Si algún día agregas productos dentro de cada feed, puedes recorrerlos aquí:
+    // feedsArray.forEach(feed => {
+    //   if (Array.isArray(feed.items)) {
+    //     totalRecords += feed.items.length;
+    //     noPrice += feed.items.filter(item => !item.price).length;
+    //     noImage += feed.items.filter(item => !item.image).length;
+    //   }
+    // });
+
+    // Por ahora, solo contamos la cantidad de feeds
+    totalRecords = feedsArray.length;
+    // noPrice y noImage quedan en 0 hasta que haya productos reales
+
+    return {
+      advertiser: advertiserId,
+      advertiserName: feedsArray[0]?.advertiserName || '',
+      ads: feedsArray,
+      totalRecords,
+      noPrice,
+      noImage,
+      addresses: feedsArray[0]?.addresses || []
+    };
+  });
+
+  return groups;
+}
 
 export function InventoryFeeds() {
   const params = useParams();
@@ -21,7 +67,8 @@ export function InventoryFeeds() {
   const [advertiser, setAdvertiser] = React.useState<FeedAdvertiser | null>(null);
 
   React.useEffect(() => {
-    fetchAdvertisersWithFeeds().then((groups: any[]) => {
+    const loadFeeds = async () => {
+      const groups = await fetchAdvertisersWithFeeds();
       const group = groups.find((g: any) => g.advertiser === advertiserId);
       if (group) {
         setFeeds(group.ads || []);
@@ -54,7 +101,9 @@ export function InventoryFeeds() {
           addresses: [],
         });
       }
-    });
+    };
+
+    loadFeeds();
   }, [advertiserId]);
 
   return (
@@ -68,19 +117,30 @@ export function InventoryFeeds() {
           >
             + Feed Subscription
           </Button>
-          <Button
-            className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-            onClick={() => router.push('/dashboard/product-alias')}
-          >
-            Product Alias
-          </Button>
-          <button
-            className="p-2 rounded hover:bg-[#FAAE3A] transition-colors"
-            style={{ border: 'none', background: 'none' }}
-            title="Download"
-          >
-            <Download size={28} />
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className="p-2 rounded hover:bg-[#FAAE3A] transition-colors"
+                  style={{ border: 'none', background: 'none' }}
+                  onClick={() => {
+                    // Create a temporary link element
+                    const link = document.createElement('a');
+                    link.href = `/api/feeds/${advertiserId}/download`;
+                    link.download = `feed-${advertiser?.name || 'data'}-${new Date().toISOString().split('T')[0]}.xls`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                >
+                  <Download size={28} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Download Feed Data (XLS)</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <Button
           className="ml-auto px-4 py-2 bg-[#FAAE3A] text-[#404042] hover:bg-[#404042] hover:text-white active:bg-[#F17625] active:text-white transition-colors"

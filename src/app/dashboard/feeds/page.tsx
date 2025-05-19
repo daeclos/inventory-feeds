@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { AdvertiserFeedsAccordion } from "./components/AdvertiserFeedsAccordion";
 import { Sidebar } from "@/components/ui/Sidebar";
 import Topbar from "@/components/ui/Topbar";
+import { FilterBuilder } from "@/components/ui/FilterBuilder";
 
 // Definición del tipo de props para la tabla
 export interface FeedAdvertiser {
@@ -108,21 +109,24 @@ export default function CustomFeedsPage() {
   // Obtener advertisers reales
   const advertisers = useAdvertiserStore(state => state.advertisers);
 
-  // Estado para feeds custom locales
-  const [customFeeds, setCustomFeeds] = useState<any[]>([]);
+  // Leer feeds de localStorage
+  const feedsByAdvertiser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('customFeeds') || '{}') : {};
 
-  // Convertir advertisers a FeedAdvertiser y agregar addresses
-  const feedAdvertisers: FeedAdvertiser[] = advertisers.map(adv => ({
-    id: adv.id,
-    name: adv.name,
-    totalRecords: 0,
-    noPrice: 0,
-    noImage: 0,
-    customFeeds: 0,
-    hasAds: adv.hasAds,
-    status: adv.status,
-    addresses: adv.addresses || []
-  }));
+  // Convertir advertisers a FeedAdvertiser y agregar addresses y contadores reales
+  const feedAdvertisers: FeedAdvertiser[] = advertisers.map(adv => {
+    const feeds = feedsByAdvertiser[adv.id] || [];
+    return {
+      id: adv.id,
+      name: adv.name,
+      totalRecords: feeds.length,
+      noPrice: 0, // Preparado para el futuro
+      noImage: 0, // Preparado para el futuro
+      customFeeds: feeds.length,
+      hasAds: adv.hasAds,
+      status: adv.status,
+      addresses: adv.addresses || []
+    };
+  });
 
   return (
     <div className="flex min-h-screen bg-[#f7f7f9] font-geist">

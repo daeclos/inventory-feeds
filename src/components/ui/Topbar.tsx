@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Power, Menu, MessageCircle, Search, X as CloseIcon } from "lucide-react";
+import { Power, Menu, MessageCircle, Search, X as CloseIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import ContactSupportModal from "@/components/ui/ContactSupportModal";
 import { Input } from "@/components/ui/input";
 import { useSidebarStore } from "@/lib/store/sidebar";
@@ -23,7 +23,16 @@ export default function Topbar({ onAlertClick }: TopbarProps) {
       <div className="bg-white dark:bg-[#404042] border-b border-[#FAAE3A]/40 shadow-sm">
         <div className="px-8 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            {/* Botón hamburguesa o cerrar solo móvil */}
+            {/* Botón flecha sidebar desktop */}
+            <button
+              className="hidden md:flex items-center justify-center mr-2 bg-[#404042] p-2 rounded-full shadow-lg border border-[#FAAE3A] transition-transform duration-300"
+              onClick={() => setExpanded(!expanded)}
+              aria-label={expanded ? "Contraer sidebar" : "Expandir sidebar"}
+              style={{ transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)' }}
+            >
+              {expanded ? <ChevronLeft size={24} className="text-[#FAAE3A] transition-transform duration-300" /> : <ChevronRight size={24} className="text-[#FAAE3A] transition-transform duration-300" />}
+            </button>
+            {/* Botón hamburguesa/cerrar solo móvil */}
             {!expanded ? (
               <button
                 className="md:hidden mr-2 bg-[#404042] p-2 rounded-full shadow-lg border border-[#FAAE3A]"

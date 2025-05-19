@@ -17,6 +17,7 @@ import { SearchTemplates } from "./components/SearchTemplates";
 import { InventoryFeeds } from "./components/InventoryFeeds";
 import { VideoAds } from "./components/VideoAds";
 import { Advertiser } from "@/types/advertiser";
+import clsx from "clsx";
 
 export default function AdvertiserSettingsPage() {
   const params = useParams();
@@ -66,7 +67,10 @@ export default function AdvertiserSettingsPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto px-4 py-8 relative">
+      <div className={clsx(
+        "mx-auto px-4 py-8 relative",
+        tab === "inventory-feeds" ? "max-w-7xl" : "max-w-5xl"
+      )}>
         <h1 className="text-3xl font-bold mb-2" style={{ color: CORPORATE_COLORS.dark }}>
           {advertiser.name}
         </h1>

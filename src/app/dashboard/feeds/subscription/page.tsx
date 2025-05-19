@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/ui/DashboardLayout";
 import { useAdvertiserStore } from "@/app/dashboard/advertisers/store";
+import { FilterBuilder, filterAttributes } from "@/components/ui/FilterBuilder";
 import { 
   Info, 
   Plus, 
@@ -568,6 +569,12 @@ export default function FeedSubscriptionPage() {
   };
 
   const handleFinalSubmit = () => {
+    // Aplanar los filtros de todos los grupos en un solo array
+    const allFilters = filterGroups.flatMap(g => g.filters.map(f => ({
+      field: f.field,
+      operator: f.operator,
+      value: Array.isArray(f.value) ? f.value : (typeof f.value === 'string' && f.value.includes(',') ? f.value.split(',').map(v => v.trim()) : f.value)
+    })));
     // Crear el nuevo feed
     const newFeed = {
       id: Date.now().toString(),
@@ -576,7 +583,7 @@ export default function FeedSubscriptionPage() {
       format: formData.feedFormat,
       urlAppends: formData.urlAppends,
       advertisers: formData.advertiserIds,
-      filters: filterGroups,
+      filters: allFilters,
     };
     // Guardar en localStorage por cada advertiser
     const existing = JSON.parse(localStorage.getItem('customFeeds') || '{}');
@@ -619,51 +626,30 @@ export default function FeedSubscriptionPage() {
       {/* Filtros por grupo */}
       <div className="max-w-5xl mx-auto mb-8">
         <div className="flex items-center gap-2 mb-2">
-          <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={addFilterGroup}>
+          <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => setFilterGroups([...filterGroups, { id: nextGroupId, filters: [] }])}>
             <Plus size={16} />
             <span>Add Filter Group</span>
           </Button>
         </div>
         {filterGroups.map((group, idx) => (
-          <div key={group.id} className="border rounded bg-[#f7f7f9] mb-4">
-            <div className="flex items-center gap-2 px-4 py-2 border-b">
-              <span className="font-semibold text-[#404042]">Filter Group {idx + 1}</span>
-              <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => addFilter(group.id)}>
-                <Plus size={16} />
-                <span>Add Filter</span>
-              </Button>
-              <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => removeFilterGroup(group.id)}>
-                <Trash2 size={16} />
-                <span>Remove Group</span>
-              </Button>
-              <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => duplicateFilterGroup(group.id)}>
-                <Copy size={16} />
-                <span>Duplicate</span>
-              </Button>
-            </div>
-            {group.filters.length === 0 ? (
-              <div className="bg-yellow-100 text-yellow-800 text-center py-4 px-2 flex items-center justify-center gap-2">
-                <Filter size={20} />
-                <span>There are currently no filters added. If you like, you can add one by clicking the plus sign on the filter group.</span>
-              </div>
-            ) : (
-              <div className="p-4">
-                {group.filters.map((filter, fidx) => (
-                  <div key={filter.id} className="flex items-center gap-2 mb-2">
-                    <select value={filter.field} onChange={e => updateFilter(group.id, filter.id, "field", e.target.value)} className="border rounded px-2 py-1">
-                      {filterFields.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-                    </select>
-                    <select value={filter.operator} onChange={e => updateFilter(group.id, filter.id, "operator", e.target.value)} className="border rounded px-2 py-1">
-                      {filterOperators.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
-                    <Input value={filter.value} onChange={e => updateFilter(group.id, filter.id, "value", e.target.value)} className="w-40 border" />
-                    <Button type="button" className="bg-[#404042] hover:bg-[#FAAE3A] text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => removeFilter(group.id, filter.id)}>
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div key={group.id} className="mb-4">
+            <FilterBuilder
+              attributes={filterAttributes}
+              onCancel={() => removeFilterGroup(group.id)}
+              onSubmit={(filters) => {
+                setFilterGroups(groups => 
+                  groups.map(g => g.id === group.id 
+                    ? { ...g, filters: filters.map(f => ({ 
+                        id: nextFilterId + Math.random(), 
+                        field: f.attribute, 
+                        operator: f.operator, 
+                        value: f.values.join(", ") 
+                      }))}
+                    : g
+                  )
+                );
+              }}
+            />
           </div>
         ))}
       </div>

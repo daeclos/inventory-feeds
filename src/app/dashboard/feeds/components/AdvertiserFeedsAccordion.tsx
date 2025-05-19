@@ -144,14 +144,18 @@ export const AdvertiserFeedsAccordion: React.FC<AdvertiserFeedsAccordionProps> =
                                     <div className="md:col-span-1"><span className="text-[#404042]">Address</span></div>
                                     <div className="md:col-span-5 font-bold">{feed.address || (Array.isArray(adv.addresses) && adv.addresses[0]?.address) || '-'}</div>
                                     {feed.filters && feed.filters.length > 0 && (
-                                      <><div className="md:col-span-1"><span className="text-[#404042]">Filter</span></div>
-                                      <div className="md:col-span-5">
-                                        {feed.filters.map((f: any, i: number) => (
-                                          <span key={i}>
-                                            <span className="text-blue-700 font-semibold">({f.field} {f.operator} <span className="text-[#F17625]">{Array.isArray(f.value) ? f.value.map((v: string) => `"${v}"`).join(', ') : `"${f.value}"`}</span>)</span>
-                                          </span>
-                                        ))}
-                                      </div></>
+                                      <>
+                                        <div className="md:col-span-1"><span className="text-[#404042]">Filters</span></div>
+                                        <div className="md:col-span-5">
+                                          <ul className="list-disc pl-4">
+                                            {feed.filters.map((f: any, i: number) => (
+                                              <li key={i} className="mb-1">
+                                                <span className="text-blue-700 font-semibold">{f.field}</span> {f.operator} <span className="text-[#F17625]">{Array.isArray(f.value) ? f.value.map((v: string) => `"${v}"`).join(', ') : `"${f.value}"`}</span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      </>
                                     )}
                                     <div className="md:col-span-1"><span className="text-[#404042]">Url</span></div>
                                     <div className="md:col-span-5 flex flex-col gap-1">
