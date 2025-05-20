@@ -75,6 +75,7 @@ export interface AdvertiserFormData {
   // GTM and Tag fields
   GTMAccountId?: string;
   GTMContainerId?: string;
+  ManualGTMPrivileges?: boolean;
   FacebookPixelId?: string;
   GoogleAdsConversionId?: string;
   BingRemarketingId?: string;

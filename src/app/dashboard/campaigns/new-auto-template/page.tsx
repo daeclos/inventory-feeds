@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Eye, Search, ChevronDown } from "lucide-react";
+import { AlertTriangle, Eye, Search, ChevronDown, Upload, Download, Trash, Plus, HelpCircle, RefreshCcw } from "lucide-react";
 import DashboardLayout from "@/components/ui/DashboardLayout";
 import clsx from "clsx";
 import React from "react";
@@ -17,6 +17,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { useNegativeKeywordStore } from "@/store/negativeKeywordStore";
+import { FilterBuilder, filterAttributes as fbAttributes } from "@/components/ui/FilterBuilder";
 
 const advertisers = [
   { id: 1, name: "Alliance Auto Group LTD", hasWebInventory: true },
@@ -30,13 +32,29 @@ const campaigns = [
   { id: 1, name: "FFG VDP Search - Used" },
   { id: 2, name: "FFG Dynamic VDP - All Other New (Ford)" },
 ];
-const negativeKeywordLists = [
-  { id: 1, name: "Brand Exclusions" },
-  { id: 2, name: "Competitor Exclusions" },
-];
+
+interface FilterConfigBase {
+  operators: string[];
+  valueType: string;
+}
+
+interface MultiSelectFilterConfig extends FilterConfigBase {
+  valueType: 'multiselect' | 'dropdown';
+  options: string[];
+}
+
+interface TextFilterConfig extends FilterConfigBase {
+  valueType: 'text';
+}
+
+interface NumberFilterConfig extends FilterConfigBase {
+  valueType: 'number';
+}
+
+type FilterConfigType = MultiSelectFilterConfig | TextFilterConfig | NumberFilterConfig;
 
 // Configuración dinámica de atributos
-const filterConfig = {
+const filterConfig: Record<string, FilterConfigType> = {
   Color: {
     operators: ["is", "is not"],
     valueType: "multiselect",
@@ -213,11 +231,11 @@ export default function NewAutoTemplatePage() {
   // Estado para búsqueda de atributos en el dropdown
   const [attributeSearch, setAttributeSearch] = useState("");
   // Estado para negative keywords dinámico
-  const [negativeKeywordLists, setNegativeKeywordLists] = useState<string[]>([]);
+  const { lists: negativeKeywordLists } = useNegativeKeywordStore();
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("negativeKeywordLists") || "[]");
-    setNegativeKeywordLists(stored);
+    setNegativeLists(stored);
   }, []);
 
   const filterFields = [
@@ -380,13 +398,20 @@ export default function NewAutoTemplatePage() {
                 </select>
                 <Label>Negative Keywords Lists Selection</Label>
                 <MultiSelect
-                  options={negativeKeywordLists.map(nk => ({ id: nk, name: nk }))}
+                  options={negativeKeywordLists.map((nk, idx) => ({ id: idx, name: nk.name }))}
                   value={negativeLists}
                   onChange={setNegativeLists}
                   placeholder="Select negative keyword lists..."
                 />
                 <div className="flex gap-2 mt-2">
-                  <Button variant="outline" type="button"><Eye className="w-4 h-4 mr-2" />Preview</Button>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Preview
+                  </Button>
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -402,6 +427,22 @@ export default function NewAutoTemplatePage() {
               </div>
             </div>
           </div>
+          {showAlert && (
+            <div className="bg-[#FFEBEE] border border-[#FFCDD2] rounded-lg p-4 mt-4">
+              <p className="text-[#D32F2F] text-sm">
+                Web Inventory Filters are not available because the selected Advertiser is not yet configured or no Advertiser is selected.
+              </p>
+            </div>
+          )}
+
+          {/* Filter Builder Section */}
+          {advertiser && (
+            <div className="bg-white border border-[#FAAE3A]/30 rounded-xl shadow p-6 mb-8">
+              <h2 className="text-lg font-semibold mb-6" style={{ color: '#404042' }}>Filter Builder</h2>
+              <FilterBuilder attributes={fbAttributes} />
+            </div>
+          )}
+
           <div className="bg-white border border-[#FAAE3A]/30 rounded-xl shadow p-6 mb-8">
             <div className="flex gap-0 border-b border-[#FAAE3A] bg-[#FFF8E1] rounded-t-xl overflow-x-auto">
               {tabList.map(tab => (
@@ -434,15 +475,22 @@ export default function NewAutoTemplatePage() {
                     </select>
                   </div>
                   <div className="md:col-span-1 flex justify-center">
-                    <Button variant="secondary" type="button" className="bg-[#1976D2] hover:bg-[#1251a3] text-white p-2 rounded-lg min-w-[40px] min-h-[40px] flex items-center justify-center shadow-none"><span className="material-icons">refresh</span></Button>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1] min-w-[40px] min-h-[40px] rounded-lg shadow-none"
+                    >
+                      <RefreshCcw className="w-5 h-5" />
+                      Refresh
+                    </Button>
                   </div>
                   <div className="md:col-span-2 text-right font-semibold text-[#404042]">Negative Keywords Lists Selection</div>
                   <div className="md:col-span-4">
                     <MultiSelect
-                      options={negativeKeywordLists.map(nk => ({ id: nk, name: nk }))}
+                      options={negativeKeywordLists.map((nk, idx) => ({ id: idx, name: nk.name }))}
                       value={negativeLists}
                       onChange={setNegativeLists}
-                      placeholder="Nothing selected"
+                      placeholder="Select negative keyword lists..."
                     />
                   </div>
                 </div>
@@ -475,15 +523,56 @@ export default function NewAutoTemplatePage() {
               <div className="bg-white border border-[#FAAE3A]/30 rounded-b-xl p-8 mt-0">
                 <div className="mb-6 text-[#FAAE3A] font-bold text-lg">Ads</div>
                 <div className="space-y-6">
+                  {/* Responsive Search Ads Accordion */}
                   <div className="border border-[#FAAE3A]/20 rounded-lg bg-[#FFF8E1]">
-                    <div className="px-4 py-2 border-b border-[#FAAE3A]/20 text-[#1976D2] font-semibold">Responsive Search Ads</div>
-                    <div className="px-4 py-4 text-[#404042]/80 text-sm">There are no Responsive Search Ads added, if you like, you can add one by clicking the plus sign.</div>
+                    <button
+                      type="button"
+                      className="w-full flex justify-between items-center px-4 py-2 border-b border-[#FAAE3A]/20 text-[#404042] font-semibold focus:outline-none"
+                      onClick={() => setAdsPanels(p => ({ ...p, responsive: !p.responsive }))}
+                    >
+                      <span>Responsive Search Ads</span>
+                      <span
+                        className={`transition-transform duration-200 ${adsPanels.responsive ? 'rotate-0' : 'rotate-180'}`}
+                        style={{ display: 'flex', alignItems: 'center' }}
+                      >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M7 10l5 5 5-5" stroke="#404042" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                    </button>
+                    {adsPanels.responsive && (
+                      <div className="px-4 py-4 text-[#404042]/80 text-sm">There are no Responsive Search Ads added, if you like, you can add one by clicking the plus sign.</div>
+                    )}
                   </div>
+                  {/* Call-Only Ads Accordion */}
                   <div className="border border-[#FAAE3A]/20 rounded-lg bg-[#FFF8E1]">
-                    <div className="px-4 py-2 border-b border-[#FAAE3A]/20 text-[#1976D2] font-semibold">Call-Only Ads</div>
-                    <div className="px-4 py-4 text-[#404042]/80 text-sm">There are no Call-Only Ads added, if you like, you can add one by clicking the plus sign.</div>
+                    <button
+                      type="button"
+                      className="w-full flex justify-between items-center px-4 py-2 border-b border-[#FAAE3A]/20 text-[#404042] font-semibold focus:outline-none"
+                      onClick={() => setAdsPanels(p => ({ ...p, callonly: !p.callonly }))}
+                    >
+                      <span>Call-Only Ads</span>
+                      <span
+                        className={`transition-transform duration-200 ${adsPanels.callonly ? 'rotate-0' : 'rotate-180'}`}
+                        style={{ display: 'flex', alignItems: 'center' }}
+                      >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M7 10l5 5 5-5" stroke="#404042" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                    </button>
+                    {adsPanels.callonly && (
+                      <div className="px-4 py-4 text-[#404042]/80 text-sm">There are no Call-Only Ads added, if you like, you can add one by clicking the plus sign.</div>
+                    )}
                   </div>
-                  <Button variant="secondary" type="button" className="bg-[#1976D2] hover:bg-[#1251a3] text-white p-2 rounded-lg min-w-[40px] min-h-[40px] flex items-center justify-center shadow-none"><span className="material-icons">add</span></Button>
+                  <Button
+                    variant="default"
+                    type="button"
+                    className="flex items-center gap-2 bg-[#faad39ff] hover:bg-[#F17625] text-[#404042ff] font-bold px-6 py-2 rounded-lg shadow-none min-w-[40px] min-h-[40px]"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Ad
+                  </Button>
                 </div>
               </div>
             )}
@@ -513,19 +602,37 @@ export default function NewAutoTemplatePage() {
                       )}
                     </tbody>
                   </table>
-                  <div className="flex gap-2 mb-2">
-                    <Button variant="secondary" className="bg-[#43A047] hover:bg-[#357a38] text-white shadow-none"><span className="material-icons">file_upload</span></Button>
-                    <Button variant="secondary" className="bg-[#1976D2] hover:bg-[#1251a3] text-white shadow-none"><span className="material-icons">file_download</span></Button>
-                    <Button variant="secondary" className="bg-[#E53935] hover:bg-[#b71c1c] text-white shadow-none" onClick={() => setShowDeleteModal(true)}><span className="material-icons">delete</span></Button>
+                  {/* Botones de archivo y eliminar */}
+                  <div className="flex gap-2 mb-4 mt-2">
+                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]">
+                      <Upload className="w-4 h-4" />
+                      Upload
+                    </Button>
+                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]">
+                      <Download className="w-4 h-4" />
+                      Download
+                    </Button>
+                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]" onClick={() => setShowDeleteModal(true)}>
+                      <Trash className="w-4 h-4" />
+                      Delete
+                    </Button>
                   </div>
-                  <div className="flex gap-2">
-                    <Input value={newKeyword} onChange={e => setNewKeyword(e.target.value)} className="bg-[#FFF8E1] border-[#FAAE3A]/40 rounded-lg" />
-                    <select className="border border-[#FAAE3A]/40 rounded-lg h-11 px-2 bg-[#FFF8E1] text-[#404042] focus:ring-2 focus:ring-[#FAAE3A]" value={newMatchType} onChange={e => setNewMatchType(e.target.value)}>
+                  {/* Input para agregar keyword */}
+                  <div className="flex flex-col sm:flex-row gap-2 items-center mt-2">
+                    <Input value={newKeyword} onChange={e => setNewKeyword(e.target.value)} className="bg-[#FFF8E1] border-[#faad39ff] rounded-lg flex-1 min-w-[180px] text-[#404042ff]" placeholder="Add keyword..." />
+                    <select className="border border-[#faad39ff] rounded-lg h-11 px-2 bg-[#FFF8E1] text-[#404042ff] focus:ring-2 focus:ring-[#faad39ff]" value={newMatchType} onChange={e => setNewMatchType(e.target.value)}>
                       <option value="Broad">Broad</option>
                       <option value="Phrase">Phrase</option>
                       <option value="Exact">Exact</option>
                     </select>
-                    <Button variant="secondary" className="bg-[#1976D2] hover:bg-[#1251a3] text-white shadow-none" onClick={handleAddKeyword}><span className="material-icons">add</span></Button>
+                    <Button
+                      variant="default"
+                      className="flex items-center gap-2 bg-[#faad39ff] hover:bg-[#F17625] text-[#404042ff] font-bold px-6 py-2 rounded-lg shadow-none"
+                      onClick={handleAddKeyword}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -557,13 +664,32 @@ export default function NewAutoTemplatePage() {
                     </tbody>
                   </table>
                   <div className="flex gap-2 mb-2">
-                    <Button variant="secondary" className="bg-[#E53935] hover:bg-[#b71c1c] text-white shadow-none"><span className="material-icons">delete</span></Button>
-                    <Button variant="secondary" className="bg-[#1976D2] hover:bg-[#1251a3] text-white shadow-none"><span className="material-icons">help_outline</span></Button>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]"
+                    >
+                      <Trash className="w-4 h-4" />
+                      Delete
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]"
+                    >
+                      <HelpCircle className="w-4 h-4" />
+                      Help
+                    </Button>
                   </div>
                   <div className="flex gap-2">
                     <Input value={newParamName} onChange={e => setNewParamName(e.target.value)} className="bg-[#FFF8E1] border-[#FAAE3A]/40 rounded-lg" />
                     <Input value={newParamValue} onChange={e => setNewParamValue(e.target.value)} className="bg-[#FFF8E1] border-[#FAAE3A]/40 rounded-lg" />
-                    <Button variant="secondary" className="bg-[#1976D2] hover:bg-[#1251a3] text-white shadow-none" onClick={handleAddCustomParam}><span className="material-icons">add</span></Button>
+                    <Button
+                      variant="default"
+                      className="flex items-center gap-2 bg-[#faad39ff] hover:bg-[#F17625] text-[#404042ff] font-bold px-6 py-2 rounded-lg shadow-none"
+                      onClick={handleAddCustomParam}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </Button>
                   </div>
                 </div>
               </div>

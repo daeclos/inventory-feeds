@@ -31,18 +31,10 @@ export function DynamicDisplayFeeds({ advertiser, onChange }: Props) {
             placeholder="GTM Container ID"
           />
         </div>
-        <div className="col-span-2 flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={!!advertiser.ManualGTMPrivileges}
-            onChange={e => onChange({ ...advertiser, ManualGTMPrivileges: e.target.checked })}
-            className="mr-2 w-5 h-5 accent-[#FAAE3A]"
-          />
-          <span>Manually granted tech-support@fountainforward.com &quot;Publish&quot; privileges to the GTM container</span>
-        </div>
-        <div className="col-span-2">
-          <label className="block font-semibold mb-1">GTM Privileges</label>
-          <span className="text-sm text-gray-700">No GTM Access! - <a href="#" className="text-blue-600 underline">Authenticate Now.</a></span>
+        <div className="col-span-2 flex items-center gap-2 mb-4 mt-2">
+          <label className="block font-semibold mb-1 mr-2">GTM Privileges</label>
+          <span className="text-sm text-gray-700 font-semibold mr-2">No GTM Access!</span>
+          <a href="#" className="text-blue-600 underline">Authenticate Now.</a>
         </div>
         <div>
           <label className="block font-semibold mb-1">Facebook Pixel ID</label>
@@ -68,16 +60,6 @@ export function DynamicDisplayFeeds({ advertiser, onChange }: Props) {
             placeholder="Bing Remarketing ID"
           />
         </div>
-      </div>
-      
-      <div className="flex items-center gap-2 mt-2">
-        <input
-          type="checkbox"
-          checked={!!advertiser.RequestScriptInstall}
-          onChange={e => onChange({ ...advertiser, RequestScriptInstall: e.target.checked })}
-          className="w-5 h-5 accent-[#FAAE3A]"
-        />
-        <span>Request New Script Installation</span>
       </div>
     </div>
   );

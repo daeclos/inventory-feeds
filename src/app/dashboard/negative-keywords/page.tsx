@@ -12,6 +12,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { useNegativeKeywordStore } from "@/store/negativeKeywordStore";
 
 interface KeywordList {
   name: string;
@@ -21,7 +22,13 @@ interface KeywordList {
 }
 
 export default function NegativeKeywordsPage() {
-  const [lists, setLists] = useState<KeywordList[]>([]);
+  const {
+    lists,
+    addList,
+    updateList,
+    deleteList,
+    setLists,
+  } = useNegativeKeywordStore();
   const [showForm, setShowForm] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [success, setSuccess] = useState<string | false>(false);
@@ -45,7 +52,7 @@ export default function NegativeKeywordsPage() {
     e.preventDefault();
     if (!newListName.trim()) return;
     const now = new Date().toLocaleString();
-    setLists([...lists, { name: newListName, createdAt: now, updatedAt: now, keywords: [] }]);
+    addList({ name: newListName, createdAt: now, updatedAt: now, keywords: [] });
     setShowForm(false);
     setNewListName("");
     setSuccess("created");
@@ -62,11 +69,7 @@ export default function NegativeKeywordsPage() {
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editIdx === null) return;
-    setLists(lists.map((l, i) =>
-      i === editIdx
-        ? { ...l, name: editName, keywords: editKeywords, updatedAt: new Date().toLocaleString() }
-        : l
-    ));
+    updateList(editIdx, { name: editName, createdAt: lists[editIdx].createdAt, updatedAt: new Date().toLocaleString(), keywords: editKeywords });
     setEditIdx(null);
     setSuccess("edited");
   };
@@ -91,10 +94,7 @@ export default function NegativeKeywordsPage() {
     while (lists.some(l => l.name === copyName)) {
       copyName = `${base.name} (Copy ${n++})`;
     }
-    setLists([
-      ...lists,
-      { ...base, name: copyName, createdAt: now, updatedAt: now },
-    ]);
+    addList({ ...base, name: copyName, createdAt: now, updatedAt: now });
     setSuccess("cloned");
   };
 
@@ -118,7 +118,7 @@ export default function NegativeKeywordsPage() {
   const handleDelete = (idx: number) => setShowDeleteIdx(idx);
   const confirmDelete = () => {
     if (showDeleteIdx === null) return;
-    setLists(lists.filter((_, i) => i !== showDeleteIdx));
+    deleteList(showDeleteIdx);
     setShowDeleteIdx(null);
     setSuccess("deleted");
   };
@@ -130,7 +130,7 @@ export default function NegativeKeywordsPage() {
 
   const confirmDeleteFromEdit = () => {
     if (editIdx === null) return;
-    setLists(lists.filter((_, i) => i !== editIdx));
+    deleteList(editIdx);
     setEditIdx(null);
     setShowDeleteInEdit(false);
     setSuccess("deleted");

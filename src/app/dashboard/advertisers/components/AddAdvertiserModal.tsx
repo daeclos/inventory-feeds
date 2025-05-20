@@ -134,6 +134,21 @@ export default function AddAdvertiserModal({
       FeatureVideoDate: localData.FeatureVideoDate || '',
       FeatureSearch: !!localData.FeatureSearch,
       FeatureSearchDate: localData.FeatureSearchDate || '',
+      // Dynamic Display Feeds fields
+      GTMAccountId: localData.GTMAccountId || '',
+      GTMContainerId: localData.GTMContainerId || '',
+      ManualGTMPrivileges: !!localData.ManualGTMPrivileges,
+      FacebookPixelId: localData.FacebookPixelId || '',
+      GoogleAdsConversionId: localData.GoogleAdsConversionId || '',
+      BingRemarketingId: localData.BingRemarketingId || '',
+      RequestScriptInstall: !!localData.RequestScriptInstall,
+      // Google Ads Integration fields
+      GoogleAdsCustomerId: localData.GoogleAdsCustomerId || '',
+      GoogleAdsCustomerId2: localData.GoogleAdsCustomerId2 || '',
+      AdCustomizersEnabled: !!localData.AdCustomizersEnabled,
+      AdCustomizersDeactivationDate: localData.AdCustomizersDeactivationDate || '',
+      // Special Requests fields
+      AdditionalNotes: localData.AdditionalNotes || '',
     };
     addAdvertiser(newAdv);
     setAdvertiserData({});
