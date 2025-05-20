@@ -45,6 +45,7 @@ export interface Advertiser {
   GoogleAdsCustomerId2?: string;
   AdCustomizersEnabled?: boolean;
   AdCustomizersDeactivationDate?: string;
+  hasWebInventory: boolean;
 }
 
 export interface AdvertiserFormData {

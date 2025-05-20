@@ -12,37 +12,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-
-// Ejemplo de datos dinámicos
-const templates = [
-  {
-    advertiser: "Alliance Auto Group LTD",
-    templateName: "VDP All Used",
-    account: "550-054-4980",
-    library: "AUTO",
-    campaignName: "FFG VDP Search - Used",
-    maxCPC: "$2.00",
-    filter: "",
-    hasAlert: false,
-  },
-  {
-    advertiser: "Am Ford",
-    templateName: "VDP All New",
-    account: "170-908-1293",
-    library: "AUTO",
-    campaignName: "FFG Dynamic VDP - All Other New (Ford)",
-    maxCPC: "$1.80",
-    filter: "",
-    hasAlert: true,
-  },
-  // ... más datos
-];
+import { useCampaignTemplateStore } from '@/store/campaignTemplateStore';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useAdvertiserStore } from '@/store/advertiserStore';
 
 export default function CampaignsPage() {
   const [activeOnly, setActiveOnly] = useState(true);
+  const templates = useCampaignTemplateStore(state => state.templates);
+  const searchParams = useSearchParams();
+  const advertiserParam = searchParams.get('advertiser');
+  const router = useRouter();
+  const advertisers = useAdvertiserStore(state => state.advertisers);
+  const deleteTemplate = useCampaignTemplateStore(state => state.deleteTemplate);
+
+  const googleAdsCustomers = [
+    { id: 1, name: "550-054-4980" },
+    { id: 2, name: "170-908-1293" },
+  ];
 
   // Handlers para menús
   const handleAutoTemplates = (action: string) => {
@@ -71,7 +60,7 @@ export default function CampaignsPage() {
     alert(`Exportar a ${type}`);
   };
   const handleEdit = (row: any) => {
-    alert(`Editar: ${row.templateName}`);
+    router.push(`/dashboard/campaigns/edit-auto-template?id=${row.id}`);
   };
   const handleAlert = (row: any) => {
     alert(`Ver alertas de: ${row.templateName}`);
@@ -80,11 +69,17 @@ export default function CampaignsPage() {
     alert(`Clonar: ${row.templateName}`);
   };
   const handleDelete = (row: any) => {
-    alert(`Eliminar: ${row.templateName}`);
+    if (window.confirm(`Are you sure you want to delete the template "${row.templateName}"?`)) {
+      deleteTemplate(row.id);
+    }
   };
 
   // Filtrado por activo (simulado)
-  const filteredTemplates = activeOnly ? templates.filter(() => true) : templates;
+  let filteredTemplates = activeOnly ? templates.filter(() => true) : templates;
+  if (advertiserParam) {
+    filteredTemplates = filteredTemplates.filter(t => t.advertiser === advertiserParam);
+  }
+  const allTemplates = [...filteredTemplates];
 
   return (
     <DashboardLayout>
@@ -144,6 +139,7 @@ export default function CampaignsPage() {
             <table className="min-w-full table-auto text-sm rounded-xl overflow-hidden">
               <thead className="bg-muted text-foreground border-b border-border">
                 <tr>
+                  <th className="px-4 py-2 text-left font-semibold">Status</th>
                   <th className="px-4 py-2 text-left font-semibold">Advertiser Name</th>
                   <th className="px-4 py-2 text-left font-semibold">Template Name</th>
                   <th className="px-4 py-2 text-left font-semibold">Associated Account</th>
@@ -155,26 +151,36 @@ export default function CampaignsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTemplates.map((row, idx) => (
-                  <tr key={idx} className="border-b border-border hover:bg-muted/60">
-                    <td className="px-4 py-2 flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-primary inline-block" />
-                      {row.advertiser}
-                    </td>
-                    <td className="px-4 py-2">{row.templateName}</td>
-                    <td className="px-4 py-2">{row.account}</td>
-                    <td className="px-4 py-2">{row.library}</td>
-                    <td className="px-4 py-2">{row.campaignName}</td>
-                    <td className="px-4 py-2">{row.maxCPC}</td>
-                    <td className="px-4 py-2">{row.filter || <span className="text-muted-foreground">&darr;</span>}</td>
-                    <td className="px-4 py-2 flex gap-2">
-                      <button title="Edit" onClick={() => handleEdit(row)} className="text-primary hover:text-primary-foreground"><Edit size={18} /></button>
-                      <button title="Alert" onClick={() => handleAlert(row)} className={row.hasAlert ? "text-destructive" : "text-muted-foreground"}><AlertTriangle size={18} /></button>
-                      <button title="Copy" onClick={() => handleCopy(row)} className="text-primary hover:text-primary-foreground"><Copy size={18} /></button>
-                      <button title="Delete" onClick={() => handleDelete(row)} className="text-primary hover:text-destructive"><Trash size={18} /></button>
-                    </td>
-                  </tr>
-                ))}
+                {allTemplates.map((row, idx) => {
+                  const adv = advertisers.find(a => a.name === row.advertiser);
+                  return (
+                    <tr key={idx} className="border-b border-border hover:bg-muted/60">
+                      <td className="px-4 py-2">
+                        <span className={adv?.status ? 'text-green-600 font-semibold' : 'text-gray-500 font-semibold'}>
+                          {adv?.status ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">{row.advertiser}</td>
+                      <td className="px-4 py-2">{row.templateName}</td>
+                      <td className="px-4 py-2">{
+                        (() => {
+                          const customer = googleAdsCustomers.find(c => String(c.id) === String(row.googleCustomer));
+                          return customer ? customer.name : row.googleCustomer;
+                        })()
+                      }</td>
+                      <td className="px-4 py-2">{row.library}</td>
+                      <td className="px-4 py-2">{row.campaignName}</td>
+                      <td className="px-4 py-2">{row.maxCPC}</td>
+                      <td className="px-4 py-2">{row.filter || <span className="text-muted-foreground">&darr;</span>}</td>
+                      <td className="px-4 py-2 flex gap-2">
+                        <button title="Edit" onClick={() => handleEdit(row)} className="text-primary hover:text-primary-foreground"><Edit size={18} /></button>
+                        <button title="Alert" onClick={() => handleAlert(row)} className={row.hasAlert ? "text-destructive" : "text-muted-foreground"}><AlertTriangle size={18} /></button>
+                        <button title="Copy" onClick={() => handleCopy(row)} className="text-primary hover:text-primary-foreground"><Copy size={18} /></button>
+                        <button title="Delete" onClick={() => handleDelete(row)} className="text-primary hover:text-destructive"><Trash size={18} /></button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

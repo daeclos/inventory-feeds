@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableHead, TableRow, TableCell, TableBody } from "@/components/ui/table";
 import { Edit2, Copy, Search, FileText, Trash2, Download } from "lucide-react";
 import React, { useState, useEffect } from "react";
-import { useAdvertiserStore } from "@/app/dashboard/advertisers/store";
+import { useAdvertiserStore } from '@/store/advertiserStore';
 import { useRouter } from "next/navigation";
 import { AdvertiserFeedsAccordion } from "./components/AdvertiserFeedsAccordion";
 import { Sidebar } from "@/components/ui/Sidebar";

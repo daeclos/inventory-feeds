@@ -10,7 +10,7 @@ import { AdvertiserFormData } from "@/types/advertiser";
 import { Advertiser } from "@/types/advertiser";
 
 import DashboardLayout from "@/components/ui/DashboardLayout";
-import { useAdvertiserStore } from './store';
+import { useAdvertiserStore } from '@/store/advertiserStore';
 import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
 

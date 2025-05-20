@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Info, Plus, Minus, Copy, Trash2, HelpCircle } from "lucide-react";
-import { useAdvertiserStore } from "@/app/dashboard/advertisers/store";
+import { useAdvertiserStore } from "@/store/advertiserStore";
 import DashboardLayout from "@/components/ui/DashboardLayout";
 import { FilterBuilder, filterAttributes } from "@/components/ui/FilterBuilder";
 import React from "react";
@@ -230,7 +230,13 @@ export default function EditFeedPage() {
               <div className="md:col-span-9">
                 <Input value={form.format} readOnly className="w-full bg-gray-100" />
               </div>
-              <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Advertiser</label>
+              <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Status</label>
+              <div className="md:col-span-9">
+                <span className={advertiser?.status ? 'text-green-600 font-semibold' : 'text-gray-500 font-semibold'}>
+                  {advertiser?.status ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Advertiser Name</label>
               <div className="md:col-span-9">
                 <Input value={advertiserName} readOnly className="w-full bg-gray-100" />
               </div>

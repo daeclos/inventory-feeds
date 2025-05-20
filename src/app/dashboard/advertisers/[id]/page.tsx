@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useAdvertiserStore } from "../store";
+import { useAdvertiserStore } from '@/store/advertiserStore';
 import { STEPS } from "@/constants/steps";
 import { CORPORATE_COLORS } from "@/constants/colors";
 import { AdvertiserDetails } from "./components/AdvertiserDetails";

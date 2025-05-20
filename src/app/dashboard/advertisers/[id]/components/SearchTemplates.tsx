@@ -4,7 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Download, Search as SearchIcon, Grid, Copy, Trash2, AlertTriangle, Edit2, FileText } from "lucide-react";
-import { useAdvertiserStore } from "../../store";
+import { useAdvertiserStore } from '@/store/advertiserStore';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import type { Advertiser } from "@/types/advertiser";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";

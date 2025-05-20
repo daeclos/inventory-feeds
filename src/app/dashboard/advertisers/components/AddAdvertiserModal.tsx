@@ -12,7 +12,7 @@ import { AdvertiserFormData } from "@/types/advertiser";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { v4 as uuidv4 } from "uuid";
-import { useAdvertiserStore } from '../store';
+import { useAdvertiserStore } from '@/store/advertiserStore';
 import { DynamicDisplayFeeds } from "../[id]/components/DynamicDisplayFeeds";
 
 interface Props {
@@ -128,6 +128,7 @@ export default function AddAdvertiserModal({
       gmb: localData.GMB || '',
       placeId: localData.GooglePlaceId || '',
       responsible: localData.Responsible || '',
+      deactivationDate: undefined,
       FeatureDisplay: !!localData.FeatureDisplay,
       FeatureDisplayDate: localData.FeatureDisplayDate || '',
       FeatureVideo: !!localData.FeatureVideo,
@@ -149,6 +150,7 @@ export default function AddAdvertiserModal({
       AdCustomizersDeactivationDate: localData.AdCustomizersDeactivationDate || '',
       // Special Requests fields
       AdditionalNotes: localData.AdditionalNotes || '',
+      hasWebInventory: false,
     };
     addAdvertiser(newAdv);
     setAdvertiserData({});

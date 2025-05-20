@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -19,11 +19,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useNegativeKeywordStore } from "@/store/negativeKeywordStore";
 import { FilterBuilder, filterAttributes as fbAttributes } from "@/components/ui/FilterBuilder";
+import { useAdvertiserStore } from '@/store/advertiserStore';
+import { useCampaignTemplateStore } from '@/store/campaignTemplateStore';
+import { v4 as uuidv4 } from 'uuid';
 
-const advertisers = [
-  { id: 1, name: "Alliance Auto Group LTD", hasWebInventory: true },
-  { id: 2, name: "Am Ford", hasWebInventory: false },
-];
 const googleAdsCustomers = [
   { id: 1, name: "550-054-4980" },
   { id: 2, name: "170-908-1293" },
@@ -284,11 +283,38 @@ export default function NewAutoTemplatePage() {
   const [adTypeDropdownPos, setAdTypeDropdownPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
   const [callOnlyAds, setCallOnlyAds] = useState<CallOnlyAd[]>([]);
   const [showCallOnlyAlt, setShowCallOnlyAlt] = useState(false);
+  const advertisers = useAdvertiserStore(state => state.advertisers);
+  const addTemplate = useCampaignTemplateStore(state => state.addTemplate);
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
+  const templates = useCampaignTemplateStore(state => state.templates);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("negativeKeywordLists") || "[]");
     setNegativeLists(stored);
   }, []);
+
+  useEffect(() => {
+    if (id) {
+      const template = templates.find(t => t.id === id);
+      if (template) {
+        setTemplateName(template.templateName || '');
+        setAdvertiser(template.advertiser || '');
+        setGoogleCustomer(template.googleCustomer || '');
+        setAdGroupName(template.adGroupName || '');
+        setMaxCpcBid(template.maxCpcBid || '');
+        setSetMaxCpcOnCreate(!!template.setMaxCpcOnCreate);
+        setFinalUrl(template.finalUrl || '');
+        setResponsiveAds(template.responsiveAds || []);
+        setCallOnlyAds(template.callOnlyAds || []);
+        setKeywords(template.keywords || []);
+        setActive(template.campaignStatus === 'Active');
+        setAuthorized(!!template.authorize);
+        setCampaign(template.campaignName || '');
+        // ...agrega aquí otros campos si es necesario
+      }
+    }
+  }, [id, templates]);
 
   const filterFields = [
     { value: "make", label: "Make" },
@@ -631,6 +657,51 @@ export default function NewAutoTemplatePage() {
     }));
   }
 
+  const handleSave = () => {
+    const newTemplate = {
+      id: uuidv4(),
+      templateName,
+      advertiser,
+      googleCustomer,
+      includeLocation: true,
+      location: '',
+      library: '',
+      date: '',
+      makeFilter: [],
+      yearStart: '',
+      yearEnd: '',
+      authorize: authorized,
+      campaignName: campaign,
+      campaignStatus: active ? 'Active' : 'Paused',
+      budget: '',
+      networks: '',
+      enhancedCpc: '',
+      mobileBidModifier: '',
+      adRotation: '',
+      negativeKeywords: [],
+      adGroupName,
+      adGroupStatus: '',
+      finalUrl,
+      maxCpcBid,
+      setMaxCpcOnCreate,
+      responsiveAds,
+      callOnlyAds,
+      keywords,
+      createdAt: new Date().toISOString(),
+      account: '',
+      maxCPC: '',
+      filter: '',
+      hasAlert: false,
+    };
+    addTemplate(newTemplate);
+    router.push(`/dashboard/campaigns?advertiser=${encodeURIComponent(advertiser)}`);
+  };
+
+  const handleSaveAndApply = () => {
+    handleSave();
+    // Aquí puedes agregar lógica adicional si lo necesitas
+  };
+
   return (
     <DashboardLayout>
       <div className="w-full flex justify-center bg-background min-h-[calc(100vh-64px)]">
@@ -645,9 +716,11 @@ export default function NewAutoTemplatePage() {
                 <Label>Template Name</Label>
                 <Input value={templateName} onChange={e => setTemplateName(e.target.value)} placeholder="Internal name" />
                 <Label>Advertiser</Label>
-                <select className="w-full border rounded h-10 px-2" value={advertiser} onChange={handleAdvertiserChange}>
+                <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={advertiser} onChange={handleAdvertiserChange}>
                   <option value="">Select advertiser</option>
-                  {advertisers.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  {advertisers.map(a => (
+                    <option key={a.id} value={a.name}>{a.name}</option>
+                  ))}
                 </select>
                 <Label>Google Ads Customer</Label>
                 <select className="w-full border rounded h-10 px-2" value={googleCustomer} onChange={e => setGoogleCustomer(e.target.value)}>
@@ -665,7 +738,16 @@ export default function NewAutoTemplatePage() {
                   <Label htmlFor="emailNotifications">Enable email notifications</Label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Switch checked={active} onCheckedChange={setActive} />
+                  <Switch
+                    checked={advertiser ? (advertisers.find(a => a.name === advertiser)?.status ?? false) : false}
+                    onCheckedChange={checked => {
+                      if (!advertiser) return;
+                      const adv = advertisers.find(a => a.name === advertiser);
+                      if (adv && adv.id) {
+                        useAdvertiserStore.getState().updateAdvertiserStatus(adv.id, checked);
+                      }
+                    }}
+                  />
                   <Label>Active</Label>
                 </div>
                 <div className="flex items-center gap-2">
@@ -678,41 +760,34 @@ export default function NewAutoTemplatePage() {
                     You must select a configured advertiser to access inventory filters.
                   </div>
                 )}
-              </div>
-              <div className="flex flex-col gap-4">
-                <Label>Campaign</Label>
-                <select className="w-full border rounded h-10 px-2" value={campaign} onChange={e => setCampaign(e.target.value)}>
-                  <option value="">Select campaign</option>
-                  {campaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-                <Label>Negative Keywords Lists Selection</Label>
-                <MultiSelect
-                  options={negativeKeywordLists.map((nk, idx) => ({ id: idx, name: nk.name }))}
-                  value={negativeLists}
-                  onChange={setNegativeLists}
-                  placeholder="Select negative keyword lists..."
-                />
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Preview
-                  </Button>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="authorized"
-                      checked={authorized}
-                      onChange={e => setAuthorized(e.target.checked)}
-                      className="accent-[#FAAE3A] w-4 h-4 rounded"
-                    />
-                    <Label htmlFor="authorized">
-                    I authorize Hoot support to revise Final URLs in ads within "Eligible Campaigns" in the event where clearly incorrect URLs are misspending the campaign budget</Label>
+                <div className="flex flex-col gap-4">
+                  {/* Elimina solo Campaign y Negative Keywords Lists Selection aquí */}
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      type="button"
+                      className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Preview
+                    </Button>
+                    <div className="flex items-start gap-2 w-full">
+                      <input
+                        type="checkbox"
+                        id="authorized"
+                        checked={authorized}
+                        onChange={e => setAuthorized(e.target.checked)}
+                        className="accent-[#FAAE3A] w-4 h-4 rounded mt-1"
+                      />
+                      <Label htmlFor="authorized" className="block w-full text-wrap">
+                        I authorize Hoot support to revise Final URLs in ads within "Eligible Campaigns" in the event where clearly incorrect URLs are misspending the campaign budget
+                      </Label>
+                    </div>
                   </div>
                 </div>
+              </div>
+              <div className="flex flex-col gap-4">
+                {/* Elimina Campaign, Negative Keywords Lists Selection y Preview aquí */}
               </div>
             </div>
           </div>
@@ -1403,8 +1478,8 @@ export default function NewAutoTemplatePage() {
           )}
           <div className="flex gap-4 justify-end">
             <Button variant="outline" type="button" onClick={() => router.back()}>Cancel</Button>
-            <Button variant="secondary" type="button">Save</Button>
-            <Button type="submit">Save and Apply</Button>
+            <Button variant="secondary" type="button" onClick={handleSave}>Save</Button>
+            <Button type="button" onClick={handleSaveAndApply}>Save and Apply</Button>
           </div>
         </div>
       </div>
