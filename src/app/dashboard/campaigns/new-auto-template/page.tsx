@@ -186,6 +186,43 @@ const filterConfig: Record<string, FilterConfigType> = {
   }
 } as const;
 
+const adGroupPlaceholders = [
+  "advertiser_website",
+  "advertiser_dba",
+  "advertiser_city",
+  "advertiser_state",
+  "Make_alt",
+  "Model_alt",
+  "Trim_alt",
+];
+
+// Definir el tipo para un Responsive Search Ad
+interface ResponsiveAd {
+  headlines: string[];
+  headlinesAlt: string[];
+  descriptions: string[];
+  descriptionsAlt: string[];
+  paths: string[];
+  pathsAlt: string[];
+}
+
+// Definir el tipo para un Call-Only Ad
+interface CallOnlyAd {
+  businessName: string;
+  phoneNumber: string;
+  countryCode: string;
+  headlines: string[];
+  headlinesAlt: string[];
+  descriptions: string[];
+  descriptionsAlt: string[];
+  paths: string[];
+  pathsAlt: string[];
+  verificationUrl: string;
+  callTracking: boolean;
+  showFinalUrl: boolean;
+  conversionAction: string;
+}
+
 export default function NewAutoTemplatePage() {
   const router = useRouter();
   const [templateName, setTemplateName] = useState("");
@@ -203,6 +240,9 @@ export default function NewAutoTemplatePage() {
   const [maxCpcBid, setMaxCpcBid] = useState("0.01");
   const [setMaxCpcOnCreate, setSetMaxCpcOnCreate] = useState(false);
   const [finalUrl, setFinalUrl] = useState("");
+  const [showFinalUrlDropdown, setShowFinalUrlDropdown] = useState(false);
+  const [finalUrlDropdownPos, setFinalUrlDropdownPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
+  const finalUrlInputRef = useRef<HTMLInputElement | null>(null);
   const [showPlaceholders, setShowPlaceholders] = useState(false);
   // Estado para tabs
   const [activeTab, setActiveTab] = useState("campaign");
@@ -232,6 +272,18 @@ export default function NewAutoTemplatePage() {
   const [attributeSearch, setAttributeSearch] = useState("");
   // Estado para negative keywords dinámico
   const { lists: negativeKeywordLists } = useNegativeKeywordStore();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [showPlaceholderDropdown, setShowPlaceholderDropdown] = useState(false);
+  const [placeholderDropdownPos, setPlaceholderDropdownPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
+  const adGroupInputRef = useRef<HTMLInputElement | null>(null);
+  // Estado para Responsive Search Ads
+  const [responsiveAds, setResponsiveAds] = useState<ResponsiveAd[]>([]);
+  const [showResponsiveAlt, setShowResponsiveAlt] = useState(false);
+  const [showAdTypeDropdown, setShowAdTypeDropdown] = useState(false);
+  const adTypeBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [adTypeDropdownPos, setAdTypeDropdownPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
+  const [callOnlyAds, setCallOnlyAds] = useState<CallOnlyAd[]>([]);
+  const [showCallOnlyAlt, setShowCallOnlyAlt] = useState(false);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("negativeKeywordLists") || "[]");
@@ -285,6 +337,41 @@ export default function NewAutoTemplatePage() {
     else setSelectedKeywords(selectedKeywords.filter(i => i !== idx));
   }
 
+  function handleDeleteKeywords() {
+    setKeywords(keywords.filter((_, idx) => !selectedKeywords.includes(idx)));
+    setSelectedKeywords([]);
+  }
+
+  function handleUploadKeywords(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const newKws = lines.map(line => {
+        const [keyword, matchType] = line.split(",");
+        return { keyword: keyword || "", matchType: matchType || "Broad" };
+      });
+      setKeywords(prev => [...prev, ...newKws]);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
+  function handleDownloadKeywords() {
+    const csv = keywords.map(kw => `${kw.keyword},${kw.matchType}`).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "keywords.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   function handleAddCustomParam() {
     if (!newParamName.trim() || !newParamValue.trim()) {
       setShowCustomError(true);
@@ -298,6 +385,11 @@ export default function NewAutoTemplatePage() {
   function handleSelectParam(idx: number, checked: boolean) {
     if (checked) setSelectedParams([...selectedParams, idx]);
     else setSelectedParams(selectedParams.filter(i => i !== idx));
+  }
+
+  function handleDeleteParams() {
+    setCustomParams(customParams.filter((_, idx) => !selectedParams.includes(idx)));
+    setSelectedParams([]);
   }
 
   function addFilterGroup() {
@@ -341,6 +433,203 @@ export default function NewAutoTemplatePage() {
     { key: "keywords", label: "Keywords" },
     { key: "adext", label: "Ad Group Custom Parameters" },
   ];
+
+  function handleAdGroupNameChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setAdGroupName(e.target.value);
+  }
+
+  function handleAdGroupNameKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "[") {
+      // Mostrar dropdown en la posición del cursor
+      const input = adGroupInputRef.current;
+      if (input) {
+        const rect = input.getBoundingClientRect();
+        setPlaceholderDropdownPos({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width,
+        });
+      }
+      setShowPlaceholderDropdown(true);
+    }
+  }
+
+  function handleSelectPlaceholder(placeholder: string) {
+    const input = adGroupInputRef.current;
+    if (!input) return;
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const before = adGroupName.slice(0, start);
+    const after = adGroupName.slice(end);
+    const insert = `[${placeholder}]`;
+    const newValue = before + insert + after;
+    setAdGroupName(newValue);
+    setShowPlaceholderDropdown(false);
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(before.length + insert.length, before.length + insert.length);
+    }, 0);
+  }
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (showPlaceholderDropdown && adGroupInputRef.current && !adGroupInputRef.current.contains(e.target as Node)) {
+        setShowPlaceholderDropdown(false);
+      }
+    }
+    if (showPlaceholderDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showPlaceholderDropdown]);
+
+  function handleFinalUrlChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setFinalUrl(e.target.value);
+  }
+
+  function handleFinalUrlKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "[") {
+      const input = finalUrlInputRef.current;
+      if (input) {
+        const rect = input.getBoundingClientRect();
+        setFinalUrlDropdownPos({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width,
+        });
+      }
+      setShowFinalUrlDropdown(true);
+    }
+  }
+
+  function handleSelectFinalUrlPlaceholder(placeholder: string) {
+    const input = finalUrlInputRef.current;
+    if (!input) return;
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const before = finalUrl.slice(0, start);
+    const after = finalUrl.slice(end);
+    const insert = `[${placeholder}]`;
+    const newValue = before + insert + after;
+    setFinalUrl(newValue);
+    setShowFinalUrlDropdown(false);
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(before.length + insert.length, before.length + insert.length);
+    }, 0);
+  }
+
+  useEffect(() => {
+    function handleClickOutsideFinalUrl(e: MouseEvent) {
+      if (showFinalUrlDropdown && finalUrlInputRef.current && !finalUrlInputRef.current.contains(e.target as Node)) {
+        setShowFinalUrlDropdown(false);
+      }
+    }
+    if (showFinalUrlDropdown) {
+      document.addEventListener("mousedown", handleClickOutsideFinalUrl);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutsideFinalUrl);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutsideFinalUrl);
+  }, [showFinalUrlDropdown]);
+
+  function handleAddResponsiveAd() {
+    setResponsiveAds([
+      ...responsiveAds,
+      {
+        headlines: ["", "", ""],
+        headlinesAlt: ["", "", ""],
+        descriptions: ["", ""],
+        descriptionsAlt: ["", ""],
+        paths: ["", ""],
+        pathsAlt: ["", ""],
+      },
+    ]);
+    setShowAdTypeDropdown(false);
+  }
+  function handleRemoveResponsiveAd(idx: number) {
+    setResponsiveAds(responsiveAds.filter((_, i) => i !== idx));
+  }
+  function handleResponsiveArrayFieldChange(idx: number, field: keyof ResponsiveAd, arrIdx: number, value: string) {
+    setResponsiveAds(responsiveAds.map((ad, i) =>
+      i === idx ? { ...ad, [field]: ad[field].map((v, j) => j === arrIdx ? value : v) } : ad
+    ));
+  }
+  function handleAddArrayField(idx: number, field: keyof ResponsiveAd, max: number) {
+    setResponsiveAds(responsiveAds.map((ad, i) =>
+      i === idx && ad[field].length < max ? { ...ad, [field]: [...ad[field], ""] } : ad
+    ));
+  }
+  function handleRemoveArrayField(idx: number, field: keyof ResponsiveAd, min: number) {
+    setResponsiveAds(responsiveAds.map((ad, i) =>
+      i === idx && ad[field].length > min ? { ...ad, [field]: ad[field].slice(0, -1) } : ad
+    ));
+  }
+
+  function handleAddCallOnlyAd() {
+    setCallOnlyAds([
+      ...callOnlyAds,
+      {
+        businessName: "",
+        phoneNumber: "",
+        countryCode: "USA - US",
+        headlines: ["", ""],
+        headlinesAlt: ["", ""],
+        descriptions: ["", ""],
+        descriptionsAlt: ["", ""],
+        paths: ["", ""],
+        pathsAlt: ["", ""],
+        verificationUrl: "",
+        callTracking: false,
+        showFinalUrl: false,
+        conversionAction: ""
+      }
+    ]);
+    setShowAdTypeDropdown(false);
+  }
+  function handleRemoveCallOnlyAd(idx: number) {
+    setCallOnlyAds(callOnlyAds.filter((_, i) => i !== idx));
+  }
+  function handleCallOnlyFieldChange(idx: number, field: keyof CallOnlyAd, value: any) {
+    setCallOnlyAds(callOnlyAds.map((ad, i) => i === idx ? { ...ad, [field]: value } : ad));
+  }
+  function handleCallOnlyArrayFieldChange(idx: number, field: keyof CallOnlyAd, arrIdx: number, value: string) {
+    setCallOnlyAds(callOnlyAds.map((ad, i) => {
+      if (i !== idx) return ad;
+      // Solo operar sobre campos que son string[]
+      if (Array.isArray(ad[field])) {
+        const arr = ad[field] as string[];
+        return { ...ad, [field]: arr.map((v, j) => j === arrIdx ? value : v) };
+      }
+      return ad;
+    }));
+  }
+  function handleAddCallOnlyArrayField(idx: number, field: keyof CallOnlyAd, max: number) {
+    setCallOnlyAds(callOnlyAds.map((ad, i) => {
+      if (i !== idx) return ad;
+      if (Array.isArray(ad[field])) {
+        const arr = ad[field] as string[];
+        if (arr.length < max) {
+          return { ...ad, [field]: [...arr, ""] };
+        }
+      }
+      return ad;
+    }));
+  }
+  function handleRemoveCallOnlyArrayField(idx: number, field: keyof CallOnlyAd, min: number) {
+    setCallOnlyAds(callOnlyAds.map((ad, i) => {
+      if (i !== idx) return ad;
+      if (Array.isArray(ad[field])) {
+        const arr = ad[field] as string[];
+        if (arr.length > min) {
+          return { ...ad, [field]: arr.slice(0, -1) };
+        }
+      }
+      return ad;
+    }));
+  }
 
   return (
     <DashboardLayout>
@@ -506,16 +795,84 @@ export default function NewAutoTemplatePage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-6 items-center">
                   <div className="md:col-span-2 text-right font-semibold text-[#404042]">Ad Group Name</div>
-                  <div className="md:col-span-4"><Input value={adGroupName} onChange={e => setAdGroupName(e.target.value)} className="bg-[#FFF8E1] border-[#FAAE3A]/40 rounded-lg" /></div>
+                  <div className="md:col-span-4">
+                    <input
+                      value={adGroupName}
+                      onChange={handleAdGroupNameChange}
+                      onKeyDown={handleAdGroupNameKeyDown}
+                      ref={adGroupInputRef}
+                      className="bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-[#faad39ff] focus:outline-none text-[#404042]"
+                      placeholder="Ad Group Name"
+                    />
+                    {showPlaceholderDropdown && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: placeholderDropdownPos.top,
+                          left: placeholderDropdownPos.left,
+                          width: placeholderDropdownPos.width,
+                          zIndex: 1000,
+                          background: "white",
+                          border: "1px solid #faad39ff",
+                          borderRadius: 8,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                          padding: 4,
+                        }}
+                      >
+                        {adGroupPlaceholders.map(ph => (
+                          <div
+                            key={ph}
+                            className="px-4 py-2 cursor-pointer hover:bg-[#FFF3D1] text-[#404042]"
+                            onMouseDown={e => { e.preventDefault(); handleSelectPlaceholder(ph); }}
+                          >
+                            {ph}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <div className="md:col-span-2 text-right font-semibold text-[#404042]">Max CPC Bid</div>
                   <div className="md:col-span-4"><Input value={maxCpcBid} disabled className="bg-[#F5F5F5] border-[#FAAE3A]/40 rounded-lg text-[#404042]/60" /></div>
                   <div className="md:col-span-2 text-right font-semibold text-[#404042]">Set Max CPC Bid only on creation</div>
                   <div className="md:col-span-4"><Switch checked={setMaxCpcOnCreate} onCheckedChange={setSetMaxCpcOnCreate} /></div>
                   <div className="md:col-span-2 text-right font-semibold text-[#404042]">Final URL</div>
                   <div className="md:col-span-4 flex items-center gap-2">
-                    <Input value={finalUrl} onChange={e => setFinalUrl(e.target.value)} className="bg-[#FFF8E1] border-[#FAAE3A]/40 rounded-lg" />
+                    <input
+                      value={finalUrl}
+                      onChange={handleFinalUrlChange}
+                      onKeyDown={handleFinalUrlKeyDown}
+                      ref={finalUrlInputRef}
+                      className="bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-[#faad39ff] focus:outline-none text-[#404042]"
+                      placeholder="Final URL"
+                    />
                     <span className="material-icons text-[#1976D2] cursor-pointer" title="Help">help_outline</span>
                   </div>
+                  {showFinalUrlDropdown && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: finalUrlDropdownPos.top,
+                        left: finalUrlDropdownPos.left,
+                        width: finalUrlDropdownPos.width,
+                        zIndex: 1000,
+                        background: "white",
+                        border: "1px solid #faad39ff",
+                        borderRadius: 8,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                        padding: 4,
+                      }}
+                    >
+                      {adGroupPlaceholders.map(ph => (
+                        <div
+                          key={ph}
+                          className="px-4 py-2 cursor-pointer hover:bg-[#FFF3D1] text-[#404042]"
+                          onMouseDown={e => { e.preventDefault(); handleSelectFinalUrlPlaceholder(ph); }}
+                        >
+                          {ph}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -541,11 +898,134 @@ export default function NewAutoTemplatePage() {
                       </span>
                     </button>
                     {adsPanels.responsive && (
-                      <div className="px-4 py-4 text-[#404042]/80 text-sm">There are no Responsive Search Ads added, if you like, you can add one by clicking the plus sign.</div>
+                      <div className="p-4">
+                        {responsiveAds.length === 0 ? (
+                          <div className="text-[#404042]/80 text-sm mb-4">
+                            There are no Responsive Search Ads added, if you like, you can add one by clicking the plus sign.
+                          </div>
+                        ) : null}
+                        {responsiveAds.map((ad, idx) => (
+                          <div key={idx} className="border border-[#faad39ff] rounded-xl p-8 bg-[#FFF8E1] mb-8 shadow-sm">
+                            <div className="flex items-center gap-4 mb-6">
+                              <span className="font-bold text-[#404042] text-lg">Responsive Search Ads</span>
+                              <Button variant="destructive" className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-semibold rounded-lg px-6 py-2" onClick={() => handleRemoveResponsiveAd(idx)}>Delete Ad</Button>
+                              <Button
+                                variant="outline"
+                                className="ml-auto border border-[#404042] text-[#404042] bg-white hover:bg-[#FFF3D1] font-semibold rounded-lg px-6 py-2"
+                                onClick={() => setShowResponsiveAlt(v => !v)}
+                              >
+                                {showResponsiveAlt ? 'Hide alternate fields' : 'Show alternate fields'}
+                              </Button>
+                            </div>
+                            {/* Headlines dinámicos */}
+                            <div className="mb-6">
+                              <div className="font-bold text-[#404042] mb-2">Headlines</div>
+                              {ad.headlines.map((headline, i) => (
+                                <div key={i} className="mb-2 flex items-center gap-2">
+                                  <label className="w-32 font-semibold text-[#404042]">Headline {i+1}</label>
+                                  <input
+                                    type="text"
+                                    value={headline}
+                                    onChange={e => handleResponsiveArrayFieldChange(idx, 'headlines', i, e.target.value)}
+                                    maxLength={30}
+                                    className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
+                                  />
+                                  <span className="text-xs text-[#404042]">{headline.length} / 30 chars</span>
+                                </div>
+                              ))}
+                              <div className="flex gap-2 mt-2">
+                                <Button variant="default" onClick={() => handleAddArrayField(idx, 'headlines', 15)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
+                                <Button variant="destructive" onClick={() => handleRemoveArrayField(idx, 'headlines', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
+                              </div>
+                              {showResponsiveAlt && ad.headlinesAlt.map((headline, i) => (
+                                <div key={i} className="mb-2 flex items-center gap-2">
+                                  <label className="w-32 text-[#404042]">Headline {i+1} Alternate</label>
+                                  <input
+                                    type="text"
+                                    value={headline}
+                                    onChange={e => handleResponsiveArrayFieldChange(idx, 'headlinesAlt', i, e.target.value)}
+                                    maxLength={30}
+                                    className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
+                                  />
+                                  <span className="text-xs text-[#404042]">{headline.length} / 30 chars</span>
+                                </div>
+                              ))}
+                            </div>
+                            {/* Descriptions dinámicos */}
+                            <div className="mb-6">
+                              <div className="font-bold text-[#404042] mb-2">Descriptions</div>
+                              {ad.descriptions.map((desc, i) => (
+                                <div key={i} className="mb-2 flex items-center gap-2">
+                                  <label className="w-32 font-semibold text-[#404042]">Description {i+1}</label>
+                                  <input
+                                    type="text"
+                                    value={desc}
+                                    onChange={e => handleResponsiveArrayFieldChange(idx, 'descriptions', i, e.target.value)}
+                                    maxLength={90}
+                                    className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
+                                  />
+                                  <span className="text-xs text-[#404042]">{desc.length} / 90 chars</span>
+                                </div>
+                              ))}
+                              <div className="flex gap-2 mt-2">
+                                <Button variant="default" onClick={() => handleAddArrayField(idx, 'descriptions', 4)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
+                                <Button variant="destructive" onClick={() => handleRemoveArrayField(idx, 'descriptions', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
+                              </div>
+                              {showResponsiveAlt && ad.descriptionsAlt.map((desc, i) => (
+                                <div key={i} className="mb-2 flex items-center gap-2">
+                                  <label className="w-32 text-[#404042]">Description {i+1} Alternate</label>
+                                  <input
+                                    type="text"
+                                    value={desc}
+                                    onChange={e => handleResponsiveArrayFieldChange(idx, 'descriptionsAlt', i, e.target.value)}
+                                    maxLength={90}
+                                    className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
+                                  />
+                                  <span className="text-xs text-[#404042]">{desc.length} / 90 chars</span>
+                                </div>
+                              ))}
+                            </div>
+                            {/* Paths dinámicos */}
+                            <div className="mb-6">
+                              <div className="font-bold text-[#404042] mb-2">Paths</div>
+                              {ad.paths.map((path, i) => (
+                                <div key={i} className="mb-2 flex items-center gap-2">
+                                  <label className="w-32 font-semibold text-[#404042]">Path {i+1}</label>
+                                  <input
+                                    type="text"
+                                    value={path}
+                                    onChange={e => handleResponsiveArrayFieldChange(idx, 'paths', i, e.target.value)}
+                                    maxLength={15}
+                                    className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
+                                  />
+                                  <span className="text-xs text-[#404042]">{path.length} / 15 chars</span>
+                                </div>
+                              ))}
+                              <div className="flex gap-2 mt-2">
+                                <Button variant="default" onClick={() => handleAddArrayField(idx, 'paths', 2)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
+                                <Button variant="destructive" onClick={() => handleRemoveArrayField(idx, 'paths', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
+                              </div>
+                              {showResponsiveAlt && ad.pathsAlt.map((path, i) => (
+                                <div key={i} className="mb-2 flex items-center gap-2">
+                                  <label className="w-32 text-[#404042]">Path {i+1} Alternate</label>
+                                  <input
+                                    type="text"
+                                    value={path}
+                                    onChange={e => handleResponsiveArrayFieldChange(idx, 'pathsAlt', i, e.target.value)}
+                                    maxLength={15}
+                                    className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
+                                  />
+                                  <span className="text-xs text-[#404042]">{path.length} / 15 chars</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                   {/* Call-Only Ads Accordion */}
-                  <div className="border border-[#FAAE3A]/20 rounded-lg bg-[#FFF8E1]">
+                  <div className="border border-[#FAAE3A]/20 rounded-lg bg-[#FFF8E1] mt-4">
                     <button
                       type="button"
                       className="w-full flex justify-between items-center px-4 py-2 border-b border-[#FAAE3A]/20 text-[#404042] font-semibold focus:outline-none"
@@ -562,17 +1042,176 @@ export default function NewAutoTemplatePage() {
                       </span>
                     </button>
                     {adsPanels.callonly && (
-                      <div className="px-4 py-4 text-[#404042]/80 text-sm">There are no Call-Only Ads added, if you like, you can add one by clicking the plus sign.</div>
+                      <div className="p-4">
+                        {callOnlyAds.length === 0 ? (
+                          <div className="text-[#404042]/80 text-sm mb-4">
+                            There are no Call-Only Ads added, if you like, you can add one by clicking the plus sign.
+                          </div>
+                        ) : null}
+                        {callOnlyAds.map((ad, idx) => (
+                          <div key={idx} className="border border-[#faad39ff] rounded-xl p-8 bg-[#FFF8E1] mb-8 shadow-sm">
+                            <div className="flex items-center gap-4 mb-6">
+                              <span className="font-bold text-[#404042] text-lg">Call-Only Ads</span>
+                              <Button variant="destructive" className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-semibold rounded-lg px-6 py-2" onClick={() => handleRemoveCallOnlyAd(idx)}>Delete Ad</Button>
+                              <Button
+                                variant="outline"
+                                className="ml-auto border border-[#404042] text-[#404042] bg-white hover:bg-[#FFF3D1] font-semibold rounded-lg px-6 py-2"
+                                onClick={() => setShowCallOnlyAlt(v => !v)}
+                              >
+                                {showCallOnlyAlt ? 'Hide optional/alternate fields' : 'Show optional/alternate fields'}
+                              </Button>
+                            </div>
+                            <div className="mb-6">
+                              <label className="font-semibold text-[#404042] block mb-1">Business name</label>
+                              <input type="text" value={ad.businessName} onChange={e => handleCallOnlyFieldChange(idx, 'businessName', e.target.value)} maxLength={25} className="w-full bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none mb-1" />
+                              <span className="text-xs text-[#404042]">{ad.businessName.length} / 25 chars</span>
+                            </div>
+                            <div className="mb-6">
+                              <label className="font-semibold text-[#404042] block mb-1">Phone Number</label>
+                              <input type="text" value={ad.phoneNumber} onChange={e => handleCallOnlyFieldChange(idx, 'phoneNumber', e.target.value)} maxLength={1024} className="w-full bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none mb-1" />
+                              <span className="text-xs text-[#404042]">{ad.phoneNumber.length} / 1024 chars</span>
+                            </div>
+                            <div className="mb-6">
+                              <label className="font-semibold text-[#404042] block mb-1">Country Code</label>
+                              <select value={ad.countryCode} onChange={e => handleCallOnlyFieldChange(idx, 'countryCode', e.target.value)} className="w-full bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none mb-1">
+                                <option value="USA - US">USA - US</option>
+                                <option value="MEX - MX">MEX - MX</option>
+                                <option value="CAN - CA">CAN - CA</option>
+                              </select>
+                            </div>
+                            {/* Headlines dinámicos */}
+                            {showCallOnlyAlt && (
+                              <div className="mb-6">
+                                <div className="font-bold text-[#404042] mb-2">Headlines</div>
+                                {ad.headlines.map((headline, i) => (
+                                  <div key={i} className="mb-2 flex items-center gap-2">
+                                    <label className="w-32 font-semibold text-[#404042]">Headline {i+1}</label>
+                                    <input type="text" value={headline} onChange={e => handleCallOnlyArrayFieldChange(idx, 'headlines', i, e.target.value)} maxLength={30} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
+                                    <span className="text-xs text-[#404042]">{headline.length} / 30 chars</span>
+                                  </div>
+                                ))}
+                                <div className="flex gap-2 mt-2">
+                                  <Button variant="default" onClick={() => handleAddCallOnlyArrayField(idx, 'headlines', 5)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
+                                  <Button variant="destructive" onClick={() => handleRemoveCallOnlyArrayField(idx, 'headlines', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
+                                </div>
+                                {ad.headlinesAlt.map((headline, i) => (
+                                  <div key={i} className="mb-2 flex items-center gap-2">
+                                    <label className="w-32 text-[#404042]">Headline {i+1} Alternate</label>
+                                    <input type="text" value={headline} onChange={e => handleCallOnlyArrayFieldChange(idx, 'headlinesAlt', i, e.target.value)} maxLength={30} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
+                                    <span className="text-xs text-[#404042]">{headline.length} / 30 chars</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {/* Descriptions dinámicos */}
+                            <div className="mb-6">
+                              <div className="font-bold text-[#404042] mb-2">Descriptions</div>
+                              {ad.descriptions.map((desc, i) => (
+                                <div key={i} className="mb-2 flex items-center gap-2">
+                                  <label className="w-32 font-semibold text-[#404042]">Description {i+1}</label>
+                                  <input type="text" value={desc} onChange={e => handleCallOnlyArrayFieldChange(idx, 'descriptions', i, e.target.value)} maxLength={90} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
+                                  <span className="text-xs text-[#404042]">{desc.length} / 90 chars</span>
+                                </div>
+                              ))}
+                              <div className="flex gap-2 mt-2">
+                                <Button variant="default" onClick={() => handleAddCallOnlyArrayField(idx, 'descriptions', 4)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
+                                <Button variant="destructive" onClick={() => handleRemoveCallOnlyArrayField(idx, 'descriptions', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
+                              </div>
+                              {showCallOnlyAlt && ad.descriptionsAlt.map((desc, i) => (
+                                <div key={i} className="mb-2 flex items-center gap-2">
+                                  <label className="w-32 text-[#404042]">Description {i+1} Alternate</label>
+                                  <input type="text" value={desc} onChange={e => handleCallOnlyArrayFieldChange(idx, 'descriptionsAlt', i, e.target.value)} maxLength={90} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
+                                  <span className="text-xs text-[#404042]">{desc.length} / 90 chars</span>
+                                </div>
+                              ))}
+                            </div>
+                            {/* Paths dinámicos */}
+                            {showCallOnlyAlt && (
+                              <div className="mb-6">
+                                <div className="font-bold text-[#404042] mb-2">Paths</div>
+                                {ad.paths.map((path, i) => (
+                                  <div key={i} className="mb-2 flex items-center gap-2">
+                                    <label className="w-32 font-semibold text-[#404042]">Path {i+1}</label>
+                                    <input type="text" value={path} onChange={e => handleCallOnlyArrayFieldChange(idx, 'paths', i, e.target.value)} maxLength={15} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
+                                    <span className="text-xs text-[#404042]">{path.length} / 15 chars</span>
+                                  </div>
+                                ))}
+                                <div className="flex gap-2 mt-2">
+                                  <Button variant="default" onClick={() => handleAddCallOnlyArrayField(idx, 'paths', 2)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
+                                  <Button variant="destructive" onClick={() => handleRemoveCallOnlyArrayField(idx, 'paths', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
+                                </div>
+                                {ad.pathsAlt.map((path, i) => (
+                                  <div key={i} className="mb-2 flex items-center gap-2">
+                                    <label className="w-32 text-[#404042]">Path {i+1} Alternate</label>
+                                    <input type="text" value={path} onChange={e => handleCallOnlyArrayFieldChange(idx, 'pathsAlt', i, e.target.value)} maxLength={15} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
+                                    <span className="text-xs text-[#404042]">{path.length} / 15 chars</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <div className="mb-6">
+                              <label className="font-semibold text-[#404042] block mb-1">Verification URL</label>
+                              <input type="text" value={ad.verificationUrl} onChange={e => handleCallOnlyFieldChange(idx, 'verificationUrl', e.target.value)} maxLength={1024} className="w-full bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none mb-1" />
+                              <span className="text-xs text-[#404042]">{ad.verificationUrl.length} / 1024 chars</span>
+                            </div>
+                            <div className="mb-6 flex gap-6 items-center">
+                              <label className="flex items-center gap-2 text-[#404042] font-semibold">
+                                <input type="checkbox" checked={ad.callTracking} onChange={e => handleCallOnlyFieldChange(idx, 'callTracking', e.target.checked)} className="accent-[#FAAE3A] w-4 h-4 rounded" />
+                                Call Tracking
+                              </label>
+                              <label className="flex items-center gap-2 text-[#404042] font-semibold">
+                                <input type="checkbox" checked={ad.showFinalUrl} onChange={e => handleCallOnlyFieldChange(idx, 'showFinalUrl', e.target.checked)} className="accent-[#FAAE3A] w-4 h-4 rounded" />
+                                Show Final URL Link
+                              </label>
+                            </div>
+                            <div className="mb-6">
+                              <div className="font-bold text-[#404042] mb-2">Conversion Action</div>
+                              <span className="text-[#1976D2] font-semibold">{ad.conversionAction}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
-                  <Button
-                    variant="default"
-                    type="button"
-                    className="flex items-center gap-2 bg-[#faad39ff] hover:bg-[#F17625] text-[#404042ff] font-bold px-6 py-2 rounded-lg shadow-none min-w-[40px] min-h-[40px]"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Ad
-                  </Button>
+                  {/* Botón Add global */}
+                  <div className="flex justify-start mt-6">
+                    <button
+                      ref={adTypeBtnRef}
+                      className="flex items-center gap-2 bg-[#faad39ff] hover:bg-[#F17625] text-[#404042ff] font-bold px-6 py-2 rounded-lg shadow min-w-[40px] min-h-[40px] border border-[#faad39ff]"
+                      style={{ boxShadow: '2px 2px 0 #e6b96a' }}
+                      onClick={e => {
+                        const rect = adTypeBtnRef.current!.getBoundingClientRect();
+                        setAdTypeDropdownPos({
+                          top: rect.bottom + window.scrollY,
+                          left: rect.left + window.scrollX,
+                          width: rect.width
+                        });
+                        setShowAdTypeDropdown(v => !v);
+                      }}
+                    >
+                      <Plus className="w-4 h-4" /> Add
+                    </button>
+                    {showAdTypeDropdown && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: adTypeDropdownPos.top,
+                          left: adTypeDropdownPos.left,
+                          width: adTypeDropdownPos.width,
+                          zIndex: 1000,
+                          background: "white",
+                          border: "1px solid #faad39ff",
+                          borderRadius: 8,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                          padding: 8,
+                        }}
+                      >
+                        <div className="font-semibold text-[#404042] mb-2">Ad Types</div>
+                        <div className="cursor-pointer px-4 py-2 hover:bg-[#FFF3D1] text-[#404042] rounded" onMouseDown={handleAddResponsiveAd}>Responsive Search Ad</div>
+                        <div className="cursor-pointer px-4 py-2 hover:bg-[#FFF3D1] text-[#404042] rounded" onMouseDown={handleAddCallOnlyAd}>Call Only Ad</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -604,22 +1243,23 @@ export default function NewAutoTemplatePage() {
                   </table>
                   {/* Botones de archivo y eliminar */}
                   <div className="flex gap-2 mb-4 mt-2">
-                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]">
+                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]" onClick={() => fileInputRef.current?.click()}>
                       <Upload className="w-4 h-4" />
                       Upload
+                      <input type="file" accept=".csv,.txt" ref={fileInputRef} style={{ display: 'none' }} onChange={handleUploadKeywords} />
                     </Button>
-                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]">
+                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]" onClick={handleDownloadKeywords}>
                       <Download className="w-4 h-4" />
                       Download
                     </Button>
-                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]" onClick={() => setShowDeleteModal(true)}>
+                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]" onClick={handleDeleteKeywords}>
                       <Trash className="w-4 h-4" />
                       Delete
                     </Button>
                   </div>
                   {/* Input para agregar keyword */}
                   <div className="flex flex-col sm:flex-row gap-2 items-center mt-2">
-                    <Input value={newKeyword} onChange={e => setNewKeyword(e.target.value)} className="bg-[#FFF8E1] border-[#faad39ff] rounded-lg flex-1 min-w-[180px] text-[#404042ff]" placeholder="Add keyword..." />
+                    <Input value={newKeyword} onChange={e => setNewKeyword(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleAddKeyword(); }} className="bg-[#FFF8E1] border-[#faad39ff] rounded-lg flex-1 min-w-[180px] text-[#404042ff]" placeholder="Add keyword..." />
                     <select className="border border-[#faad39ff] rounded-lg h-11 px-2 bg-[#FFF8E1] text-[#404042ff] focus:ring-2 focus:ring-[#faad39ff]" value={newMatchType} onChange={e => setNewMatchType(e.target.value)}>
                       <option value="Broad">Broad</option>
                       <option value="Phrase">Phrase</option>
@@ -667,6 +1307,7 @@ export default function NewAutoTemplatePage() {
                     <Button
                       variant="outline"
                       className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]"
+                      onClick={handleDeleteParams}
                     >
                       <Trash className="w-4 h-4" />
                       Delete
