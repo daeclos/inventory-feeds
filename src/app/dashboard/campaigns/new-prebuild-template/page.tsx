@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useReducer } from "react";
 import { Sidebar } from "@/components/ui/Sidebar";
 import Topbar from "@/components/ui/Topbar";
 import { Button } from "@/components/ui/button";
@@ -94,32 +94,169 @@ interface CallOnlyAd {
   conversionAction: string;
 }
 
+interface TemplateFormState {
+  templateName: string;
+  advertiser: string;
+  includeLocation: boolean;
+  location: string;
+  library: string;
+  date: string;
+  makeFilter: string[];
+  yearStart: string;
+  yearEnd: string;
+  authorize: boolean;
+  campaignName: string;
+  campaignStatus: string;
+  budget: string;
+  networks: string;
+  enhancedCpc: string;
+  mobileBidModifier: string;
+  adRotation: string;
+  negativeKeywords: string[];
+  adGroupName: string;
+  adGroupStatus: string;
+  finalUrl: string;
+  maxCpcBid: string;
+  setMaxCpcOnCreate: boolean;
+}
+
+type TemplateFormAction = 
+  | { type: 'SET_FIELD'; field: keyof TemplateFormState; value: any }
+  | { type: 'SET_MAKE_FILTER'; value: string[] }
+  | { type: 'RESET_FORM' }
+  | { type: 'LOAD_TEMPLATE'; template: Partial<TemplateFormState> };
+
+const initialFormState: TemplateFormState = {
+  templateName: "",
+  advertiser: "",
+  includeLocation: true,
+  location: "",
+  library: libraries[0],
+  date: "",
+  makeFilter: [],
+  yearStart: "",
+  yearEnd: "",
+  authorize: true,
+  campaignName: "",
+  campaignStatus: "Active",
+  budget: "0",
+  networks: "Google Search",
+  enhancedCpc: "Enabled",
+  mobileBidModifier: "0",
+  adRotation: "Optimize for clicks",
+  negativeKeywords: [],
+  adGroupName: "",
+  adGroupStatus: "Paused",
+  finalUrl: "",
+  maxCpcBid: "",
+  setMaxCpcOnCreate: false,
+};
+
+function formReducer(state: TemplateFormState, action: TemplateFormAction): TemplateFormState {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return {
+        ...state,
+        [action.field]: action.value
+      };
+    case 'SET_MAKE_FILTER':
+      return {
+        ...state,
+        makeFilter: action.value
+      };
+    case 'RESET_FORM':
+      return initialFormState;
+    case 'LOAD_TEMPLATE':
+      return {
+        ...initialFormState,
+        ...action.template
+      };
+    default:
+      return state;
+  }
+}
+
+function KeywordTags({ keyword, index, updateKeyword }: { 
+  keyword: string[], 
+  index: number,
+  updateKeyword: (index: number, newKeywords: string[]) => void 
+}) {
+  const removeWord = (wordIndex: number) => {
+    const newKeywords = keyword.filter((_, i) => i !== wordIndex);
+    updateKeyword(index, newKeywords);
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {keyword.map((word, wordIndex) => (
+        <span
+          key={wordIndex}
+          className="bg-[#FAAE3A]/20 border border-[#FAAE3A] text-[#404042] rounded px-2 py-0.5 text-xs font-semibold flex items-center gap-1"
+        >
+          {word}
+          <button
+            type="button"
+            className="ml-1 text-[#F17625] hover:text-[#FAAE3A]"
+            onClick={() => removeWord(wordIndex)}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function AdGroupNameTags({ 
+  value, 
+  onChange,
+  inputRef,
+  onKeyDown,
+  setShowDropdown
+}: { 
+  value: string, 
+  onChange: (value: string) => void,
+  inputRef: React.RefObject<HTMLInputElement | null>,
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void,
+  setShowDropdown: (show: boolean) => void
+}) {
+  const tags = value.split(' ').filter(Boolean);
+  
+  const removeTag = (tagToRemove: string) => {
+    const newTags = tags.filter(tag => tag !== tagToRemove);
+    onChange(newTags.join(' '));
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg">
+      {tags.map((tag, index) => (
+        <span
+          key={index}
+          className="bg-[#FAAE3A]/20 border border-[#FAAE3A] text-[#404042] rounded px-2 py-0.5 text-xs font-semibold flex items-center gap-1"
+        >
+          {tag}
+          <button
+            type="button"
+            className="ml-1 text-[#F17625] hover:text-[#FAAE3A]"
+            onClick={() => removeTag(tag)}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <input
+        ref={inputRef}
+        className="flex-1 min-w-[100px] bg-transparent border-none outline-none text-[#404042] placeholder-gray-400"
+        placeholder="Type or select placeholders..."
+        onKeyDown={onKeyDown}
+        onFocus={() => setShowDropdown(true)}
+      />
+    </div>
+  );
+}
+
 export default function NewPrebuildTemplatePage() {
-  const [form, setForm] = useState({
-    templateName: "",
-    advertiser: "",
-    includeLocation: true,
-    location: "",
-    library: libraries[0],
-    date: "",
-    makeFilter: [] as string[],
-    yearStart: "",
-    yearEnd: "",
-    authorize: true,
-    campaignName: "",
-    campaignStatus: "Active",
-    budget: "0",
-    networks: "Google Search",
-    enhancedCpc: "Enabled",
-    mobileBidModifier: "0",
-    adRotation: "Optimize for clicks",
-    negativeKeywords: [] as string[],
-    adGroupName: "",
-    adGroupStatus: "Paused",
-    finalUrl: "",
-    maxCpcBid: "",
-    setMaxCpcOnCreate: false,
-  });
+  const [form, dispatch] = useReducer(formReducer, initialFormState);
   const [tabSwitches, setTabSwitches] = useState<Record<string, boolean>>({
     campaign: true,
     adgroup: true,
@@ -180,18 +317,11 @@ export default function NewPrebuildTemplatePage() {
   function handleSelectAdGroupPlaceholder(placeholder: string) {
     const input = adGroupInputRef.current;
     if (!input) return;
-    const start = form.adGroupName ? input.selectionStart || 0 : 0;
-    const end = form.adGroupName ? input.selectionEnd || 0 : 0;
-    const before = form.adGroupName.slice(0, start);
-    const after = form.adGroupName.slice(end);
-    const insert = `[${placeholder}]`;
-    const newValue = before + insert + after;
-    setForm(f => ({ ...f, adGroupName: newValue }));
+    
+    // Instead of inserting at cursor position, we'll add it as a tag
+    const newTags = [...(form.adGroupName ? form.adGroupName.split(' ') : []), placeholder];
+    dispatch({ type: 'SET_FIELD', field: 'adGroupName', value: newTags.join(' ') });
     setShowAdGroupPlaceholderDropdown(false);
-    setTimeout(() => {
-      input.focus();
-      input.setSelectionRange(before.length + insert.length, before.length + insert.length);
-    }, 0);
   }
 
   function handleFinalUrlKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -217,8 +347,7 @@ export default function NewPrebuildTemplatePage() {
     const before = form.finalUrl.slice(0, start);
     const after = form.finalUrl.slice(end);
     const insert = `[${placeholder}]`;
-    const newValue = before + insert + after;
-    setForm(f => ({ ...f, finalUrl: newValue }));
+    dispatch({ type: 'SET_FIELD', field: 'finalUrl', value: before + insert + after });
     setShowFinalUrlDropdown(false);
     setTimeout(() => {
       input.focus();
@@ -413,6 +542,24 @@ export default function NewPrebuildTemplatePage() {
     router.push('/dashboard/campaigns');
   };
 
+  const handleFormChange = (field: keyof TemplateFormState, value: any) => {
+    dispatch({ type: 'SET_FIELD', field, value });
+  };
+
+  const handleMakeFilterChange = (value: string[]) => {
+    dispatch({ type: 'SET_MAKE_FILTER', value });
+  };
+
+  const handleLoadTemplate = (template: Partial<TemplateFormState>) => {
+    dispatch({ type: 'LOAD_TEMPLATE', template });
+  };
+
+  const updateKeyword = (index: number, newKeywords: string[]) => {
+    setKeywords(keywords.map((kw, i) => 
+      i === index ? { ...kw, keyword: newKeywords } : kw
+    ));
+  };
+
   return (
     <div className="flex min-h-screen bg-[#f7f7f9] font-geist">
       <Sidebar />
@@ -429,15 +576,41 @@ export default function NewPrebuildTemplatePage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => {
-                  setForm(newVehiclesByYearTemplate);
+                  handleLoadTemplate(newVehiclesByYearTemplate);
                   setKeywords(newVehiclesByYearKeywords);
                 }}>
                   New Vehicles by Year
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {/* lógica para usar 'Used Make Model' */}}>
+                <DropdownMenuItem onClick={() => {
+                  handleLoadTemplate({
+                    templateName: "Suggested Default Template - Used Make Model",
+                    campaignName: "Dynamic Used Vehicles - Make/Model",
+                    adGroupName: "make model"
+                  });
+                  setKeywords([
+                    { keyword: ["used", "make", "model"], matchType: "Phrase" },
+                    { keyword: ["used", "make", "model"], matchType: "Exact" },
+                    { keyword: ["used", "make", "model"], matchType: "Broad" },
+                    { keyword: ["preowned", "make", "model"], matchType: "Broad" },
+                    { keyword: ["make", "model", "for", "sale"], matchType: "Broad" },
+                  ]);
+                }}>
                   Used Make Model
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {/* lógica para usar 'Used Year Make Model' */}}>
+                <DropdownMenuItem onClick={() => {
+                  handleLoadTemplate({
+                    templateName: "Suggested Default Template - Used Year Make Model",
+                    campaignName: "Dynamic Used Vehicles - Year/Make/Model",
+                    adGroupName: "year make model"
+                  });
+                  setKeywords([
+                    { keyword: ["used", "year", "make", "model"], matchType: "Phrase" },
+                    { keyword: ["used", "year", "make", "model"], matchType: "Exact" },
+                    { keyword: ["used", "year", "make", "model"], matchType: "Broad" },
+                    { keyword: ["preowned", "year", "make", "model"], matchType: "Broad" },
+                    { keyword: ["year", "make", "model", "for", "sale"], matchType: "Broad" },
+                  ]);
+                }}>
                   Used Year Make Model
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -448,24 +621,24 @@ export default function NewPrebuildTemplatePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               <div className="flex flex-col gap-4">
                 <label className="font-semibold text-[#404042]">Template Name</label>
-                <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.templateName} onChange={e => setForm(f => ({ ...f, templateName: e.target.value }))} />
+                <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.templateName} onChange={e => handleFormChange('templateName', e.target.value)} />
                 <label className="font-semibold text-[#404042]">Advertiser</label>
-                <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.advertiser} onChange={e => setForm(f => ({ ...f, advertiser: e.target.value }))}>
+                <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.advertiser} onChange={e => handleFormChange('advertiser', e.target.value)}>
                   <option value="">Select advertiser</option>
                   {advertisers.map(a => (
                     <option key={a.id} value={a.name}>{a.name}</option>
                   ))}
                 </select>
                 <label className="font-semibold text-[#404042]">Location</label>
-                <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} />
+                <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.location} onChange={e => handleFormChange('location', e.target.value)} />
                 <label className="font-semibold text-[#404042]">Library</label>
-                <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.library} onChange={e => setForm(f => ({ ...f, library: e.target.value }))}>
+                <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.library} onChange={e => handleFormChange('library', e.target.value)}>
                   {libraries.map(l => <option key={l}>{l}</option>)}
                 </select>
               </div>
               <div className="flex flex-col gap-4">
                 <label className="font-semibold text-[#404042]">Use Only Products Added Since...</label>
-                <input type="date" className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+                <input type="date" className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.date} onChange={e => handleFormChange('date', e.target.value)} />
                 <label className="font-semibold text-[#404042]">Make Filter</label>
                 <DropdownMenu open={makeDropdownOpen} onOpenChange={setMakeDropdownOpen}>
                   <DropdownMenuTrigger asChild>
@@ -476,7 +649,7 @@ export default function NewPrebuildTemplatePage() {
                         form.makeFilter.map((make) => (
                           <span key={make} className="bg-[#FAAE3A]/20 border border-[#FAAE3A] text-[#404042] rounded px-2 py-0.5 text-xs font-semibold flex items-center gap-1">
                             {make}
-                            <button type="button" className="ml-1 text-[#F17625] hover:text-[#FAAE3A]" onClick={e => { e.stopPropagation(); setForm(f => ({ ...f, makeFilter: f.makeFilter.filter(m => m !== make) })); }}>×</button>
+                            <button type="button" className="ml-1 text-[#F17625] hover:text-[#FAAE3A]" onClick={e => { e.stopPropagation(); handleMakeFilterChange(form.makeFilter.filter(m => m !== make)); }}>×</button>
                           </span>
                         ))
                       )}
@@ -489,12 +662,7 @@ export default function NewPrebuildTemplatePage() {
                         key={make}
                         checked={form.makeFilter.includes(make)}
                         onCheckedChange={(checked) => {
-                          setForm(f => ({
-                            ...f,
-                            makeFilter: checked
-                              ? [...f.makeFilter, make]
-                              : f.makeFilter.filter(m => m !== make),
-                          }));
+                          handleMakeFilterChange(checked ? [...form.makeFilter, make] : form.makeFilter.filter(m => m !== make));
                         }}
                         className="data-[state=checked]:bg-[#FAAE3A] data-[state=checked]:text-[#404042] hover:bg-[#FFF3D1] text-[#404042]"
                       >
@@ -505,11 +673,11 @@ export default function NewPrebuildTemplatePage() {
                 </DropdownMenu>
                 <label className="font-semibold text-[#404042]">Year Range</label>
                 <div className="flex gap-2">
-                  <input className="w-1/2 min-w-0 border border-gray-300 rounded px-3 py-2" placeholder="Year Start" value={form.yearStart} onChange={e => setForm(f => ({ ...f, yearStart: e.target.value }))} />
-                  <input className="w-1/2 min-w-0 border border-gray-300 rounded px-3 py-2" placeholder="End Year" value={form.yearEnd} onChange={e => setForm(f => ({ ...f, yearEnd: e.target.value }))} />
+                  <input className="w-1/2 min-w-0 border border-gray-300 rounded px-3 py-2" placeholder="Year Start" value={form.yearStart} onChange={e => handleFormChange('yearStart', e.target.value)} />
+                  <input className="w-1/2 min-w-0 border border-gray-300 rounded px-3 py-2" placeholder="End Year" value={form.yearEnd} onChange={e => handleFormChange('yearEnd', e.target.value)} />
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  <input type="checkbox" checked={form.authorize} onChange={e => setForm(f => ({ ...f, authorize: e.target.checked }))} />
+                  <input type="checkbox" checked={form.authorize} onChange={e => handleFormChange('authorize', e.target.checked)} />
                   <span className="text-[#404042] text-sm">I authorize Hoot support to revise Final URLs in ads within "Eligible Campaigns" in the event where clearly incorrect URLs are misspending the campaign budget
                     <span className="inline-block align-middle ml-1 relative">
                       <Info size={16} className="text-[#2A6BE9] cursor-pointer" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)} />
@@ -565,29 +733,29 @@ export default function NewPrebuildTemplatePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 <div className="flex flex-col gap-4">
                   <label className="font-semibold text-[#404042]">Campaign Name</label>
-                  <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.campaignName} onChange={e => setForm(f => ({ ...f, campaignName: e.target.value }))} />
+                  <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.campaignName} onChange={e => handleFormChange('campaignName', e.target.value)} />
                   <label className="font-semibold text-[#404042]">Campaign Status</label>
-                  <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.campaignStatus} onChange={e => setForm(f => ({ ...f, campaignStatus: e.target.value }))}>
+                  <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.campaignStatus} onChange={e => handleFormChange('campaignStatus', e.target.value)}>
                     <option>Active</option>
                     <option>Paused</option>
                   </select>
                   <label className="font-semibold text-[#404042]">Budget</label>
-                  <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.budget} onChange={e => setForm(f => ({ ...f, budget: e.target.value }))} />
+                  <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.budget} onChange={e => handleFormChange('budget', e.target.value)} />
                   <label className="font-semibold text-[#404042]">Networks</label>
-                  <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.networks} onChange={e => setForm(f => ({ ...f, networks: e.target.value }))} />
+                  <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.networks} onChange={e => handleFormChange('networks', e.target.value)} />
                 </div>
                 <div className="flex flex-col gap-4">
                   <label className="font-semibold text-[#404042]">Enhanced CPC</label>
-                  <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.enhancedCpc} onChange={e => setForm(f => ({ ...f, enhancedCpc: e.target.value }))}>
+                  <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.enhancedCpc} onChange={e => handleFormChange('enhancedCpc', e.target.value)}>
                     <option>Enabled</option>
                     <option>Disabled</option>
                   </select>
                   <label className="font-semibold text-[#404042]">Mobile Bid Modifier</label>
-                  <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.mobileBidModifier} onChange={e => setForm(f => ({ ...f, mobileBidModifier: e.target.value }))} />
+                  <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.mobileBidModifier} onChange={e => handleFormChange('mobileBidModifier', e.target.value)} />
                   <label className="font-semibold text-[#404042]">Ad Rotation</label>
-                  <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.adRotation} onChange={e => setForm(f => ({ ...f, adRotation: e.target.value }))} />
+                  <input className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.adRotation} onChange={e => handleFormChange('adRotation', e.target.value)} />
                   <label className="font-semibold text-[#404042]">Negative Keywords Lists Selection</label>
-                  <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.negativeKeywords[0] || ""} onChange={e => setForm(f => ({ ...f, negativeKeywords: [e.target.value] }))}>
+                  <select className="w-full min-w-0 border border-gray-300 rounded px-3 py-2" value={form.negativeKeywords[0] || ""} onChange={e => handleFormChange('negativeKeywords', [e.target.value])}>
                     {negativeKeywordLists.map(nk => <option key={nk}>{nk}</option>)}
                   </select>
                 </div>
@@ -597,13 +765,12 @@ export default function NewPrebuildTemplatePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 <div className="flex flex-col gap-4">
                   <label className="font-semibold text-[#404042]">Ad Group Name</label>
-                  <input
-                    className="w-full min-w-0 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#faad39ff] focus:outline-none text-[#404042]"
+                  <AdGroupNameTags
                     value={form.adGroupName}
-                    onChange={e => setForm(f => ({ ...f, adGroupName: e.target.value }))}
+                    onChange={(value) => handleFormChange('adGroupName', value)}
+                    inputRef={adGroupInputRef}
                     onKeyDown={handleAdGroupNameKeyDown}
-                    ref={adGroupInputRef}
-                    placeholder="Ad Group Name"
+                    setShowDropdown={setShowAdGroupPlaceholderDropdown}
                   />
                   {showAdGroupPlaceholderDropdown && (
                     <div
@@ -632,7 +799,7 @@ export default function NewPrebuildTemplatePage() {
                     </div>
                   )}
                   <label className="font-semibold text-[#404042]">Ad Group Status</label>
-                  <select className="w-full min-w-0 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#faad39ff] focus:outline-none text-[#404042]" value={form.adGroupStatus} onChange={e => setForm(f => ({ ...f, adGroupStatus: e.target.value }))}>
+                  <select className="w-full min-w-0 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#faad39ff] focus:outline-none text-[#404042]" value={form.adGroupStatus} onChange={e => handleFormChange('adGroupStatus', e.target.value)}>
                     <option>Paused</option>
                     <option>Active</option>
                   </select>
@@ -643,7 +810,7 @@ export default function NewPrebuildTemplatePage() {
                     <input
                       className="w-full min-w-0 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#faad39ff] focus:outline-none text-[#404042]"
                       value={form.finalUrl}
-                      onChange={e => setForm(f => ({ ...f, finalUrl: e.target.value }))}
+                      onChange={e => handleFormChange('finalUrl', e.target.value)}
                       onKeyDown={handleFinalUrlKeyDown}
                       ref={finalUrlInputRef}
                       placeholder="Final URL"
@@ -999,7 +1166,6 @@ export default function NewPrebuildTemplatePage() {
                       }}
                     >
                       <div className="font-semibold text-[#404042] mb-2">Ad Types</div>
-                      <div className="cursor-pointer px-4 py-2 hover:bg-[#FFF3D1] text-[#404042] rounded" onMouseDown={handleAddResponsiveAd}>Responsive Search Ad</div>
                       <div className="cursor-pointer px-4 py-2 hover:bg-[#FFF3D1] text-[#404042] rounded" onMouseDown={handleAddCallOnlyAd}>Call Only Ad</div>
                     </div>
                   )}
@@ -1023,9 +1189,25 @@ export default function NewPrebuildTemplatePage() {
                       ) : (
                         keywords.map((kw, idx) => (
                           <tr key={idx} className="hover:bg-[#FFF3D1]">
-                            <td className="px-4 py-2 min-w-0">{kw.keyword.join(" ")}</td>
-                            <td className="px-4 py-2 min-w-0">{kw.matchType}</td>
-                            <td className="px-4 py-2"><input type="checkbox" checked={selectedKeywords.includes(idx)} onChange={e => handleSelectKeyword(idx, e.target.checked)} /></td>
+                            <td className="px-4 py-2 min-w-0">
+                              <KeywordTags 
+                                keyword={kw.keyword} 
+                                index={idx}
+                                updateKeyword={updateKeyword}
+                              />
+                            </td>
+                            <td className="px-4 py-2 min-w-0">
+                              <span className="bg-[#FAAE3A]/20 border border-[#FAAE3A] text-[#404042] rounded px-2 py-0.5 text-xs font-semibold">
+                                {kw.matchType}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2">
+                              <input 
+                                type="checkbox" 
+                                checked={selectedKeywords.includes(idx)} 
+                                onChange={e => handleSelectKeyword(idx, e.target.checked)} 
+                              />
+                            </td>
                           </tr>
                         ))
                       )}

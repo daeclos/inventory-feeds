@@ -67,15 +67,15 @@ export default function EditFeedPage() {
   const allSelected = form?.urlAppends && form.urlAppends.length > 0 && selectedAppends.length === form.urlAppends.length;
 
   useEffect(() => {
-    // Buscar el feed en localStorage
-    const all = JSON.parse(localStorage.getItem("customFeeds") || "{}");
-    let found = null;
-    Object.values(all).forEach((arr: any) => {
-      const f = (arr as any[]).find(x => x.id === feedId);
-      if (f) found = f;
-    });
-    setFeed(found);
-    setForm(found && typeof found === "object" && found !== null && !Array.isArray(found) ? Object.assign({}, found) : null);
+    // Eliminar lógica de localStorage:
+    // const all = JSON.parse(localStorage.getItem("customFeeds") || "{}");
+    // let found = null;
+    // Object.values(all).forEach((arr: any) => {
+    //   const f = (arr as any[]).find(x => x.id === feedId);
+    //   if (f) found = f;
+    // });
+    setFeed(null);
+    setForm(null);
   }, [feedId]);
 
   useEffect(() => {
@@ -94,13 +94,10 @@ export default function EditFeedPage() {
   // Guardar cambios
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    // Actualizar en localStorage
-    const all = JSON.parse(localStorage.getItem("customFeeds") || "" );
-    form.advertisers.forEach((advId: string) => {
-      if (!all[advId]) all[advId] = [];
-      all[advId] = all[advId].map((f: any) => f.id === form.id ? form : f);
-    });
-    localStorage.setItem("customFeeds", JSON.stringify(all));
+    // Eliminar lógica de localStorage:
+    // const all = JSON.parse(localStorage.getItem("customFeeds") || "" );
+    // form.advertisers.forEach((advId: string) => { ... });
+    // localStorage.setItem("customFeeds", JSON.stringify(all));
     router.push("/dashboard/feeds");
   };
 

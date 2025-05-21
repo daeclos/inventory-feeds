@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Edit2, Copy, Search, FileText, Trash2, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -24,11 +24,6 @@ export const AdvertiserFeedsAccordion: React.FC<AdvertiserFeedsAccordionProps> =
   const [feedsByAdvertiser, setFeedsByAdvertiser] = useState<Record<string, any[]>>({});
   const [openFeedDetails, setOpenFeedDetails] = useState<Record<string, Set<string>>>({});
   const router = useRouter();
-
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('customFeeds') || '{}');
-    setFeedsByAdvertiser(stored);
-  }, []);
 
   const handleRowClick = (advId: string) => {
     setOpenRow(openRow === advId ? null : advId);

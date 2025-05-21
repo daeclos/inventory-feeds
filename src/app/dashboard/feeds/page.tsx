@@ -39,11 +39,6 @@ function CustomFeedsTable({ advertisers, onRowClick }: CustomFeedsTableProps) {
   const [openFeedDetails, setOpenFeedDetails] = useState<Record<string, Set<string>>>({}); // { advertiserId: Set<feedId> }
   const router = useRouter();
 
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('customFeeds') || '{}');
-    setFeedsByAdvertiser(stored);
-  }, []);
-
   const handleRowClick = (advId: string) => {
     setOpenRow(openRow === advId ? null : advId);
   };
@@ -73,7 +68,6 @@ function CustomFeedsTable({ advertisers, onRowClick }: CustomFeedsTableProps) {
     const updated = { ...feedsByAdvertiser };
     updated[advIdToDelete] = updated[advIdToDelete].filter((f: any) => f.id !== feedToDelete.id);
     setFeedsByAdvertiser(updated);
-    localStorage.setItem('customFeeds', JSON.stringify(updated));
     setShowDeleteModal(false);
     setFeedToDelete(null);
     setAdvIdToDelete(null);
@@ -106,27 +100,16 @@ function CustomFeedsTable({ advertisers, onRowClick }: CustomFeedsTableProps) {
 
 export default function CustomFeedsPage() {
   const router = useRouter();
-  // Obtener advertisers reales
   const advertisers = useAdvertiserStore(state => state.advertisers);
 
-  // Leer feeds de localStorage
-  const feedsByAdvertiser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('customFeeds') || '{}') : {};
-
-  // Convertir advertisers a FeedAdvertiser y agregar addresses y contadores reales
-  const feedAdvertisers: FeedAdvertiser[] = advertisers.map(adv => {
-    const feeds = feedsByAdvertiser[adv.id] || [];
-    return {
-      id: adv.id,
-      name: adv.name,
-      totalRecords: feeds.length,
-      noPrice: 0, // Preparado para el futuro
-      noImage: 0, // Preparado para el futuro
-      customFeeds: feeds.length,
-      hasAds: adv.hasAds,
-      status: adv.status,
-      addresses: adv.addresses || []
-    };
-  });
+  const feedAdvertisers = advertisers.map(adv => ({
+    ...adv,
+    id: adv.id || `adv-${Math.random().toString(36).substr(2, 9)}`,
+    totalRecords: 0,
+    noPrice: 0,
+    noImage: 0,
+    customFeeds: 0,
+  }));
 
   return (
     <div className="flex min-h-screen bg-[#f7f7f9] font-geist">

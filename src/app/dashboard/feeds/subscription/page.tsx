@@ -585,14 +585,10 @@ export default function FeedSubscriptionPage() {
       advertisers: formData.advertiserIds,
       filters: allFilters,
     };
-    // Guardar en localStorage por cada advertiser
-    const existing = JSON.parse(localStorage.getItem('customFeeds') || '{}');
-    formData.advertiserIds.forEach(id => {
-      const strId = String(id);
-      if (!existing[strId]) existing[strId] = [];
-      existing[strId].push(newFeed);
-    });
-    localStorage.setItem('customFeeds', JSON.stringify(existing));
+    // Eliminar lógica de localStorage:
+    // const existing = JSON.parse(localStorage.getItem('customFeeds') || '{}');
+    // formData.advertiserIds.forEach(id => { ... });
+    // localStorage.setItem('customFeeds', JSON.stringify(existing));
     router.push("/dashboard/feeds");
   };
 

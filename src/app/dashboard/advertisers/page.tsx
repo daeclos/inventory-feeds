@@ -25,12 +25,6 @@ export default function AdvertiserPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [feedsByAdvertiser, setFeedsByAdvertiser] = useState<Record<string, any[]>>({});
 
-  // Cargar feeds del localStorage
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('customFeeds') || '{}');
-    setFeedsByAdvertiser(stored);
-  }, []);
-
   // Calcular el total de registros por anunciante
   const advertisersWithFeedCounts = advertisers.map(adv => ({
     ...adv,
