@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import AdvertiserTable from "./components/AdvertiserTable";
 
@@ -22,10 +22,22 @@ export default function AdvertiserPage() {
   const advertisers = useAdvertiserStore(state => state.advertisers);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
-
   const [statusFilter, setStatusFilter] = useState("all");
+  const [feedsByAdvertiser, setFeedsByAdvertiser] = useState<Record<string, any[]>>({});
 
-  const filteredAdvertisers: Advertiser[] = advertisers.filter((adv) => {
+  // Cargar feeds del localStorage
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem('customFeeds') || '{}');
+    setFeedsByAdvertiser(stored);
+  }, []);
+
+  // Calcular el total de registros por anunciante
+  const advertisersWithFeedCounts = advertisers.map(adv => ({
+    ...adv,
+    totalRecords: adv.id ? feedsByAdvertiser[adv.id]?.length || 0 : 0
+  }));
+
+  const filteredAdvertisers: Advertiser[] = advertisersWithFeedCounts.filter((adv) => {
     const matchSearch = adv.name.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchStatus =
       statusFilter === "all" ||

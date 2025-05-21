@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/ui/DashboardLayout";
-import { useAdvertiserStore } from "@/app/dashboard/advertisers/store";
+import { useAdvertiserStore } from '@/store/advertiserStore';
 import { FilterBuilder, filterAttributes } from "@/components/ui/FilterBuilder";
 import { 
   Info, 
@@ -464,7 +464,7 @@ export default function FeedSubscriptionPage() {
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Advertisers</label>
           <div className="md:col-span-9">
-            <Input value={advertisers.filter(a => formData.advertiserIds.includes(a.id)).map(a => a.name).join(", ")} readOnly className="w-full bg-gray-100" placeholder="Nothing selected" />
+            <Input value={advertisers.filter(a => a.id && formData.advertiserIds.includes(a.id)).map(a => a.name ?? '').join(", ") || ''} readOnly className="w-full bg-gray-100" placeholder="Nothing selected" />
           </div>
           <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4 flex items-center gap-1">Store Code
             <span className="relative group cursor-pointer">
@@ -608,10 +608,10 @@ export default function FeedSubscriptionPage() {
         <div className="md:col-span-9"><Input value={formData.feedFormat} readOnly className="w-full border-2 border-[#e5e7eb] bg-gray-100 text-[#404042]" /></div>
         <label className="md:col-span-3 font-semibold text-[#404042] text-right pr-4">Advertisers</label>
         <div className="md:col-span-9">
-          <Input value={advertisers.filter(a => formData.advertiserIds.includes(a.id)).map(a => a.name).join(", ") || "-"} readOnly className="w-full border-2 border-[#e5e7eb] bg-gray-100 text-[#404042] mb-2" />
+          <Input value={advertisers.filter(a => a.id && formData.advertiserIds.includes(a.id)).map(a => a.name ?? '').join(", ") || '-'} readOnly className="w-full border-2 border-[#e5e7eb] bg-gray-100 text-[#404042] mb-2" />
           <span className="font-semibold text-[#404042] mr-2">Address</span>
           <select disabled className="border-2 border-[#e5e7eb] bg-gray-100 text-[#404042] px-2 py-1 rounded">
-            {advertisers.filter(a => formData.advertiserIds.includes(a.id)).map(a => (
+            {advertisers.filter(a => a.id && formData.advertiserIds.includes(a.id)).map(a => (
               <option key={a.id} value={a.id}>{a.addresses?.[0]?.address || "-"}</option>
             ))}
           </select>

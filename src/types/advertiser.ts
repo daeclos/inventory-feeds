@@ -8,7 +8,7 @@ export interface Address {
 }
 
 export interface Advertiser {
-  id: string;
+  id?: string;
   name: string;
   totalRecords: number;
   lastUpdate: string;
@@ -26,6 +26,7 @@ export interface Advertiser {
   placeId?: string;
   responsible?: string;
   deactivationDate?: string;
+  createdAt: string;
   FeatureDisplay?: boolean;
   FeatureDisplayDate?: string;
   FeatureVideo?: boolean;
@@ -45,6 +46,10 @@ export interface Advertiser {
   GoogleAdsCustomerId2?: string;
   AdCustomizersEnabled?: boolean;
   AdCustomizersDeactivationDate?: string;
+  GoogleAdCustomizersEnabled?: boolean;
+  GoogleAdCustomizersDeactivationDate?: string;
+  FacebookAdCustomizersEnabled?: boolean;
+  FacebookAdCustomizersDeactivationDate?: string;
   hasWebInventory: boolean;
 }
 
@@ -84,6 +89,10 @@ export interface AdvertiserFormData {
   // Ad Customizers fields
   AdCustomizersEnabled?: boolean;
   AdCustomizersDeactivationDate?: string;
+  GoogleAdCustomizersEnabled?: boolean;
+  GoogleAdCustomizersDeactivationDate?: string;
+  FacebookAdCustomizersEnabled?: boolean;
+  FacebookAdCustomizersDeactivationDate?: string;
   // Special Requests fields
   CustomFeedRequest?: boolean;
   CustomFeedRequirements?: string;

@@ -23,6 +23,15 @@ export function AdvertiserRow({ advertiser }: Props) {
   const router = useRouter();
   const [openAlerts, setOpenAlerts] = React.useState(false);
 
+  // Función para calcular los días de historia
+  const calculateHistoryDays = (createdAt: string) => {
+    const startDate = new Date(createdAt);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return `${diffDays} days`;
+  };
+
   // Mock de alertas para este anunciante
   const alerts = [
     {
@@ -88,7 +97,7 @@ export function AdvertiserRow({ advertiser }: Props) {
       {/* Responsive: solo mostrar estas columnas en md+ */}
       <td className="px-4 py-2 text-center hidden md:table-cell">{advertiser.totalRecords}</td>
       <td className="px-4 py-2 text-center hidden md:table-cell">{advertiser.lastUpdate}</td>
-      <td className="px-4 py-2 text-center hidden md:table-cell">{advertiser.history}</td>
+      <td className="px-4 py-2 text-center hidden md:table-cell">{calculateHistoryDays(advertiser.createdAt)}</td>
       <td className="px-4 py-2 text-center hidden md:table-cell">{advertiser.customFeeds}</td>
       <td className="px-4 py-2 text-center hidden md:table-cell">{advertiser.videoTemplates}</td>
       <td className="px-4 py-2 text-center hidden md:table-cell">{advertiser.videoAdVersions}</td>

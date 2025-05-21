@@ -60,7 +60,7 @@ export default function AddAdvertiserModal({
     { key: "Name", label: "Name", required: true },
     { key: "DBA", label: "Advertiser DBA" },
     { key: "Website", label: "Website", required: true },
-    { key: "Country", label: "Country", type: 'select', options: ['USA', 'Canada', 'Australia', 'United Kingdom', 'Puerto Rico', 'Mexico'] },
+    { key: "Country", label: "Country", type: 'select', options: ['USA'] },
     { key: "Address", label: "Address", required: true },
     { key: "City", label: "City", required: true },
     { key: "State", label: "State", type: 'select', options: [
@@ -101,61 +101,83 @@ export default function AddAdvertiserModal({
     setLocalData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    const newAdv = {
-      id: uuidv4(),
-      name: localData.Name ?? "Unnamed",
-      lastUpdate: new Date().toLocaleString(),
-      totalRecords: 0,
-      history: "0 days",
-      customFeeds: !!localData.FeatureDisplay ? 1 : 0,
-      videoTemplates: !!localData.FeatureVideo ? 1 : 0,
-      videoAdVersions: !!localData.FeatureSearch ? 1 : 0,
-      hasAds: !!localData.Status,
-      dba: localData.DBA || '',
-      status: !!localData.Status,
-      website: localData.Website || '',
-      addresses: localData.Address
-        ? [{
-            country: localData.Country || '',
-            address: localData.Address || '',
-            city: localData.City || '',
-            state: localData.State || '',
-            zip: localData.Zip || '',
-          }]
-        : [],
-      phone: localData.Phone || '',
-      gmb: localData.GMB || '',
-      placeId: localData.GooglePlaceId || '',
-      responsible: localData.Responsible || '',
-      deactivationDate: undefined,
-      FeatureDisplay: !!localData.FeatureDisplay,
-      FeatureDisplayDate: localData.FeatureDisplayDate || '',
-      FeatureVideo: !!localData.FeatureVideo,
-      FeatureVideoDate: localData.FeatureVideoDate || '',
-      FeatureSearch: !!localData.FeatureSearch,
-      FeatureSearchDate: localData.FeatureSearchDate || '',
-      // Dynamic Display Feeds fields
-      GTMAccountId: localData.GTMAccountId || '',
-      GTMContainerId: localData.GTMContainerId || '',
-      ManualGTMPrivileges: !!localData.ManualGTMPrivileges,
-      FacebookPixelId: localData.FacebookPixelId || '',
-      GoogleAdsConversionId: localData.GoogleAdsConversionId || '',
-      BingRemarketingId: localData.BingRemarketingId || '',
-      RequestScriptInstall: !!localData.RequestScriptInstall,
-      // Google Ads Integration fields
-      GoogleAdsCustomerId: localData.GoogleAdsCustomerId || '',
-      GoogleAdsCustomerId2: localData.GoogleAdsCustomerId2 || '',
-      AdCustomizersEnabled: !!localData.AdCustomizersEnabled,
-      AdCustomizersDeactivationDate: localData.AdCustomizersDeactivationDate || '',
-      // Special Requests fields
-      AdditionalNotes: localData.AdditionalNotes || '',
-      hasWebInventory: false,
-    };
-    addAdvertiser(newAdv);
-    setAdvertiserData({});
-    setLocalData({});
-    setIsDialogOpen(false);
+  const handleSave = async () => {
+    try {
+      const newAdvertiser = {
+        name: localData.Name ?? "Unnamed",
+        lastUpdate: new Date().toISOString(),
+        totalRecords: 0,
+        history: "0 days",
+        customFeeds: !!localData.FeatureDisplay ? 1 : 0,
+        videoTemplates: !!localData.FeatureVideo ? 1 : 0,
+        videoAdVersions: !!localData.FeatureSearch ? 1 : 0,
+        hasAds: !!localData.Status,
+        dba: localData.DBA || '',
+        status: !!localData.Status,
+        website: localData.Website || '',
+        addresses: localData.Address
+          ? [{
+              country: 'USA',
+              address: localData.Address || '',
+              city: localData.City || '',
+              state: localData.State || '',
+              zip: localData.Zip || '',
+            }]
+          : [],
+        phone: localData.Phone || '',
+        gmb: localData.GMB || '',
+        placeId: localData.GooglePlaceId || '',
+        responsible: localData.Responsible || '',
+        deactivationDate: undefined,
+        createdAt: new Date().toISOString(),
+        FeatureDisplay: !!localData.FeatureDisplay,
+        FeatureDisplayDate: localData.FeatureDisplayDate || '',
+        FeatureVideo: !!localData.FeatureVideo,
+        FeatureVideoDate: localData.FeatureVideoDate || '',
+        FeatureSearch: !!localData.FeatureSearch,
+        FeatureSearchDate: localData.FeatureSearchDate || '',
+        // Dynamic Display Feeds fields
+        GTMAccountId: localData.GTMAccountId || '',
+        GTMContainerId: localData.GTMContainerId || '',
+        ManualGTMPrivileges: !!localData.ManualGTMPrivileges,
+        FacebookPixelId: localData.FacebookPixelId || '',
+        GoogleAdsConversionId: localData.GoogleAdsConversionId || '',
+        BingRemarketingId: localData.BingRemarketingId || '',
+        RequestScriptInstall: !!localData.RequestScriptInstall,
+        // Google Ads Integration fields
+        GoogleAdsCustomerId: localData.GoogleAdsCustomerId || '',
+        GoogleAdsCustomerId2: localData.GoogleAdsCustomerId2 || '',
+        AdCustomizersEnabled: !!localData.GoogleAdCustomizersEnabled || !!localData.FacebookAdCustomizersEnabled,
+        AdCustomizersDeactivationDate: localData.GoogleAdCustomizersDeactivationDate || localData.FacebookAdCustomizersDeactivationDate || '',
+        GoogleAdCustomizersEnabled: !!localData.GoogleAdCustomizersEnabled,
+        GoogleAdCustomizersDeactivationDate: localData.GoogleAdCustomizersDeactivationDate || '',
+        FacebookAdCustomizersEnabled: !!localData.FacebookAdCustomizersEnabled,
+        FacebookAdCustomizersDeactivationDate: localData.FacebookAdCustomizersDeactivationDate || '',
+        // Special Requests fields
+        AdditionalNotes: localData.AdditionalNotes || '',
+        hasWebInventory: false,
+      };
+
+      // TODO: Implementar la llamada a Supabase cuando esté disponible
+      // const { data, error } = await supabase
+      //   .from('advertisers')
+      //   .insert([newAdvertiser])
+      //   .select()
+      //   .single();
+
+      // if (error) throw error;
+
+      // Por ahora, usamos el store local
+      addAdvertiser(newAdvertiser);
+      
+      setAdvertiserData({});
+      setLocalData({});
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving advertiser:', error);
+      // TODO: Implementar manejo de errores apropiado
+      alert('Error saving advertiser. Please try again.');
+    }
   };
 
   const handleNextStep = () => {
@@ -379,52 +401,114 @@ export default function AddAdvertiserModal({
               </div>
             </div>
 
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-100 rounded-xl p-4">
-              <div className="flex items-center gap-4 flex-wrap">
-                <Switch
-                  id="AdCustomizersEnabled"
-                  checked={Boolean(localData.AdCustomizersEnabled)}
-                  onCheckedChange={(v: boolean) => {
-                    handleChange("AdCustomizersEnabled", v);
-                    if (!v) handleChange("AdCustomizersDeactivationDate", "");
-                  }}
-                />
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 border-gray-300 text-[#404042]"
-                  onClick={() => {
-                    alert("Download starter file not implemented yet.");
-                  }}
-                >
-                  <span>Responsive Search Ads</span>
-                </Button>
-                <div className="relative group">
-                  <div className="w-4 h-4 bg-blue-500 text-white rounded-full flex items-center justify-center cursor-pointer text-xs">i</div>
-                  <div className="absolute left-0 mt-2 w-72 bg-blue-100 text-sm text-blue-900 p-4 rounded shadow-lg z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                    Google Ad Customizers allow search ads to be updated on a regular basis with the count and minimum price attributes within an expanded text ad. Click the download button for the initial starter file, or follow the steps outlined within the help documentation found here: https://hootinteractive.atlassian.net
+            {/* Ad Customizer Section */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-bold text-[#404042]">Ad Customizer Configuration</h3>
+              
+              {/* Google Ads Ad Customizer */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-100 rounded-xl p-4">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="GoogleAdCustomizersEnabled"
+                      checked={Boolean(localData.GoogleAdCustomizersEnabled)}
+                      onCheckedChange={(v: boolean) => {
+                        handleChange("GoogleAdCustomizersEnabled", v);
+                        if (!v) handleChange("GoogleAdCustomizersDeactivationDate", "");
+                      }}
+                    />
+                    <Label htmlFor="GoogleAdCustomizersEnabled" className="font-semibold">Google Ads Ad Customizer</Label>
                   </div>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2 border-gray-300 text-[#404042]"
+                    onClick={() => {
+                      alert("Download Google Ads starter file not implemented yet.");
+                    }}
+                  >
+                    <span>Responsive Search Ads</span>
+                  </Button>
+                  <div className="relative group">
+                    <div className="w-4 h-4 bg-blue-500 text-white rounded-full flex items-center justify-center cursor-pointer text-xs">i</div>
+                    <div className="absolute left-0 mt-2 w-72 bg-blue-100 text-sm text-blue-900 p-4 rounded shadow-lg z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Google Ad Customizers allow search ads to be updated on a regular basis with the count and minimum price attributes within an expanded text ad.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 md:mt-0">
+                  <Label htmlFor="GoogleAdCustomizersDeactivationDate" className="block font-semibold">Deactivation Date</Label>
+                  <DatePicker
+                    disabled={!localData.GoogleAdCustomizersEnabled}
+                    selected={
+                      localData.GoogleAdCustomizersDeactivationDate
+                        ? new Date(localData.GoogleAdCustomizersDeactivationDate as string)
+                        : null
+                    }
+                    onChange={(d) => handleChange("GoogleAdCustomizersDeactivationDate", d?.toISOString() || "")}
+                    customInput={
+                      <Button variant="outline" className="flex items-center gap-2 border-gray-300 text-[#404042]">
+                        <CalendarIcon className="h-4 w-4" />
+                        {localData.GoogleAdCustomizersDeactivationDate
+                          ? new Date(localData.GoogleAdCustomizersDeactivationDate).toLocaleDateString()
+                          : "Select Date"}
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
 
-              <div className="mt-4 md:mt-0">
-                <Label htmlFor="AdCustomizersDeactivationDate" className="block font-semibold">Deactivation Date</Label>
-                <DatePicker
-                  disabled={!localData.AdCustomizersEnabled}
-                  selected={
-                    localData.AdCustomizersDeactivationDate
-                      ? new Date(localData.AdCustomizersDeactivationDate as string)
-                      : null
-                  }
-                  onChange={(d) => handleChange("AdCustomizersDeactivationDate", d?.toISOString() || "")}
-                  customInput={
-                    <Button variant="outline" className="flex items-center gap-2 border-gray-300 text-[#404042]">
-                      <CalendarIcon className="h-4 w-4" />
-                      {localData.AdCustomizersDeactivationDate
-                        ? new Date(localData.AdCustomizersDeactivationDate).toLocaleDateString()
-                        : "Select Date"}
-                    </Button>
-                  }
-                />
+              {/* Facebook Ads Ad Customizer */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-100 rounded-xl p-4">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="FacebookAdCustomizersEnabled"
+                      checked={Boolean(localData.FacebookAdCustomizersEnabled)}
+                      onCheckedChange={(v: boolean) => {
+                        handleChange("FacebookAdCustomizersEnabled", v);
+                        if (!v) handleChange("FacebookAdCustomizersDeactivationDate", "");
+                      }}
+                    />
+                    <Label htmlFor="FacebookAdCustomizersEnabled" className="font-semibold">Facebook Ads Ad Customizer</Label>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2 border-gray-300 text-[#404042]"
+                    onClick={() => {
+                      alert("Download Facebook Ads starter file not implemented yet.");
+                    }}
+                  >
+                    <span>Dynamic Ads</span>
+                  </Button>
+                  <div className="relative group">
+                    <div className="w-4 h-4 bg-blue-500 text-white rounded-full flex items-center justify-center cursor-pointer text-xs">i</div>
+                    <div className="absolute left-0 mt-2 w-72 bg-blue-100 text-sm text-blue-900 p-4 rounded shadow-lg z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Facebook Dynamic Ads allow you to automatically promote your inventory to people who have expressed interest in your products.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 md:mt-0">
+                  <Label htmlFor="FacebookAdCustomizersDeactivationDate" className="block font-semibold">Deactivation Date</Label>
+                  <DatePicker
+                    disabled={!localData.FacebookAdCustomizersEnabled}
+                    selected={
+                      localData.FacebookAdCustomizersDeactivationDate
+                        ? new Date(localData.FacebookAdCustomizersDeactivationDate as string)
+                        : null
+                    }
+                    onChange={(d) => handleChange("FacebookAdCustomizersDeactivationDate", d?.toISOString() || "")}
+                    customInput={
+                      <Button variant="outline" className="flex items-center gap-2 border-gray-300 text-[#404042]">
+                        <CalendarIcon className="h-4 w-4" />
+                        {localData.FacebookAdCustomizersDeactivationDate
+                          ? new Date(localData.FacebookAdCustomizersDeactivationDate).toLocaleDateString()
+                          : "Select Date"}
+                      </Button>
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>
