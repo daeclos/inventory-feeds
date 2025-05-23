@@ -1,10 +1,9 @@
 "use client";
 
-import DashboardLayout from "@/components/ui/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Table, TableHead, TableRow, TableCell, TableBody } from "@/components/ui/table";
-import { Edit2, Copy, Search, FileText, Trash2, Download } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import { Edit2, Copy, Search, FileText, Trash2 } from "lucide-react";
+import React, { useState } from "react";
 import { useAdvertiserStore } from '@/store/advertiserStore';
 import { useRouter } from "next/navigation";
 import { AdvertiserFeedsAccordion } from "./components/AdvertiserFeedsAccordion";

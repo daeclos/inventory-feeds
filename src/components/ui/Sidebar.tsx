@@ -23,6 +23,21 @@ import React from "react";
 import Image from "next/image";
 import { useSidebarStore } from "@/lib/store/sidebar";
 
+interface NavItemProps {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  collapsed: boolean;
+}
+
+interface DropdownSectionProps {
+  icon: React.ReactNode;
+  title: string;
+  id: string;
+  children: React.ReactNode;
+  collapsed: boolean;
+}
+
 export function Sidebar() {
   const pathname = usePathname();
   const { expanded, setExpanded } = useSidebarStore();
@@ -49,7 +64,7 @@ export function Sidebar() {
     });
   };
 
-  const NavItem = ({ href, icon, label, collapsed }: any) => {
+  const NavItem = ({ href, icon, label, collapsed }: NavItemProps) => {
     const isActive = pathname === href;
     return (
       <li>
@@ -68,7 +83,7 @@ export function Sidebar() {
     );
   };
 
-  const DropdownSection = ({ icon, title, id, children, collapsed }: any) => {
+  const DropdownSection = ({ icon, title, id, children, collapsed }: DropdownSectionProps) => {
     const isOpen = openMenus[id as keyof typeof openMenus];
     return (
       <div className="mb-2 relative">

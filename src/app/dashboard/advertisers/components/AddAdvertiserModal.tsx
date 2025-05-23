@@ -97,7 +97,7 @@ export default function AddAdvertiserModal({
       "Connects to Google Ads and updates ad groups based on daily inventory.",
   };
 
-  const handleChange = (field: keyof AdvertiserFormData, value: unknown) => {
+  const handleChange = (field: keyof AdvertiserFormData, value: string | boolean | Date | null) => {
     setLocalData((prev) => ({ ...prev, [field]: value }));
   };
 
