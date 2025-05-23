@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAdvertiserStore } from '@/store/advertiserStore';
 import { STEPS } from "@/constants/steps";
@@ -19,7 +19,8 @@ import { VideoAds } from "./components/VideoAds";
 import { Advertiser } from "@/types/advertiser";
 import clsx from "clsx";
 
-export default function AdvertiserSettingsPage() {
+// Componente cliente que usa useSearchParams
+function AdvertiserSettingsContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -54,6 +55,10 @@ export default function AdvertiserSettingsPage() {
   }
 
   const handleSave = () => {
+    if (!advertiser.id) {
+      alert("Error: Advertiser ID is missing");
+      return;
+    }
     updateAdvertiser(advertiser.id, advertiser);
     alert("Advertiser updated!");
     router.push("/dashboard/advertisers");
@@ -66,73 +71,82 @@ export default function AdvertiserSettingsPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className={clsx(
-        "mx-auto px-4 py-8 relative",
-        tab === "inventory-feeds" ? "max-w-7xl" : "max-w-5xl"
-      )}>
-        <h1 className="text-3xl font-bold mb-2" style={{ color: CORPORATE_COLORS.dark }}>
-          {advertiser.name}
-        </h1>
-        {/* CMS, ID y Token en la parte superior derecha */}
-        <div className="absolute right-0 top-0 flex flex-col items-end gap-1 text-xs text-gray-500">
-          <div>
-            <span className="font-semibold text-[#2A6BE9]">CMS:</span> <span>{(advertiser as any)?.cms || "-"}</span>
-          </div>
-          <div>
-            <span className="font-semibold">ID:</span> <span>{advertiser.id || "-"}</span> <span className="ml-2 font-semibold">Token:</span> <span>{(advertiser as any)?.token || "-"}</span>
-          </div>
+    <div className={clsx(
+      "mx-auto px-4 py-8 relative",
+      tab === "inventory-feeds" ? "max-w-7xl" : "max-w-5xl"
+    )}>
+      <h1 className="text-3xl font-bold mb-2" style={{ color: CORPORATE_COLORS.dark }}>
+        {advertiser.name}
+      </h1>
+      {/* CMS, ID y Token en la parte superior derecha */}
+      <div className="absolute right-0 top-0 flex flex-col items-end gap-1 text-xs text-gray-500">
+        <div>
+          <span className="font-semibold text-[#2A6BE9]">CMS:</span> <span>{(advertiser as any)?.cms || "-"}</span>
         </div>
-        {/* Aquí se mostrarán CMS, ID y Token cuando se integren desde la base de datos */}
-        <div className="border-b border-gray-200 mb-4" />
-        {/* Tabs de navegación estilo Hoot Interactive */}
-        <AdvertiserTabs currentStep={step} stepLabel={STEPS[step]?.label} />
-        <div className="border-b border-gray-100 mb-8" />
-        {tab === "settings" && (
-          <>
-            <Stepper
-              steps={STEPS}
-              currentStep={step}
-              onStepClick={setStep}
-            />
-            <div className="bg-white rounded-xl shadow p-6 border border-gray-200">
-              {step === 0 && (
-                <AdvertiserDetails
-                  advertiser={advertiser}
-                  onChange={handleAdvertiserChange}
-                />
-              )}
-              {step === 1 && (
-                <Features
-                  advertiser={advertiser}
-                  onChange={handleAdvertiserChange}
-                />
-              )}
-              {step === 2 && (
-                <DynamicDisplayFeeds
-                  advertiser={advertiser}
-                  onChange={handleAdvertiserChange}
-                />
-              )}
-              {step === 3 && (
-                <GoogleAdsIntegration
-                  advertiser={advertiser}
-                  onChange={handleAdvertiserChange}
-                />
-              )}
-            </div>
-            <div className="flex justify-end mt-8">
-              <Button onClick={handleSave}>
-                Save changes
-              </Button>
-            </div>
-          </>
-        )}
-        {tab === "google-ads-status" && <GoogleAdsStatusReports />}
-        {tab === "search-templates" && <SearchTemplates advertiser={advertiser} />}
-        {tab === "inventory-feeds" && <InventoryFeeds />}
-        {tab === "video-ads" && <VideoAds />}
+        <div>
+          <span className="font-semibold">ID:</span> <span>{advertiser.id || "-"}</span> <span className="ml-2 font-semibold">Token:</span> <span>{(advertiser as any)?.token || "-"}</span>
+        </div>
       </div>
+      {/* Aquí se mostrarán CMS, ID y Token cuando se integren desde la base de datos */}
+      <div className="border-b border-gray-200 mb-4" />
+      {/* Tabs de navegación estilo Hoot Interactive */}
+      <AdvertiserTabs currentStep={step} stepLabel={STEPS[step]?.label} />
+      <div className="border-b border-gray-100 mb-8" />
+      {tab === "settings" && (
+        <>
+          <Stepper
+            steps={STEPS}
+            currentStep={step}
+            onStepClick={setStep}
+          />
+          <div className="bg-white rounded-xl shadow p-6 border border-gray-200">
+            {step === 0 && (
+              <AdvertiserDetails
+                advertiser={advertiser}
+                onChange={handleAdvertiserChange}
+              />
+            )}
+            {step === 1 && (
+              <Features
+                advertiser={advertiser}
+                onChange={handleAdvertiserChange}
+              />
+            )}
+            {step === 2 && (
+              <DynamicDisplayFeeds
+                advertiser={advertiser}
+                onChange={handleAdvertiserChange}
+              />
+            )}
+            {step === 3 && (
+              <GoogleAdsIntegration
+                advertiser={advertiser}
+                onChange={handleAdvertiserChange}
+              />
+            )}
+          </div>
+          <div className="flex justify-end mt-8">
+            <Button onClick={handleSave}>
+              Save changes
+            </Button>
+          </div>
+        </>
+      )}
+      {tab === "google-ads-status" && <GoogleAdsStatusReports />}
+      {tab === "search-templates" && <SearchTemplates advertiser={advertiser} />}
+      {tab === "inventory-feeds" && <InventoryFeeds />}
+      {tab === "video-ads" && <VideoAds />}
+    </div>
+  );
+}
+
+// Componente principal que envuelve el contenido en Suspense
+export default function AdvertiserSettingsPage() {
+  return (
+    <DashboardLayout>
+      <Suspense fallback={<div className="p-8 text-center text-xl">Loading...</div>}>
+        <AdvertiserSettingsContent />
+      </Suspense>
     </DashboardLayout>
   );
 } 

@@ -19,28 +19,28 @@ export default function AlertsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getAlerts(
+          {
+            ...filters,
+            search: search || undefined
+          },
+          page,
+          10
+        );
+        setAlerts(response.data);
+        setTotalPages(response.totalPages);
+      } catch (error) {
+        console.error("Error fetching alerts:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchAlerts();
   }, [page, filters, search]);
-
-  const fetchAlerts = async () => {
-    try {
-      setIsLoading(true);
-      const response = await getAlerts(
-        {
-          ...filters,
-          search: search || undefined
-        },
-        page,
-        10
-      );
-      setAlerts(response.data);
-      setTotalPages(response.totalPages);
-    } catch (error) {
-      console.error("Error fetching alerts:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleAlertClick = (alert: Alert) => {
     setSelectedAlert(alert);

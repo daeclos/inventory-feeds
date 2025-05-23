@@ -283,7 +283,7 @@ export default function NewPrebuildTemplatePage() {
   const [showAdTypeDropdown, setShowAdTypeDropdown] = useState(false);
   const adTypeBtnRef = useRef<HTMLButtonElement | null>(null);
   const [adTypeDropdownPos, setAdTypeDropdownPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
-  const [adsPanels, setAdsPanels] = useState({ responsive: true, callonly: true });
+  const [adsPanels, setAdsPanels] = useState({ responsive: false, callonly: false });
   const [selectedKeywords, setSelectedKeywords] = useState<number[]>([]);
   const [newMatchType, setNewMatchType] = useState("Broad");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -616,7 +616,7 @@ export default function NewPrebuildTemplatePage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <div className="bg-white border border-[#FAAE3A]/30 rounded-xl shadow p-6 mb-8">
+          <div className="bg-white border border-gray-200 rounded-xl shadow p-6 mb-8">
             <h2 className="text-lg font-semibold mb-4" style={{ color: '#404042' }}>Template Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               <div className="flex flex-col gap-4">
@@ -705,8 +705,8 @@ export default function NewPrebuildTemplatePage() {
               </div>
             </div>
           </div>
-          <div className="bg-white border border-[#FAAE3A]/30 rounded-xl shadow p-6 mb-8">
-            <div className="flex gap-0 border-b border-[#FAAE3A] bg-[#FFF8E1] rounded-t-xl overflow-x-auto mb-6">
+          <div className="bg-white border border-gray-200 rounded-xl shadow p-6 mb-8">
+            <div className="flex gap-0 border-b border-[#faad39ff] bg-[#FFF8E1] rounded-t-xl overflow-x-auto mb-6">
               {[
                 { key: "campaign", label: "Campaign Naming" },
                 { key: "adgroup", label: "Ad Group Naming" },
@@ -719,7 +719,7 @@ export default function NewPrebuildTemplatePage() {
                   className={clsx(
                     "px-6 py-3 font-semibold text-sm transition-all focus:outline-none",
                     activeTab === tab.key
-                      ? "bg-[#faad39ff] text-[#404042] border-b-4 border-[#faad39ff] rounded-t-xl"
+                      ? "bg-[#FFF8E1] text-[#404042] border-b-4 border-[#faad39ff] rounded-t-xl"
                       : "bg-white text-[#404042]/70 border-b-4 border-transparent hover:bg-[#FFF3D1] rounded-t-lg"
                   )}
                   onClick={() => setActiveTab(tab.key)}
@@ -762,486 +762,400 @@ export default function NewPrebuildTemplatePage() {
               </div>
             )}
             {activeTab === "adgroup" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-                <div className="flex flex-col gap-4">
-                  <label className="font-semibold text-[#404042]">Ad Group Name</label>
-                  <AdGroupNameTags
-                    value={form.adGroupName}
-                    onChange={(value) => handleFormChange('adGroupName', value)}
-                    inputRef={adGroupInputRef}
-                    onKeyDown={handleAdGroupNameKeyDown}
-                    setShowDropdown={setShowAdGroupPlaceholderDropdown}
-                  />
-                  {showAdGroupPlaceholderDropdown && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: adGroupPlaceholderDropdownPos.top,
-                        left: adGroupPlaceholderDropdownPos.left,
-                        width: adGroupPlaceholderDropdownPos.width,
-                        zIndex: 1000,
-                        background: "white",
-                        border: "1px solid #faad39ff",
-                        borderRadius: 8,
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                        padding: 4,
-                      }}
-                    >
-                      {adGroupPlaceholders.map(ph => (
-                        <div
-                          key={ph}
-                          className="px-4 py-2 cursor-pointer hover:bg-[#FFF3D1] text-[#404042]"
-                          onMouseDown={e => { e.preventDefault(); handleSelectAdGroupPlaceholder(ph); }}
-                        >
-                          {ph}
-                        </div>
-                      ))}
+              <div className="bg-white border rounded-xl p-6">
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="font-semibold text-[#404042]">Ad Group Name</Label>
+                      <button type="button" className="flex items-center gap-1 text-[#404042] hover:text-[#faad39ff]">
+                        <Info className="w-4 h-4" />
+                      </button>
                     </div>
-                  )}
-                  <label className="font-semibold text-[#404042]">Ad Group Status</label>
-                  <select className="w-full min-w-0 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#faad39ff] focus:outline-none text-[#404042]" value={form.adGroupStatus} onChange={e => handleFormChange('adGroupStatus', e.target.value)}>
-                    <option>Paused</option>
-                    <option>Active</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-4">
-                  <label className="font-semibold text-[#404042]">Final URL</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      className="w-full min-w-0 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#faad39ff] focus:outline-none text-[#404042]"
-                      value={form.finalUrl}
-                      onChange={e => handleFormChange('finalUrl', e.target.value)}
-                      onKeyDown={handleFinalUrlKeyDown}
-                      ref={finalUrlInputRef}
-                      placeholder="Final URL"
-                    />
-                    <span className="material-icons text-[#1976D2] cursor-pointer" title="Help">help_outline</span>
+                    <div className="relative">
+                      <AdGroupNameTags
+                        value={form.adGroupName}
+                        onChange={(value) => handleFormChange('adGroupName', value)}
+                        inputRef={adGroupInputRef}
+                        onKeyDown={handleAdGroupNameKeyDown}
+                        setShowDropdown={setShowAdGroupPlaceholderDropdown}
+                      />
+                      {showAdGroupPlaceholderDropdown && (
+                        <div
+                          className="absolute left-0 mt-1 w-full bg-white border border-[#faad39ff] rounded-lg shadow-lg z-50"
+                        >
+                          {adGroupPlaceholders.map(ph => (
+                            <div
+                              key={ph}
+                              className="px-4 py-2 cursor-pointer hover:bg-gray-50 text-[#404042]"
+                              onMouseDown={e => { e.preventDefault(); handleSelectAdGroupPlaceholder(ph); }}
+                            >
+                              {ph}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {showFinalUrlDropdown && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: finalUrlDropdownPos.top,
-                        left: finalUrlDropdownPos.left,
-                        width: finalUrlDropdownPos.width,
-                        zIndex: 1000,
-                        background: "white",
-                        border: "1px solid #faad39ff",
-                        borderRadius: 8,
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                        padding: 4,
-                      }}
+
+                  <div className="flex flex-col gap-2">
+                    <Label className="font-semibold text-[#404042]">Ad Group Status</Label>
+                    <select
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#faad39ff] text-[#404042]"
+                      value={form.adGroupStatus}
+                      onChange={e => handleFormChange('adGroupStatus', e.target.value)}
                     >
-                      {adGroupPlaceholders.map(ph => (
-                        <div
-                          key={ph}
-                          className="px-4 py-2 cursor-pointer hover:bg-[#FFF3D1] text-[#404042]"
-                          onMouseDown={e => { e.preventDefault(); handleSelectFinalUrlPlaceholder(ph); }}
-                        >
-                          {ph}
-                        </div>
-                      ))}
+                      <option>Paused</option>
+                      <option>Active</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="font-semibold text-[#404042]">Final URL</Label>
+                      <button type="button" className="flex items-center gap-1 text-[#404042] hover:text-[#faad39ff]">
+                        <Info className="w-4 h-4" />
+                      </button>
                     </div>
-                  )}
+                    <div className="relative">
+                      <input
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#faad39ff] text-[#404042]"
+                        value={form.finalUrl}
+                        onChange={e => handleFormChange('finalUrl', e.target.value)}
+                        onKeyDown={handleFinalUrlKeyDown}
+                        ref={finalUrlInputRef}
+                        placeholder="Final URL"
+                      />
+                      {showFinalUrlDropdown && (
+                        <div
+                          className="absolute left-0 mt-1 w-full bg-white border border-[#faad39ff] rounded-lg shadow-lg z-50"
+                        >
+                          {adGroupPlaceholders.map(ph => (
+                            <div
+                              key={ph}
+                              className="px-4 py-2 cursor-pointer hover:bg-gray-50 text-[#404042]"
+                              onMouseDown={e => { e.preventDefault(); handleSelectFinalUrlPlaceholder(ph); }}
+                            >
+                              {ph}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
             {activeTab === "ads" && (
-              <div className="flex flex-col gap-6">
-                <div className="border border-[#FAAE3A]/20 rounded-lg bg-[#FFF8E1]">
-                  <button
-                    type="button"
-                    className="w-full flex justify-between items-center px-4 py-2 border-b border-[#FAAE3A]/20 text-[#404042] font-semibold focus:outline-none"
+              <div className="bg-white border rounded-xl p-6">
+                {/* Panel Responsive Search Ads */}
+                <div className="mb-4">
+                  <div
+                    className="border rounded bg-gray-100 px-4 py-3 font-semibold cursor-pointer"
+                    style={{ color: '#404042', borderColor: '#faad39ff' }}
                     onClick={() => setAdsPanels(p => ({ ...p, responsive: !p.responsive }))}
                   >
-                    <span>Responsive Search Ads</span>
-                    <span
-                      className={`transition-transform duration-200 ${adsPanels.responsive ? 'rotate-0' : 'rotate-180'}`}
-                      style={{ display: 'flex', alignItems: 'center' }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7 10l5 5 5-5" stroke="#404042" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </span>
-                  </button>
+                    Responsive Search Ads
+                  </div>
                   {adsPanels.responsive && (
-                    <div className="p-4 sm:p-8 mb-4 sm:mb-8">
-                      {responsiveAds.length === 0 ? (
-                        <div className="text-[#404042]/80 text-sm mb-4">
+                    <div>
+                      {responsiveAds.length === 0 && (
+                        <div className="bg-[#FFF8E1] border border-[#faad39ff] text-[#404042] px-4 py-3 rounded mt-2 mb-2">
                           There are no Responsive Search Ads added, if you like, you can add one by clicking the plus sign.
                         </div>
-                      ) : null}
+                      )}
                       {responsiveAds.map((ad, idx) => (
-                        <div key={idx} className="border border-[#faad39ff] rounded-xl p-8 bg-[#FFF8E1] mb-8 shadow-sm">
-                          <div className="flex items-center gap-4 mb-6">
-                            <span className="font-bold text-[#404042] text-lg">Responsive Search Ads</span>
-                            <Button variant="destructive" className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-semibold rounded-lg px-6 py-2" onClick={() => handleRemoveResponsiveAd(idx)}>Delete Ad</Button>
-                            <Button
-                              variant="outline"
-                              className="ml-auto border border-[#404042] text-[#404042] bg-white hover:bg-[#FFF3D1] font-semibold rounded-lg px-6 py-2"
-                              onClick={() => setShowResponsiveAlt(v => !v)}
-                            >
+                        <div className="p-4 border rounded-xl bg-white mb-4" key={idx}>
+                          <div className="font-semibold mb-2" style={{ color: '#404042' }}>Responsive Search Ads</div>
+                          <div className="mb-4">
+                            <div className="font-semibold mb-2">Headlines</div>
+                            {ad.headlines.map((h, i) => (
+                              <div key={i} className="flex items-center gap-2 mb-2">
+                                <Label className="w-32">Headline {i+1}</Label>
+                                <input
+                                  value={h}
+                                  maxLength={30}
+                                  onChange={e => setResponsiveAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, headlines: a.headlines.map((v, vi) => vi === i ? e.target.value : v) } : a))}
+                                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 bg-white text-[#404042]"
+                                />
+                                <span className="text-xs text-gray-500">{h.length} / 30 chars</span>
+                              </div>
+                            ))}
+                            <div className="flex gap-2 mb-2">
+                              <Button size="icon" variant="default" onClick={() => setResponsiveAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, headlines: [...a.headlines, ""], headlinesAlt: [...a.headlinesAlt, ""] } : a))}>+</Button>
+                              <Button size="icon" variant="destructive" onClick={() => setResponsiveAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, headlines: a.headlines.slice(0, -1), headlinesAlt: a.headlinesAlt.slice(0, -1) } : a))}>-</Button>
+                            </div>
+                            {showResponsiveAlt && ad.headlinesAlt.map((h, i) => (
+                              <div key={i} className="flex items-center gap-2 mb-2">
+                                <Label className="w-32">Headline {i+1} Alternate</Label>
+                                <input
+                                  value={h}
+                                  maxLength={30}
+                                  onChange={e => setResponsiveAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, headlinesAlt: a.headlinesAlt.map((v, vi) => vi === i ? e.target.value : v) } : a))}
+                                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 bg-white text-[#404042]"
+                                />
+                                <span className="text-xs text-gray-500">{h.length} / 30 chars</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mb-4">
+                            <div className="font-semibold mb-2">Descriptions</div>
+                            {ad.descriptions.map((d, i) => (
+                              <div key={i} className="flex items-center gap-2 mb-2">
+                                <Label className="w-32">Description {i+1}</Label>
+                                <input
+                                  value={d}
+                                  maxLength={90}
+                                  onChange={e => setResponsiveAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, descriptions: a.descriptions.map((v, vi) => vi === i ? e.target.value : v) } : a))}
+                                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 bg-white text-[#404042]"
+                                />
+                                <span className="text-xs text-gray-500">{d.length} / 90 chars</span>
+                              </div>
+                            ))}
+                            <div className="flex gap-2 mb-2">
+                              <Button size="icon" variant="default" onClick={() => setResponsiveAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, descriptions: [...a.descriptions, ""], descriptionsAlt: [...a.descriptionsAlt, ""] } : a))}>+</Button>
+                              <Button size="icon" variant="destructive" onClick={() => setResponsiveAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, descriptions: a.descriptions.slice(0, -1), descriptionsAlt: a.descriptionsAlt.slice(0, -1) } : a))}>-</Button>
+                            </div>
+                            {showResponsiveAlt && ad.descriptionsAlt.map((d, i) => (
+                              <div key={i} className="flex items-center gap-2 mb-2">
+                                <Label className="w-32">Description {i+1} Alternate</Label>
+                                <input
+                                  value={d}
+                                  maxLength={90}
+                                  onChange={e => setResponsiveAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, descriptionsAlt: a.descriptionsAlt.map((v, vi) => vi === i ? e.target.value : v) } : a))}
+                                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 bg-white text-[#404042]"
+                                />
+                                <span className="text-xs text-gray-500">{d.length} / 90 chars</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mb-4">
+                            <div className="font-semibold mb-2">Paths</div>
+                            {ad.paths.map((p, i) => (
+                              <div key={i} className="flex items-center gap-2 mb-2">
+                                <Label className="w-32">Path {i+1}</Label>
+                                <input
+                                  value={p}
+                                  maxLength={15}
+                                  onChange={e => setResponsiveAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, paths: a.paths.map((v, vi) => vi === i ? e.target.value : v) } : a))}
+                                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 bg-white text-[#404042]"
+                                />
+                                <span className="text-xs text-gray-500">{p.length} / 15 chars</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex gap-2 mb-4">
+                            <Button size="icon" variant="default" style={{ backgroundColor: '#faad39ff', color: '#404042' }} onClick={() => setShowResponsiveAlt(v => !v)}>
                               {showResponsiveAlt ? 'Hide alternate fields' : 'Show alternate fields'}
                             </Button>
-                          </div>
-                          <div className="mb-6">
-                            <div className="font-bold text-[#404042] mb-2">Headlines</div>
-                            {ad.headlines.map((headline, i) => (
-                              <div key={i} className="mb-2 flex items-center gap-2">
-                                <label className="w-32 font-semibold text-[#404042]">Headline {i+1}</label>
-                                <input
-                                  type="text"
-                                  value={headline}
-                                  onChange={e => handleResponsiveArrayFieldChange(idx, 'headlines', i, e.target.value)}
-                                  maxLength={30}
-                                  className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
-                                />
-                                <span className="text-xs text-[#404042]">{headline.length} / 30 chars</span>
-                              </div>
-                            ))}
-                            <div className="flex gap-2 mt-2">
-                              <Button variant="default" onClick={() => handleAddArrayField(idx, 'headlines', 15)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
-                              <Button variant="destructive" onClick={() => handleRemoveArrayField(idx, 'headlines', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
-                            </div>
-                            {showResponsiveAlt && ad.headlinesAlt.map((headline, i) => (
-                              <div key={i} className="mb-2 flex items-center gap-2">
-                                <label className="w-32 text-[#404042]">Headline {i+1} Alternate</label>
-                                <input
-                                  type="text"
-                                  value={headline}
-                                  onChange={e => handleResponsiveArrayFieldChange(idx, 'headlinesAlt', i, e.target.value)}
-                                  maxLength={30}
-                                  className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
-                                />
-                                <span className="text-xs text-[#404042]">{headline.length} / 30 chars</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="mb-6">
-                            <div className="font-bold text-[#404042] mb-2">Descriptions</div>
-                            {ad.descriptions.map((desc, i) => (
-                              <div key={i} className="mb-2 flex items-center gap-2">
-                                <label className="w-32 font-semibold text-[#404042]">Description {i+1}</label>
-                                <input
-                                  type="text"
-                                  value={desc}
-                                  onChange={e => handleResponsiveArrayFieldChange(idx, 'descriptions', i, e.target.value)}
-                                  maxLength={90}
-                                  className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
-                                />
-                                <span className="text-xs text-[#404042]">{desc.length} / 90 chars</span>
-                              </div>
-                            ))}
-                            <div className="flex gap-2 mt-2">
-                              <Button variant="default" onClick={() => handleAddArrayField(idx, 'descriptions', 4)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
-                              <Button variant="destructive" onClick={() => handleRemoveArrayField(idx, 'descriptions', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
-                            </div>
-                            {showResponsiveAlt && ad.descriptionsAlt.map((desc, i) => (
-                              <div key={i} className="mb-2 flex items-center gap-2">
-                                <label className="w-32 text-[#404042]">Description {i+1} Alternate</label>
-                                <input
-                                  type="text"
-                                  value={desc}
-                                  onChange={e => handleResponsiveArrayFieldChange(idx, 'descriptionsAlt', i, e.target.value)}
-                                  maxLength={90}
-                                  className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
-                                />
-                                <span className="text-xs text-[#404042]">{desc.length} / 90 chars</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="mb-6">
-                            <div className="font-bold text-[#404042] mb-2">Paths</div>
-                            {ad.paths.map((path, i) => (
-                              <div key={i} className="mb-2 flex items-center gap-2">
-                                <label className="w-32 font-semibold text-[#404042]">Path {i+1}</label>
-                                <input
-                                  type="text"
-                                  value={path}
-                                  onChange={e => handleResponsiveArrayFieldChange(idx, 'paths', i, e.target.value)}
-                                  maxLength={15}
-                                  className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
-                                />
-                                <span className="text-xs text-[#404042]">{path.length} / 15 chars</span>
-                              </div>
-                            ))}
-                            <div className="flex gap-2 mt-2">
-                              <Button variant="default" onClick={() => handleAddArrayField(idx, 'paths', 2)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
-                              <Button variant="destructive" onClick={() => handleRemoveArrayField(idx, 'paths', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
-                            </div>
-                            {showResponsiveAlt && ad.pathsAlt.map((path, i) => (
-                              <div key={i} className="mb-2 flex items-center gap-2">
-                                <label className="w-32 text-[#404042]">Path {i+1} Alternate</label>
-                                <input
-                                  type="text"
-                                  value={path}
-                                  onChange={e => handleResponsiveArrayFieldChange(idx, 'pathsAlt', i, e.target.value)}
-                                  maxLength={15}
-                                  className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none"
-                                />
-                                <span className="text-xs text-[#404042]">{path.length} / 15 chars</span>
-                              </div>
-                            ))}
+                            <Button size="icon" variant="destructive" style={{ backgroundColor: '#faad39ff', color: '#404042' }} onClick={() => setResponsiveAds(ads => ads.filter((_, i) => i !== idx))}>Delete Ad</Button>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
-                <div className="border border-[#FAAE3A]/20 rounded-lg bg-[#FFF8E1] mt-4">
-                  <button
-                    type="button"
-                    className="w-full flex justify-between items-center px-4 py-2 border-b border-[#FAAE3A]/20 text-[#404042] font-semibold focus:outline-none"
+                {/* Panel Call-Only Ads */}
+                <div className="mb-4">
+                  <div
+                    className="border rounded bg-gray-100 px-4 py-3 font-semibold cursor-pointer"
+                    style={{ color: '#404042', borderColor: '#faad39ff' }}
                     onClick={() => setAdsPanels(p => ({ ...p, callonly: !p.callonly }))}
                   >
-                    <span>Call-Only Ads</span>
-                    <span
-                      className={`transition-transform duration-200 ${adsPanels.callonly ? 'rotate-0' : 'rotate-180'}`}
-                      style={{ display: 'flex', alignItems: 'center' }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7 10l5 5 5-5" stroke="#404042" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </span>
-                  </button>
+                    Call-Only Ads
+                  </div>
                   {adsPanels.callonly && (
-                    <div className="p-4 sm:p-8 mb-4 sm:mb-8">
-                      {callOnlyAds.length === 0 ? (
-                        <div className="text-[#404042]/80 text-sm mb-4">
+                    <div>
+                      {callOnlyAds.length === 0 && (
+                        <div className="bg-[#FFF8E1] border border-[#faad39ff] text-[#404042] px-4 py-3 rounded mt-2 mb-2">
                           There are no Call-Only Ads added, if you like, you can add one by clicking the plus sign.
                         </div>
-                      ) : null}
+                      )}
                       {callOnlyAds.map((ad, idx) => (
-                        <div key={idx} className="border border-[#faad39ff] rounded-xl p-8 bg-[#FFF8E1] mb-8 shadow-sm">
-                          <div className="flex items-center gap-4 mb-6">
-                            <span className="font-bold text-[#404042] text-lg">Call-Only Ads</span>
-                            <Button variant="destructive" className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-semibold rounded-lg px-6 py-2" onClick={() => handleRemoveCallOnlyAd(idx)}>Delete Ad</Button>
-                            <Button
-                              variant="outline"
-                              className="ml-auto border border-[#404042] text-[#404042] bg-white hover:bg-[#FFF3D1] font-semibold rounded-lg px-6 py-2"
-                              onClick={() => setShowCallOnlyAlt(v => !v)}
-                            >
+                        <div className="p-4 border rounded-xl bg-white mb-4" key={idx}>
+                          <div className="font-semibold mb-2" style={{ color: '#404042' }}>Call-Only Ads</div>
+                          <div className="mb-4">
+                            <Label className="w-32">Business name</Label>
+                            <input
+                              value={ad.businessName}
+                              maxLength={25}
+                              onChange={e => setCallOnlyAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, businessName: e.target.value } : a))}
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white text-[#404042]"
+                            />
+                          </div>
+                          <div className="mb-4">
+                            <Label className="w-32">Phone Number</Label>
+                            <input
+                              value={ad.phoneNumber}
+                              maxLength={1024}
+                              onChange={e => setCallOnlyAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, phoneNumber: e.target.value } : a))}
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white text-[#404042]"
+                            />
+                          </div>
+                          <div className="mb-4">
+                            <Label className="w-32">Country Code</Label>
+                            <input
+                              value={ad.countryCode}
+                              onChange={e => setCallOnlyAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, countryCode: e.target.value } : a))}
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white text-[#404042]"
+                            />
+                          </div>
+                          <div className="mb-4">
+                            <Label className="w-32">Description 1</Label>
+                            <input
+                              value={ad.descriptions[0]}
+                              maxLength={90}
+                              onChange={e => setCallOnlyAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, descriptions: [e.target.value, ...a.descriptions.slice(1)] } : a))}
+                              className="w-full"
+                            />
+                          </div>
+                          <div className="mb-4">
+                            <Label className="w-32">Verification URL</Label>
+                            <input
+                              value={ad.verificationUrl}
+                              maxLength={1024}
+                              onChange={e => setCallOnlyAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, verificationUrl: e.target.value } : a))}
+                              className="w-full"
+                            />
+                          </div>
+                          <div className="mb-4 flex gap-4">
+                            <div className="flex items-center gap-2">
+                              <input type="checkbox" checked={ad.callTracking} onChange={e => setCallOnlyAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, callTracking: e.target.checked } : a))} />
+                              <Label>Call Tracking</Label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input type="checkbox" checked={ad.showFinalUrl} onChange={e => setCallOnlyAds(ads => ads.map((a, aidx) => aidx === idx ? { ...a, showFinalUrl: e.target.checked } : a))} />
+                              <Label>Show Final URL Link</Label>
+                            </div>
+                          </div>
+                          <div className="mb-4">
+                            <Label className="w-32">Conversion Action</Label>
+                            <span className="text-[#3b82f6] ml-2">Checking Conversions</span>
+                          </div>
+                          <div className="flex gap-2 mb-4">
+                            <Button size="icon" variant="default" style={{ backgroundColor: '#faad39ff', color: '#404042' }} onClick={() => setShowCallOnlyAlt(v => !v)}>
                               {showCallOnlyAlt ? 'Hide optional/alternate fields' : 'Show optional/alternate fields'}
                             </Button>
-                          </div>
-                          <div className="mb-6">
-                            <label className="font-semibold text-[#404042] block mb-1">Business name</label>
-                            <input type="text" value={ad.businessName} onChange={e => handleCallOnlyFieldChange(idx, 'businessName', e.target.value)} maxLength={25} className="w-full min-w-0 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none mb-1" />
-                            <span className="text-xs text-[#404042]">{ad.businessName.length} / 25 chars</span>
-                          </div>
-                          <div className="mb-6">
-                            <label className="font-semibold text-[#404042] block mb-1">Phone Number</label>
-                            <input type="text" value={ad.phoneNumber} onChange={e => handleCallOnlyFieldChange(idx, 'phoneNumber', e.target.value)} maxLength={1024} className="w-full min-w-0 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none mb-1" />
-                            <span className="text-xs text-[#404042]">{ad.phoneNumber.length} / 1024 chars</span>
-                          </div>
-                          <div className="mb-6">
-                            <label className="font-semibold text-[#404042] block mb-1">Country Code</label>
-                            <select value={ad.countryCode} onChange={e => handleCallOnlyFieldChange(idx, 'countryCode', e.target.value)} className="w-full min-w-0 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none mb-1">
-                              <option value="USA - US">USA - US</option>
-                              <option value="MEX - MX">MEX - MX</option>
-                              <option value="CAN - CA">CAN - CA</option>
-                            </select>
+                            <Button size="icon" variant="destructive" style={{ backgroundColor: '#faad39ff', color: '#404042' }} onClick={() => setCallOnlyAds(ads => ads.filter((_, i) => i !== idx))}>Delete Ad</Button>
                           </div>
                           {showCallOnlyAlt && (
-                            <div className="mb-6">
-                              <div className="font-bold text-[#404042] mb-2">Headlines</div>
-                              {ad.headlines.map((headline, i) => (
-                                <div key={i} className="mb-2 flex items-center gap-2">
-                                  <label className="w-32 font-semibold text-[#404042]">Headline {i+1}</label>
-                                  <input type="text" value={headline} onChange={e => handleCallOnlyArrayFieldChange(idx, 'headlines', i, e.target.value)} maxLength={30} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
-                                  <span className="text-xs text-[#404042]">{headline.length} / 30 chars</span>
-                                </div>
-                              ))}
-                              <div className="flex gap-2 mt-2">
-                                <Button variant="default" onClick={() => handleAddCallOnlyArrayField(idx, 'headlines', 5)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
-                                <Button variant="destructive" onClick={() => handleRemoveCallOnlyArrayField(idx, 'headlines', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
-                              </div>
-                              {ad.headlinesAlt.map((headline, i) => (
-                                <div key={i} className="mb-2 flex items-center gap-2">
-                                  <label className="w-32 text-[#404042]">Headline {i+1} Alternate</label>
-                                  <input type="text" value={headline} onChange={e => handleCallOnlyArrayFieldChange(idx, 'headlinesAlt', i, e.target.value)} maxLength={30} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
-                                  <span className="text-xs text-[#404042]">{headline.length} / 30 chars</span>
-                                </div>
-                              ))}
+                            <div className="mt-4">
+                              <div className="font-semibold mb-2" style={{ color: '#404042' }}>Alternate Fields</div>
+                              {/* Aquí puedes agregar los campos alternativos igual que en Responsive si lo deseas */}
                             </div>
                           )}
-                          <div className="mb-6">
-                            <div className="font-bold text-[#404042] mb-2">Descriptions</div>
-                            {ad.descriptions.map((desc, i) => (
-                              <div key={i} className="mb-2 flex items-center gap-2">
-                                <label className="w-32 font-semibold text-[#404042]">Description {i+1}</label>
-                                <input type="text" value={desc} onChange={e => handleCallOnlyArrayFieldChange(idx, 'descriptions', i, e.target.value)} maxLength={90} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
-                                <span className="text-xs text-[#404042]">{desc.length} / 90 chars</span>
-                              </div>
-                            ))}
-                            <div className="flex gap-2 mt-2">
-                              <Button variant="default" onClick={() => handleAddCallOnlyArrayField(idx, 'descriptions', 4)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
-                              <Button variant="destructive" onClick={() => handleRemoveCallOnlyArrayField(idx, 'descriptions', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
-                            </div>
-                            {showCallOnlyAlt && ad.descriptionsAlt.map((desc, i) => (
-                              <div key={i} className="mb-2 flex items-center gap-2">
-                                <label className="w-32 text-[#404042]">Description {i+1} Alternate</label>
-                                <input type="text" value={desc} onChange={e => handleCallOnlyArrayFieldChange(idx, 'descriptionsAlt', i, e.target.value)} maxLength={90} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
-                                <span className="text-xs text-[#404042]">{desc.length} / 90 chars</span>
-                              </div>
-                            ))}
-                          </div>
-                          {showCallOnlyAlt && (
-                            <div className="mb-6">
-                              <div className="font-bold text-[#404042] mb-2">Paths</div>
-                              {ad.paths.map((path, i) => (
-                                <div key={i} className="mb-2 flex items-center gap-2">
-                                  <label className="w-32 font-semibold text-[#404042]">Path {i+1}</label>
-                                  <input type="text" value={path} onChange={e => handleCallOnlyArrayFieldChange(idx, 'paths', i, e.target.value)} maxLength={15} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
-                                  <span className="text-xs text-[#404042]">{path.length} / 15 chars</span>
-                                </div>
-                              ))}
-                              <div className="flex gap-2 mt-2">
-                                <Button variant="default" onClick={() => handleAddCallOnlyArrayField(idx, 'paths', 2)} className="bg-[#faad39ff] hover:bg-[#F17625] text-[#404042] font-bold rounded-lg px-3 py-1"><Plus className="w-4 h-4" /></Button>
-                                <Button variant="destructive" onClick={() => handleRemoveCallOnlyArrayField(idx, 'paths', 1)} className="bg-[#FF6B6B] hover:bg-[#E74C3C] text-white font-bold rounded-lg px-3 py-1">-</Button>
-                              </div>
-                              {ad.pathsAlt.map((path, i) => (
-                                <div key={i} className="mb-2 flex items-center gap-2">
-                                  <label className="w-32 text-[#404042]">Path {i+1} Alternate</label>
-                                  <input type="text" value={path} onChange={e => handleCallOnlyArrayFieldChange(idx, 'pathsAlt', i, e.target.value)} maxLength={15} className="flex-1 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none" />
-                                  <span className="text-xs text-[#404042]">{path.length} / 15 chars</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          <div className="mb-6">
-                            <label className="font-semibold text-[#404042] block mb-1">Verification URL</label>
-                            <input type="text" value={ad.verificationUrl} onChange={e => handleCallOnlyFieldChange(idx, 'verificationUrl', e.target.value)} maxLength={1024} className="w-full min-w-0 bg-[#FFF8E1] border border-[#faad39ff] rounded-lg px-3 py-2 text-[#404042] focus:ring-2 focus:ring-[#faad39ff] focus:outline-none mb-1" />
-                            <span className="text-xs text-[#404042]">{ad.verificationUrl.length} / 1024 chars</span>
-                          </div>
-                          <div className="mb-6 flex gap-6 items-center">
-                            <label className="flex items-center gap-2 text-[#404042] font-semibold">
-                              <input type="checkbox" checked={ad.callTracking} onChange={e => handleCallOnlyFieldChange(idx, 'callTracking', e.target.checked)} className="accent-[#FAAE3A] w-4 h-4 rounded" />
-                              Call Tracking
-                            </label>
-                            <label className="flex items-center gap-2 text-[#404042] font-semibold">
-                              <input type="checkbox" checked={ad.showFinalUrl} onChange={e => handleCallOnlyFieldChange(idx, 'showFinalUrl', e.target.checked)} className="accent-[#FAAE3A] w-4 h-4 rounded" />
-                              Show Final URL Link
-                            </label>
-                          </div>
-                          <div className="mb-6">
-                            <div className="font-bold text-[#404042] mb-2">Conversion Action</div>
-                            <span className="text-[#1976D2] font-semibold">{ad.conversionAction}</span>
-                          </div>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
-                <div className="flex justify-start mt-6">
-                  <button
-                    ref={adTypeBtnRef}
-                    className="flex items-center gap-2 bg-[#faad39ff] hover:bg-[#F17625] text-[#404042ff] font-bold px-6 py-2 rounded-lg shadow min-w-0 min-h-[40px] border border-[#faad39ff]"
-                    style={{ boxShadow: '2px 2px 0 #e6b96a' }}
-                    onClick={e => {
-                      const rect = adTypeBtnRef.current!.getBoundingClientRect();
-                      setAdTypeDropdownPos({
-                        top: rect.bottom + window.scrollY,
-                        left: rect.left + window.scrollX,
-                        width: rect.width
-                      });
-                      setShowAdTypeDropdown(v => !v);
-                    }}
-                  >
-                    <Plus className="w-4 h-4" /> Add
-                  </button>
+                {/* Botón + y menú de tipo de ad */}
+                <div className="relative">
+                  <Button size="icon" variant="default" className="!rounded !w-10 !h-10" style={{ backgroundColor: '#faad39ff', color: '#404042' }} onClick={() => setShowAdTypeDropdown(v => !v)}>
+                    <Plus className="w-5 h-5" />
+                  </Button>
                   {showAdTypeDropdown && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: adTypeDropdownPos.top,
-                        left: adTypeDropdownPos.left,
-                        width: adTypeDropdownPos.width,
-                        zIndex: 1000,
-                        background: "white",
-                        border: "1px solid #faad39ff",
-                        borderRadius: 8,
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                        padding: 8,
-                      }}
-                    >
-                      <div className="font-semibold text-[#404042] mb-2">Ad Types</div>
-                      <div className="cursor-pointer px-4 py-2 hover:bg-[#FFF3D1] text-[#404042] rounded" onMouseDown={handleAddCallOnlyAd}>Call Only Ad</div>
+                    <div className="absolute left-0 mt-2 bg-white border rounded shadow z-10 min-w-[180px]">
+                      <div className="px-4 py-2 font-semibold text-[#404042] border-b">Ad Types</div>
+                      <button className="w-full text-left px-4 py-2 hover:bg-[#FFF8E1] hover:text-[#faad39ff]" style={{ color: '#404042' }} onClick={handleAddResponsiveAd}>Responsive Search Ad</button>
+                      <button className="w-full text-left px-4 py-2 hover:bg-[#FFF8E1] hover:text-[#faad39ff]" style={{ color: '#404042' }} onClick={handleAddCallOnlyAd}>Call-Only Ad</button>
                     </div>
                   )}
                 </div>
               </div>
             )}
             {activeTab === "keywords" && (
-              <div className="flex flex-col gap-6">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full mb-2 rounded-lg overflow-hidden">
-                    <thead>
-                      <tr>
-                        <th className="text-left px-4 py-2 font-semibold text-[#404042] bg-[#FFF3D1]">Keyword</th>
-                        <th className="text-left px-4 py-2 font-semibold text-[#404042] bg-[#FFF3D1]">Match Type</th>
-                        <th className="px-4 py-2 bg-[#FFF3D1]"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {keywords.length === 0 ? (
-                        <tr><td colSpan={3} className="bg-[#FFF8E1] text-[#404042]/70 px-4 py-4 text-center text-sm">No keywords have been added yet</td></tr>
-                      ) : (
-                        keywords.map((kw, idx) => (
-                          <tr key={idx} className="hover:bg-[#FFF3D1]">
-                            <td className="px-4 py-2 min-w-0">
-                              <KeywordTags 
-                                keyword={kw.keyword} 
-                                index={idx}
-                                updateKeyword={updateKeyword}
-                              />
-                            </td>
-                            <td className="px-4 py-2 min-w-0">
-                              <span className="bg-[#FAAE3A]/20 border border-[#FAAE3A] text-[#404042] rounded px-2 py-0.5 text-xs font-semibold">
-                                {kw.matchType}
-                              </span>
-                            </td>
-                            <td className="px-4 py-2">
-                              <input 
-                                type="checkbox" 
-                                checked={selectedKeywords.includes(idx)} 
-                                onChange={e => handleSelectKeyword(idx, e.target.checked)} 
-                              />
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                  <div className="flex gap-2 mb-4 mt-2">
-                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]" onClick={() => fileInputRef.current?.click()}>
-                      <Upload className="w-4 h-4" />
-                      Upload
-                      <input type="file" accept=".csv,.txt" ref={fileInputRef} style={{ display: 'none' }} onChange={handleUploadKeywords} />
-                    </Button>
-                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]" onClick={handleDownloadKeywords}>
-                      <Download className="w-4 h-4" />
-                      Download
-                    </Button>
-                    <Button variant="outline" className="flex items-center gap-2 border-[#faad39ff] text-[#404042ff] bg-white hover:bg-[#FFF3D1]" onClick={handleDeleteKeywords}>
-                      <Trash className="w-4 h-4" />
-                      Delete
-                    </Button>
+              <div className="bg-white border rounded-xl p-6">
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-semibold text-[#404042] text-lg">Keywords</span>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="p-2 rounded" style={{ background: '#faad39ff' }}
+                        title="Download CSV template"
+                        onClick={handleDownloadKeywords}
+                      >
+                        <Download className="w-5 h-5" />
+                      </button>
+                      <button
+                        type="button"
+                        className="p-2 rounded" style={{ background: '#404042ff' }}
+                        title="Update keywords from file"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Upload className="w-5 h-5" />
+                        <input type="file" accept=".csv,.txt" ref={fileInputRef} style={{ display: 'none' }} onChange={handleUploadKeywords} />
+                      </button>
+                      <button
+                        type="button"
+                        className="p-2 rounded" style={{ background: '#f77272ff' }}
+                        title="Delete selected keywords"
+                        onClick={handleDeleteKeywords}
+                      >
+                        <Trash className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2 items-center mt-2">
-                    <Input value={newKeyword} onChange={e => setNewKeyword(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleAddKeyword(); }} className="bg-[#FFF8E1] border-[#faad39ff] rounded-lg flex-1 min-w-[180px] text-[#404042ff]" placeholder="Add keyword..." />
-                    <select className="border border-[#faad39ff] rounded-lg h-11 px-2 bg-[#FFF8E1] text-[#404042ff] focus:ring-2 focus:ring-[#faad39ff]" value={newMatchType} onChange={e => setNewMatchType(e.target.value)}>
+                  <div className="flex font-semibold text-[#404042] mb-1 gap-2 items-center">
+                    <div className="w-full">Keyword</div>
+                    <div className="w-full">Match Type</div>
+                    {/* Checkbox de seleccionar todos (opcional) */}
+                  </div>
+                  <hr className="mb-2" />
+                  {keywords.length === 0 && (
+                    <div className="bg-[#fff4ce] border border-[#ffe7a0] text-[#404042] px-4 py-3 rounded mb-2 text-center">
+                      No keywords have been added yet
+                    </div>
+                  )}
+                  {keywords.map((kw, idx) => (
+                    <div key={idx} className="flex items-center gap-2 mb-1">
+                      <input
+                        className="w-full border rounded px-2 py-1"
+                        value={kw.keyword.join(' ')}
+                        onChange={e => setKeywords(ks => ks.map((k, i) => i === idx ? { ...k, keyword: e.target.value.split(' ') } : k))}
+                      />
+                      <select
+                        className="w-full border rounded px-2 py-1"
+                        value={kw.matchType}
+                        onChange={e => setKeywords(ks => ks.map((k, i) => i === idx ? { ...k, matchType: e.target.value } : k))}
+                      >
+                        <option value="Broad">Broad</option>
+                        <option value="Phrase">Phrase</option>
+                        <option value="Exact">Exact</option>
+                      </select>
+                      <input
+                        type="checkbox"
+                        className="w-5 h-5 accent-[#f77272ff] ml-2"
+                        checked={selectedKeywords.includes(idx)}
+                        onChange={e => handleSelectKeyword(idx, e.target.checked)}
+                      />
+                    </div>
+                  ))}
+                  {/* Fila para agregar nueva keyword */}
+                  <div className="flex flex-col gap-2 mt-2">
+                    <input
+                      className="w-full border rounded px-2 py-1"
+                      value={newKeyword}
+                      onChange={e => setNewKeyword(e.target.value)}
+                      placeholder="Add keyword..."
+                      onKeyDown={e => { if (e.key === 'Enter') handleAddKeyword(); }}
+                    />
+                    <select
+                      className="w-full border rounded px-2 py-1"
+                      value={newMatchType}
+                      onChange={e => setNewMatchType(e.target.value)}
+                    >
                       <option value="Broad">Broad</option>
                       <option value="Phrase">Phrase</option>
                       <option value="Exact">Exact</option>
                     </select>
                     <Button
-                      variant="default"
-                      className="flex items-center gap-2 bg-[#faad39ff] hover:bg-[#F17625] text-[#404042ff] font-bold px-6 py-2 rounded-lg shadow-none"
+                      type="button"
+                      className="p-2 rounded w-full mt-1"
+                      style={{ background: '#404042ff', color: '#fff' }}
                       onClick={handleAddKeyword}
                     >
-                      <Plus className="w-4 h-4" />
-                      Add
+                      <Plus className="w-5 h-5" /> Add
                     </Button>
                   </div>
                 </div>
@@ -1254,21 +1168,27 @@ export default function NewPrebuildTemplatePage() {
                     <Switch />
                     <span className="font-semibold text-[#404042]">Include Call Ext</span>
                   </div>
-                  <input className="border border-gray-300 rounded px-3 py-2" placeholder="Phone" />
+                  <input className="border border-gray-200 rounded-lg px-3 py-2" placeholder="Phone" />
                   <div className="flex items-center gap-2 mb-2">
                     <Switch />
                     <span className="font-semibold text-[#404042]">Include Site Links</span>
                   </div>
-                  <div className="flex gap-2 mb-2">
-                    <input className="border border-gray-300 rounded px-3 py-2 flex-1" placeholder="Text" />
-                    <input className="border border-gray-300 rounded px-3 py-2 flex-1" placeholder="Link" />
-                    <Button className="bg-[#FF9F00] text-white rounded" variant="secondary">+</Button>
+                  <div className="flex items-center gap-2">
+                    <input className="flex-1 border border-gray-200 rounded-lg px-3 py-2" placeholder="Text" />
+                    <input className="flex-1 border border-gray-200 rounded-lg px-3 py-2" placeholder="Link" />
+                    <Button 
+                      className="!px-2 !py-2 !h-auto" 
+                      style={{ background: '#faad39ff', color: '#404042' }}
+                      variant="secondary"
+                    >
+                      +
+                    </Button>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
                     <Switch />
                     <span className="font-semibold text-[#404042]">Include Call Outs</span>
                   </div>
-                  <input className="border border-gray-300 rounded px-3 py-2" placeholder="Text" />
+                  <input className="border border-gray-200 rounded-lg px-3 py-2" placeholder="Text" />
                 </div>
               </div>
             )}

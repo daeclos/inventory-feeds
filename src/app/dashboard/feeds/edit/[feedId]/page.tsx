@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Info, Plus, Minus, Copy, Trash2, HelpCircle } from "lucide-react";
@@ -32,10 +32,22 @@ export default function EditFeedPage() {
   // Estado para el operador seleccionado en el filtro demo
   const [filterOperator, setFilterOperator] = React.useState<string>("Is not");
 
-  // Obtener advertiser y direcciones
-  const advertiser = advertisers.find((a: any) => a.id === (form?.advertisers?.[0] || form?.advertisers));
-  const advertiserName = advertiser?.name || "-";
-  const addresses = advertiser?.addresses || [];
+  // Obtener advertiser y direcciones usando useMemo
+  const advertiser = useMemo(() => 
+    advertisers.find((a: any) => a.id === (form?.advertisers?.[0] || form?.advertisers)),
+    [advertisers, form?.advertisers]
+  );
+  
+  const advertiserName = useMemo(() => 
+    advertiser?.name || "-",
+    [advertiser?.name]
+  );
+  
+  const addresses = useMemo(() => 
+    advertiser?.addresses || [],
+    [advertiser?.addresses]
+  );
+  
   const [selectedAddress, setSelectedAddress] = useState(form?.address || addresses[0]?.address || "");
 
   // Estado para mostrar el popover de placeholders
@@ -80,7 +92,7 @@ export default function EditFeedPage() {
 
   useEffect(() => {
     if (addresses.length > 0) setSelectedAddress(addresses[0].address);
-  }, [advertiser]);
+  }, [advertiser, addresses]);
 
   if (!form) return <div className="p-8">Loading...</div>;
 
